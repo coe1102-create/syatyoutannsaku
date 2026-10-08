@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>社長を探せ！</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap">
+<style>
+/* Layout: full-screen globe canvas; a "wanted poster" HUD pinned top, tool buttons pinned bottom, overlays for title / found / result. Single night-sky world by choice. */
+:root {
+  --sky: #0a1233;
+  --sky-2: #1a2a63;
+  --ocean: #2f7fd0;
+  --land: #9bd27a;
+  --paper: #fff4d6;
+  --ink: #2a2118;
+  --gold: #ffc53d;
+  --miss: #ef4f43;
+  --ok: #33c27f;
+  --white: #ffffff;
+  --display: "Dela Gothic One", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --body: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", "Yu Gothic", system-ui, sans-serif;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden; overscroll-behavior: none;
+  background: var(--sky);
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, #fff9 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 12%, #fff8 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 85% 64%, #fffa 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 78%, #fff7 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 40%, #fff5 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 6% 58%, #fff8 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 30%, #fff6 50%, transparent 51%),
+    radial-gradient(120% 80% at 50% 110%, var(--sky-2), var(--sky) 70%);
+  background-size: 180px 180px, 230px 230px, 300px 300px, 210px 210px, 160px 160px, 260px 260px, 190px 190px, 100% 100%;
+  color: var(--white); font-family: var(--body);
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+#app { position: fixed; inset: 0; }
+#globe { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; display: block; cursor: grab; }
+#globe.dragging { cursor: grabbing; }
+button { font-family: var(--body); font-weight: 800; border: 0; cursor: pointer; color: var(--ink); }
+button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* --- HUD --- */
+.hud-top {
+  position: absolute; left: 0; right: 0; top: 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px 0;
+  display: flex; gap: 10px; align-items: stretch; pointer-events: none;
+}
+.poster {
+  flex: 1; min-width: 0; display: flex; gap: 10px; align-items: center;
+  background: var(--paper); color: var(--ink); border-radius: 6px; padding: 8px 10px 8px 8px;
+  box-shadow: 0 6px 0 #0004; transform: rotate(-1.2deg); pointer-events: auto;
+}
+.poster .frame {
+  width: 62px; height: 62px; flex: none; border: 2px solid var(--ink); border-radius: 4px;
+  background: repeating-linear-gradient(45deg, #f6e3b0 0 6px, #fbeccb 6px 12px);
+  display: grid; place-items: center; overflow: hidden;
+}
+.poster .frame img { max-width: 92%; max-height: 92%; }
+.poster .txt { min-width: 0; }
+.poster .eyebrow { font-family: var(--display); font-size: 11px; letter-spacing: .12em; color: var(--miss); }
+.poster .name { font-weight: 800; font-size: 16px; line-height: 1.25; text-wrap: balance; }
+.poster .sub { font-size: 11px; opacity: .7; }
+.stats {
+  flex: none; width: 92px; display: flex; flex-direction: column; gap: 4px; align-items: stretch; pointer-events: auto;
+}
+.timer {
+  background: var(--ink); color: var(--gold); border-radius: 6px; text-align: center;
+  font-family: var(--display); font-size: 22px; line-height: 1; padding: 10px 4px 8px;
+  font-variant-numeric: tabular-nums; box-shadow: 0 4px 0 #0005;
+}
+.mini { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; padding: 0 2px; font-variant-numeric: tabular-nums; }
+.mini b { color: var(--gold); }
+
+.hud-bottom {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  display: flex; gap: 10px; align-items: center; justify-content: space-between; pointer-events: none;
+}
+.hud-bottom > * { pointer-events: auto; }
+.tool {
+  height: 52px; min-width: 52px; border-radius: 26px; padding: 0 18px; font-size: 15px;
+  background: var(--paper); box-shadow: 0 4px 0 #0006; display: inline-flex; align-items: center; gap: 6px;
+}
+.tool:active { transform: translateY(3px); box-shadow: 0 1px 0 #0006; }
+.tool[disabled] { opacity: .45; }
+.tool.round { padding: 0; width: 52px; justify-content: center; font-size: 26px; line-height: 1; }
+.zoomers { display: flex; gap: 10px; }
+.hint-cost { font-size: 11px; opacity: .7; font-weight: 700; }
+
+.toast {
+  position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%) scale(.9);
+  background: var(--miss); color: var(--white); padding: 10px 18px; border-radius: 30px;
+  font-weight: 800; font-size: 16px; white-space: nowrap; opacity: 0; pointer-events: none;
+  transition: opacity .2s, transform .2s; box-shadow: 0 6px 0 #0005; max-width: calc(100% - 32px);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.toast.info { background: var(--ink); color: var(--gold); }
+
+/* --- overlays --- */
+.overlay {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 20px);
+  background: linear-gradient(to bottom, #0a123300 20%, #0a1233cc 55%, #0a1233f2);
+}
+.panel { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 14px; align-items: stretch; }
+.logo { text-align: center; }
+.logo .kicker { font-size: 13px; font-weight: 700; letter-spacing: .2em; color: var(--gold); }
+.logo h1 {
+  font-family: var(--display); font-weight: 400; font-size: clamp(44px, 14vw, 64px); line-height: 1.05; margin: 4px 0 6px;
+  color: var(--paper); text-shadow: 0 4px 0 var(--miss), 0 8px 0 #0006; letter-spacing: .02em;
+}
+.logo p { margin: 0; font-size: 14px; opacity: .9; }
+.start-wrap { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.start-meta { text-align: center; font-size: 12px; font-weight: 700; opacity: .8; font-variant-numeric: tabular-nums; }
+.best { text-align: center; font-size: 12px; opacity: .75; font-variant-numeric: tabular-nums; }
+.loading { text-align: center; font-size: 13px; color: var(--gold); }
+
+.card {
+  background: var(--paper); color: var(--ink); border-radius: 12px; padding: 16px; text-align: center;
+  box-shadow: 0 8px 0 #0007; display: flex; flex-direction: column; gap: 6px; align-items: center;
+}
+.card .big { font-family: var(--display); font-size: 40px; line-height: 1; color: var(--miss); }
+.card .big.ok { color: var(--ok); }
+.card img { height: 110px; }
+.card .nm { font-weight: 800; font-size: 18px; }
+.card .loc { font-size: 12px; opacity: .7; font-variant-numeric: tabular-nums; }
+.card .pts { font-family: var(--display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.primary {
+  background: var(--gold); border-radius: 30px; height: 56px; font-size: 18px; box-shadow: 0 5px 0 #0007; width: 100%;
+}
+.primary:active { transform: translateY(4px); box-shadow: 0 1px 0 #0007; }
+.ghost { background: transparent; color: var(--paper); font-size: 14px; height: 40px; text-decoration: underline; }
+.rank { font-family: var(--display); font-size: 30px; color: var(--ink); }
+.score-total { font-family: var(--display); font-size: 48px; line-height: 1; font-variant-numeric: tabular-nums; }
+.result-list { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.result-list div { width: 72px; border-radius: 6px; background: #0001; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0 5px; }
+.result-list img { height: 64px; max-width: 64px; object-fit: contain; }
+.result-list span { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="globe" aria-label="社長がいっぱいの地球儀"></canvas>
+
+  <div class="hud-top" id="hud" hidden>
+    <div class="poster">
+      <div class="frame"><img id="tImg" alt=""></div>
+      <div class="txt">
+        <div class="eyebrow">この社長を探せ！</div>
+        <div class="name" id="tName">—</div>
+        <div class="sub" id="tSub">にているけど服がちがう社長に注意</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="timer" id="timer">0:00</div>
+      <div class="mini"><span>社長</span><span><b id="round">1</b>/<span id="rounds">5</span></span></div>
+      <div class="mini"><span>ミス</span><b id="misses">0</b></div>
+    </div>
+  </div>
+
+  <div class="hud-bottom" id="tools" hidden>
+    <button class="tool" id="hintBtn" type="button">ヒント <span class="hint-cost">+10秒</span></button>
+    <div class="zoomers">
+      <button class="tool round" id="zoomOut" type="button" aria-label="縮小">−</button>
+      <button class="tool round" id="zoomIn" type="button" aria-label="拡大">＋</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="overlay" id="titleScreen">
+    <div class="panel">
+      <div class="logo">
+        <div class="kicker">地球儀版</div>
+        <h1>社長を探せ！</h1>
+        <p>世界じゅうにちらばった社長の中から、<br>指名の1人を見つけ出そう。</p>
+      </div>
+      <div class="loading" id="loading">社長を集めています…</div>
+      <div class="start-wrap" id="levels" hidden>
+        <button class="primary" id="startBtn" type="button">スタート</button>
+        <div class="start-meta" id="startMeta">3人を見つけるタイムを競おう</div>
+      </div>
+      <div class="best" id="best"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="foundScreen" hidden>
+    <div class="panel">
+      <div class="card">
+        <div class="big" id="fHead">発見！</div>
+        <img id="fImg" alt="">
+        <div class="nm" id="fName"></div>
+        <div class="loc" id="fLoc"></div>
+        <div class="pts" id="fPts"></div>
+      </div>
+      <button class="primary" id="nextBtn" type="button">つぎの社長へ</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="resultScreen" hidden>
+    <div class="panel">
+      <div class="card">
+        <div class="loc">あなたの社長発見力</div>
+        <div class="rank" id="rRank"></div>
+        <div class="score-total" id="rScore">0</div>
+        <div class="loc" id="rSub"></div>
+        <div class="result-list" id="rList"></div>
+      </div>
+      <button class="primary" id="againBtn" type="button">もう一度あそぶ</button>
+      <button class="ghost" id="homeBtn" type="button">タイトルへ</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="costumes.js"></script>
+<script>
+(() => {
+"use strict";
+
+// ---- characters -------------------------------------------------------
+const NAMES = {
+  s1_00:"スーツ", s1_01:"タブレット", s1_02:"現場監督", s1_03:"袴", s1_04:"スーパーマン", s1_05:"ハイキング",
+  s1_06:"カフェ店員", s1_07:"教授", s1_08:"画家", s1_09:"カメラマン", s1_10:"ジョギング", s1_11:"ゴルフ",
+  s1_12:"読書", s1_13:"お祭り", s1_14:"ガッツポーズ", s1_15:"スピーチ", s1_16:"和菓子", s1_17:"冬支度",
+  s2_00:"釣り", s2_01:"南国旅行", s2_02:"出張", s2_03:"サイクリング", s2_04:"プログラマー", s2_05:"指揮者",
+  s2_06:"シェフ", s2_07:"写真散歩", s2_08:"アトリエ", s2_09:"学生", s2_10:"茶道", s2_11:"研究者",
+  s2_12:"サッカー", s2_13:"歌手", s2_14:"ガーデニング", s2_15:"大工", s2_16:"くつろぎ読書", s2_17:"キャンプ",
+  s2_18:"ラジオ体操", s2_19:"執筆", s2_20:"ギター", s2_21:"応援団", s2_22:"スキー", s2_23:"犬の散歩",
+  s3_00:"カフェマスター", s3_01:"野球", s3_02:"ダイバー", s3_03:"雨の日", s3_04:"ウクレレ", s3_05:"剣道",
+  s3_06:"サンタ", s3_07:"手品師", s3_08:"お医者さん", s3_09:"ロードバイク", s3_10:"パイロット", s3_11:"夏祭り",
+  s3_12:"宇宙飛行士", s3_13:"ヨガ", s3_14:"デスクワーク", s3_15:"炭鉱夫", s3_16:"農家", s3_17:"王様",
+  s3_18:"スキーヤー", s3_19:"ロッカー",
+  s4_00:"空飛ぶマジシャン", s4_01:"宇宙遊泳", s4_02:"スーパーヒーロー", s4_03:"ハンググライダー", s4_04:"ミツバチ",
+  s4_05:"空飛ぶ会社員", s4_06:"ジェットパック", s4_07:"飛行機乗り", s4_08:"妖精", s4_09:"ほうき侍",
+  s4_10:"魔法使い", s4_11:"忍者", s4_12:"サーフィン", s4_13:"銃士", s4_14:"天使",
+  s5_00:"マジシャン", s5_01:"月面歩行", s5_02:"正義の味方", s5_03:"空の散歩", s5_04:"ウインク蜂",
+  s5_05:"遅刻寸前", s5_06:"複葉機", s5_07:"スキューバ", s5_08:"侍", s5_09:"花の妖精",
+  s5_10:"魔導士", s5_11:"しのび", s5_12:"祈る天使", s5_13:"バカンス", s5_14:"剣士", s5_15:"紋付袴"
+};
+// look-alikes: never put a target's look-alike on the globe in the same round
+const GROUPS = [
+  ["s4_00","s5_00"], ["s4_01","s5_01"], ["s4_02","s5_02","s1_04"], ["s4_03","s5_03"], ["s4_04","s5_04"],
+  ["s4_05","s5_05"], ["s4_06","s5_07"], ["s4_07","s5_06"], ["s4_08","s5_09"], ["s4_10","s5_10"],
+  ["s4_11","s5_11"], ["s4_12","s5_13"], ["s4_13","s5_14"], ["s4_14","s5_12"], ["s1_13","s3_11"],
+  ["s2_03","s3_09"], ["s1_08","s2_08"], ["s1_12","s2_16"], ["s1_09","s2_07"], ["s2_18","s3_13"],
+  ["s2_22","s3_18"], ["s1_03","s5_15"]
+];
+// illustrated 社長 roam freely; costumed 社長 always stand in their own country
+const FREE_IDS = Object.keys(NAMES);
+const COSTUME = {};
+SYX.COSTUMES.forEach(c => { NAMES[c.id] = c.name; COSTUME[c.id] = c; });
+const IDS = Object.keys(NAMES);
+// 空を飛んでいる社長（と海にいる社長）は海の上にも出てよい
+const FLYING = new Set([
+  "s4_00","s4_01","s4_02","s4_03","s4_04","s4_05","s4_06","s4_07","s4_08","s4_09","s4_10","s4_11","s4_13","s4_14",
+  "s5_00","s5_01","s5_02","s5_03","s5_04","s5_06","s5_09","s5_10","s5_12"
+]);
+const SEA_OK = new Set(["s4_12", "s5_07"]);  // サーフィン・スキューバ（海面にいるので浮かせない）
+const groupOf = {};
+GROUPS.forEach((g, i) => g.forEach(id => { groupOf[id] = i; }));
+const fullName = id => NAMES[id] + "の社長";
+
+// every 社長 is on the globe, each exactly once
+const level = { size: 0.058 };
+const SPACING = 0.04;  // min distance between free 社長 (radians, ≈2.3°)
+const FLORA_N = 160, BUILD_N = 40, DECOR_SPACING = 0.026;  // plants / buildings scattered each round
+const ROUNDS = 3;
+const MISS_PENALTY = 3, HINT_COST = 10;
+const ZMIN = 0.85, ZMAX = 14;
+
+// ---- dom ----------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const canvas = $("globe"), ctx = canvas.getContext("2d");
+let W = 0, H = 0, dpr = 1;
+
+// ---- state --------------------------------------------------------------
+const sprites = {};
+let land = null, landPoints = [];
+let objects = [];      // everything standing on the globe: 社長 and decorations
+let decorFixed = [];   // landmarks (same every round)
+const view = { lon: 135, lat: 20, zoom: 1 };
+let mode = "title";  // title | play | found | result
+let round = 0, elapsed = 0, splitStart = 0, misses = 0, targetId = null, targetP = null;
+let targets = [], targetPos = {}, history = [];
+let hintUsed = false;
+let tween = null, spin = { lon: 0, lat: 0 }, dirty = true;
+let flash = null;
+
+const proj = d3.geoOrthographic().clipAngle(90).precision(0.6);
+const path = d3.geoPath(proj, ctx);
+const graticule = d3.geoGraticule10();
+
+function radius() { return Math.min(W, H * 0.8) * 0.42 * view.zoom; }
+function globeCenter() { return [W / 2, H * 0.52]; }
+function syncProj() {
+  const [cx, cy] = globeCenter();
+  proj.scale(radius()).translate([cx, cy]).rotate([-view.lon, -view.lat]);
+}
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  dirty = true;
+}
+window.addEventListener("resize", resize);
+
+// ---- loading ------------------------------------------------------------
+// nom = drawn height in "社長 units" (a plain standing 社長 is 200)
+function addSprite(key, img, nom, url) {
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  let alpha = null;
+  try {
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const x = c.getContext("2d"); x.drawImage(img, 0, 0);
+    alpha = x.getImageData(0, 0, w, h).data;
+  } catch (e) { /* tainted canvas: fall back to box hit test */ }
+  sprites[key] = { img, w, h, nom, alpha, url };
+}
+function loadImage(src) {
+  return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+}
+async function loadSprite(id) {
+  const im = await loadImage("chars/" + id + ".webp");
+  if (im) addSprite(id, im, im.naturalHeight, im.src);
+}
+async function loadCostumes() {
+  const head = await loadImage("chars/head.webp");
+  await Promise.all(SYX.COSTUMES.map(async c => {
+    const r = await SYX.buildCostume(c, head);
+    let url = "";
+    try { url = r.canvas.toDataURL("image/png"); } catch (e) {}
+    addSprite(c.id, r.canvas, r.nom, url);
+  }));
+}
+function emojiCanvas(ch) {
+  const c = document.createElement("canvas");
+  c.width = c.height = 200;
+  const x = c.getContext("2d");
+  x.font = '150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillText(ch, 100, 110);
+  return SYX.trim(c);
+}
+function emojiOk(c) {
+  try {
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let colored = 0;
+    for (let i = 0; i < d.length; i += 16) {
+      if (d[i + 3] < 100) continue;
+      const mx = Math.max(d[i], d[i + 1], d[i + 2]), mn = Math.min(d[i], d[i + 1], d[i + 2]);
+      if (mx - mn > 40) colored++;
+    }
+    return colored > 20;
+  } catch (e) { return true; }
+}
+
+// ---- climate zones --------------------------------------------------------
+let biomeShapes = [];
+function buildBiomes() {
+  // shrinking translucent layers per zone so the edges fade instead of ending in a hard circle
+  const layer = (b, k) => ({ type: "MultiPolygon", coordinates: b.circles.map(([lon, lat, r]) => d3.geoCircle().center([lon, lat]).radius(r * k).precision(4)().coordinates) });
+  biomeShapes = SYX.BIOMES.map(b => ({
+    b,
+    layers: [1.12, 1.0, 0.88, 0.76, 0.64, 0.52].map(k => [layer(b, k), 0.24]),
+    circles: b.circles.map(([lon, lat, r]) => [[lon, lat], r * Math.PI / 180])
+  }));
+}
+function biomeAt(pos) {
+  for (let i = biomeShapes.length - 1; i >= 0; i--) {
+    if (biomeShapes[i].circles.some(([c, r]) => d3.geoDistance(pos, c) < r)) return biomeShapes[i].b;
+  }
+  return null;  // temperate
+}
+
+async function loadDecor() {
+  const emojis = new Set();
+  SYX.LANDMARKS.forEach(l => { if (l[0] === "emoji") emojis.add(l[1]); });
+  SYX.SEA.forEach(z => z.list.forEach(e => emojis.add(e)));
+  SYX.VEHICLES.forEach(v => emojis.add(v.e));
+  const items = [...SYX.TEMPERATE_PLANTS.map(p => "e:" + p[0])];
+  SYX.BIOMES.forEach(b => b.plants.forEach(p => items.push("e:" + p[0])));
+  [...Object.values(SYX.BUILD_BY_BIOME), ...Object.values(SYX.BUILD_BY_REGION)].forEach(l => l.forEach(b => items.push(b[0])));
+  items.forEach(k => { if (k.startsWith("e:")) emojis.add(k.slice(2)); });
+  // skip emoji this device can't draw (they come out as grey boxes)
+  emojis.forEach(e => { const c = emojiCanvas(e); if (emojiOk(c)) addSprite("e:" + e, c, 0); });
+  await Promise.all(Object.entries(SYX.LM_SVG).map(async ([k, svg]) => {
+    const im = await SYX.loadSvg(svg);
+    if (im) addSprite("l:" + k, im, 0);
+  }));
+  decorFixed = SYX.LANDMARKS
+    .map(([kind, key, name, lon, lat, nom]) => {
+      const sk = (kind === "emoji" ? "e:" : "l:") + key;
+      return sprites[sk] ? { decor: true, sk, name, lon, lat, nom, s: 1, flip: false } : null;
+    })
+    .filter(Boolean);
+}
+
+async function loadLand() {
+  try {
+    const topo = await (await fetch("data/land-110m.json")).json();
+    land = topojson.feature(topo, topo.objects.land);
+  } catch (e) { land = null; }
+  // pool of on-land spots, sampled uniformly over the sphere
+  let guard = 0;
+  while (landPoints.length < 2500 && guard++ < 40000) {
+    const lon = Math.random() * 360 - 180;
+    const lat = Math.asin(Math.random() * 2 - 1) * 180 / Math.PI;
+    if (lat < -58 || lat > 78) continue;
+    if (!land || d3.geoContains(land, [lon, lat])) landPoints.push([lon, lat]);
+  }
+}
+
+// ---- world setup --------------------------------------------------------
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function spot() { const p = pick(landPoints); return [p[0] + rand(-0.6, 0.6), Math.max(-80, Math.min(80, p[1] + rand(-0.6, 0.6)))]; }
+
+const onLand = pos => !land || d3.geoContains(land, pos);
+function makePerson(id, pos, fixed) {
+  const p = { id, sk: id, nom: sprites[id].nom, lon: pos[0], lat: pos[1], s: fixed ? 1 : rand(0.92, 1.08), flip: !fixed && Math.random() < 0.5 };
+  if (FLYING.has(id)) p.fly = true;
+  if ((FLYING.has(id) || SEA_OK.has(id)) && !onLand(pos)) p.sea = true;
+  return p;
+}
+// anywhere on the globe (land or sea), away from the poles
+function anySpot() {
+  return [rand(-180, 180), Math.asin(rand(Math.sin(-55 * Math.PI / 180), Math.sin(70 * Math.PI / 180))) * 180 / Math.PI];
+}
+function seaSpot() {
+  for (let t = 0; t < 50; t++) { const p = anySpot(); if (!onLand(p)) return p; }
+  return anySpot();
+}
+
+// a random spot that keeps its distance from everything already placed
+function freeSpot(taken, gen = spot, minD = SPACING) {
+  let best = null, bestD = -1;
+  for (let t = 0; t < 40; t++) {
+    const pos = gen();
+    let dmin = Infinity;
+    for (const q of taken) { const d = d3.geoDistance(pos, q); if (d < dmin) { dmin = d; if (d < minD) break; } }
+    if (dmin >= minD) return pos;
+    if (dmin > bestD) { bestD = dmin; best = pos; }
+  }
+  return best;
+}
+
+function seaCreatures() {
+  const out = [];
+  for (const z of SYX.SEA) for (const e of z.list) {
+    const sk = "e:" + e;
+    if (!sprites[sk]) continue;
+    for (let t = 0; t < 30; t++) {
+      const lat = z.lat + rand(-z.r, z.r) * 0.7;
+      const lon = z.lon + rand(-z.r, z.r) / Math.max(0.3, Math.cos(lat * Math.PI / 180));
+      if (land && d3.geoContains(land, [lon, lat])) continue;
+      out.push({ decor: true, sea: true, sk, name: `${SYX.SEA_NAMES[e]}（${z.name}）`, lon, lat, nom: SYX.SEA_SIZE[e] || 70, s: rand(0.9, 1.1), flip: Math.random() < 0.5 });
+      break;
+    }
+  }
+  return out;
+}
+
+// every 社長 exactly once: costumed ones at home, the rest scattered at random.
+// look-alikes of this game's targets stay off the globe so every answer is unambiguous.
+function populate(targets = []) {
+  const tgs = new Set(targets.map(t => groupOf[t]).filter(g => g !== undefined));
+  const ok = id => sprites[id] && (targets.includes(id) || !tgs.has(groupOf[id]));
+  const list = [...decorFixed, ...seaCreatures()];
+  const taken = decorFixed.map(d => [d.lon, d.lat]);
+  const tps = {};
+  for (const c of SYX.COSTUMES) {
+    if (!ok(c.id)) continue;
+    const p = makePerson(c.id, [c.lon, c.lat], true);
+    list.push(p); taken.push([c.lon, c.lat]);
+    tps[c.id] = p;
+  }
+  // ships and planes out at sea
+  for (const v of SYX.VEHICLES) {
+    const sk = "e:" + v.e;
+    if (!sprites[sk]) continue;
+    for (let i = 0; i < v.n; i++) {
+      const pos = freeSpot(taken, seaSpot);
+      list.push({ decor: true, sea: true, fly: !!v.fly, sk, name: v.name, lon: pos[0], lat: pos[1], nom: v.nom, s: rand(0.9, 1.1), flip: Math.random() < 0.5 });
+      taken.push(pos);
+    }
+  }
+  for (const id of shuffle(FREE_IDS.filter(ok))) {
+    // flyers go anywhere; surfers and divers prefer the sea; everyone else stays on land
+    const gen = FLYING.has(id) ? anySpot : SEA_OK.has(id) ? seaSpot : spot;
+    const pos = freeSpot(taken, gen);
+    const p = makePerson(id, pos, false);
+    list.push(p); taken.push(pos);
+    tps[id] = p;
+  }
+  // plants and buildings that suit the climate / region of each spot
+  const have = arr => (arr || []).filter(it => sprites[it[0]]);
+  const decorAt = (pos, it, place) => {
+    list.push({ decor: true, sk: it[0], name: `${it[1]}（${place}）`, lon: pos[0], lat: pos[1], nom: it[2], s: rand(0.85, 1.15), flip: Math.random() < 0.5 });
+    taken.push(pos);
+  };
+  for (let i = 0; i < FLORA_N; i++) {
+    const pos = freeSpot(taken, spot, DECOR_SPACING);
+    const b = biomeAt(pos);
+    const opts = have((b ? b.plants : SYX.TEMPERATE_PLANTS).map(p => ["e:" + p[0], p[1], p[2]]));
+    if (opts.length) decorAt(pos, pick(opts), b ? b.name : "温帯");
+  }
+  for (let i = 0; i < BUILD_N; i++) {
+    const pos = freeSpot(taken, spot, DECOR_SPACING);
+    const b = biomeAt(pos), region = regionOf(pos[0], pos[1]);
+    const opts = have(b && SYX.BUILD_BY_BIOME[b.key]).length ? have(SYX.BUILD_BY_BIOME[b.key]) : have(SYX.BUILD_BY_REGION[region]);
+    if (opts.length) decorAt(pos, pick(opts), region);
+  }
+  return { list, tps };
+}
+
+// ---- render -------------------------------------------------------------
+function draw(now) {
+  syncProj();
+  const r = radius(), [cx, cy] = globeCenter();
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // atmosphere
+  let g = ctx.createRadialGradient(cx, cy, r * 0.95, cx, cy, r * 1.12);
+  g.addColorStop(0, "rgba(120,190,255,0.45)"); g.addColorStop(1, "rgba(120,190,255,0)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r * 1.12, 0, Math.PI * 2); ctx.fill();
+
+  // ocean
+  g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, r * 0.1, cx, cy, r);
+  g.addColorStop(0, "#5fb0f0"); g.addColorStop(1, "#1f5fae");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+  ctx.beginPath(); path(graticule);
+  ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1; ctx.stroke();
+
+  if (land) {
+    ctx.beginPath(); path(land);
+    ctx.fillStyle = "#9bd27a"; ctx.fill();
+    // climate zones painted inside the coastline
+    ctx.save(); ctx.clip();
+    for (const z of biomeShapes) {
+      ctx.fillStyle = z.b.color;
+      for (const [f, a] of z.layers) { ctx.globalAlpha = a; ctx.beginPath(); path(f); ctx.fill(); }
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    ctx.beginPath(); path(land);
+    ctx.strokeStyle = "#3f7d3a"; ctx.lineWidth = Math.max(1, Math.min(2.5, view.zoom * 0.4)); ctx.stroke();
+  }
+
+  // people
+  const center = [view.lon, view.lat];
+  const vis = [];
+  const base = r * level.size;
+  for (const p of objects) {
+    const d = d3.geoDistance([p.lon, p.lat], center);
+    if (d > 1.5) continue;
+    const xy = proj([p.lon, p.lat]);
+    if (!xy) continue;
+    const sp = sprites[p.sk];
+    const h = base * p.s * (p.nom / 200) * (0.45 + 0.55 * Math.cos(d));
+    const w = h * sp.w / sp.h;
+    // flyers hover above their spot; only the shadow touches the ground
+    const lift = p.fly ? h * 0.45 : 0;
+    vis.push({ p, sp, x: xy[0], y: xy[1] - lift, gy: xy[1], w, h, a: Math.min(1, (1.5 - d) / 0.3) });
+  }
+  vis.sort((a, b) => a.gy - b.gy);
+  for (const v of vis) {
+    if (v.x + v.w < 0 || v.x - v.w > W || v.gy < 0 || v.y - v.h > H) continue;
+    ctx.globalAlpha = v.a;
+    const sea = v.p.sea, fly = v.p.fly;
+    ctx.fillStyle = fly ? (sea ? "rgba(0,30,80,0.22)" : "rgba(0,40,0,0.18)") : sea ? "rgba(255,255,255,0.35)" : "rgba(0,40,0,0.28)";
+    ctx.beginPath(); ctx.ellipse(v.x, v.gy, v.w * (fly ? 0.22 : 0.32), v.h * 0.04 + 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    if (v.p.flip) {
+      ctx.save(); ctx.translate(v.x, 0); ctx.scale(-1, 1);
+      ctx.drawImage(v.sp.img, -v.w / 2, v.y - v.h, v.w, v.h); ctx.restore();
+    } else {
+      ctx.drawImage(v.sp.img, v.x - v.w / 2, v.y - v.h, v.w, v.h);
+    }
+  }
+  ctx.globalAlpha = 1;
+  lastVis = vis;
+
+  // sphere shading on top so the limb reads round
+  g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.2, cx, cy, r);
+  g.addColorStop(0, "rgba(255,255,255,0.08)"); g.addColorStop(0.75, "rgba(0,0,30,0)"); g.addColorStop(1, "rgba(0,0,40,0.35)");
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+  // found / reveal marker
+  if (flash) {
+    const t = (now - flash.t0) / 1000;
+    const v = vis.find(o => o.p === flash.p);
+    if (v) {
+      const rr = Math.max(v.h, 40) * (0.7 + 0.08 * Math.sin(t * 5));
+      ctx.lineWidth = 5; ctx.strokeStyle = flash.color;
+      ctx.beginPath(); ctx.arc(v.x, v.y - v.h / 2, rr, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 2; ctx.strokeStyle = "#fff";
+      ctx.beginPath(); ctx.arc(v.x, v.y - v.h / 2, rr + 6, 0, Math.PI * 2); ctx.stroke();
+    }
+    dirty = true;
+  }
+}
+let lastVis = [];
+
+// ---- hit test -----------------------------------------------------------
+// returns every character under the point, topmost first
+function hitTest(px, py) {
+  const hits = [];
+  for (let i = lastVis.length - 1; i >= 0; i--) {
+    const v = lastVis[i];
+    const pad = v.h < 28 ? 6 : 0;
+    const x0 = v.x - v.w / 2, y0 = v.y - v.h;
+    if (px < x0 - pad || px > x0 + v.w + pad || py < y0 - pad || py > v.y + pad) continue;
+    if (pad || !v.sp.alpha) { hits.push(v.p); continue; }
+    let lx = Math.floor((px - x0) / v.w * v.sp.w), ly = Math.floor((py - y0) / v.h * v.sp.h);
+    if (v.p.flip) lx = v.sp.w - 1 - lx;
+    lx = Math.max(0, Math.min(v.sp.w - 1, lx)); ly = Math.max(0, Math.min(v.sp.h - 1, ly));
+    if (v.sp.alpha[(ly * v.sp.w + lx) * 4 + 3] > 40) hits.push(v.p);
+  }
+  return hits;
+}
+
+// ---- camera tween -------------------------------------------------------
+const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function flyTo(lon, lat, zoom, ms = 1100) {
+  let dl = ((lon - view.lon + 540) % 360) - 180;
+  tween = { t0: performance.now(), ms: reduceMotion ? 1 : ms, from: { ...view }, dl, dlat: lat - view.lat, dz: zoom - view.zoom };
+  spin.lon = spin.lat = 0;
+}
+function stepTween(now) {
+  if (!tween) return;
+  const t = Math.min(1, (now - tween.t0) / tween.ms), k = ease(t);
+  view.lon = tween.from.lon + tween.dl * k;
+  view.lat = tween.from.lat + tween.dlat * k;
+  view.zoom = tween.from.zoom + tween.dz * k;
+  if (t >= 1) tween = null;
+  dirty = true;
+}
+
+// ---- input --------------------------------------------------------------
+const pointers = new Map();
+let gesture = null;
+function degPerPx() { return 180 / (Math.PI * radius()); }
+
+canvas.addEventListener("pointerdown", e => {
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  tween = null; spin.lon = spin.lat = 0;
+  if (pointers.size === 1) {
+    gesture = { type: "drag", sx: e.clientX, sy: e.clientY, t0: performance.now(), moved: 0, lx: e.clientX, ly: e.clientY, lt: performance.now() };
+  } else if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    gesture = { type: "pinch", d0: Math.hypot(a.x - b.x, a.y - b.y), z0: view.zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, moved: 99 };
+  }
+  canvas.classList.add("dragging");
+});
+canvas.addEventListener("pointermove", e => {
+  if (!pointers.has(e.pointerId)) return;
+  const prev = pointers.get(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (!gesture) return;
+  if (gesture.type === "drag" && pointers.size === 1) {
+    const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+    gesture.moved = Math.max(gesture.moved, Math.hypot(e.clientX - gesture.sx, e.clientY - gesture.sy));
+    const k = degPerPx();
+    view.lon -= dx * k; view.lat = Math.max(-80, Math.min(80, view.lat + dy * k));
+    const now = performance.now(), dt = Math.max(1, now - gesture.lt);
+    spin.lon = -dx * k / dt * 16; spin.lat = dy * k / dt * 16;
+    gesture.lt = now;
+    dirty = true;
+  } else if (gesture.type === "pinch" && pointers.size >= 2) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y);
+    const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    const k = degPerPx();
+    view.lon -= (mx - gesture.mx) * k; view.lat = Math.max(-80, Math.min(80, view.lat + (my - gesture.my) * k));
+    gesture.mx = mx; gesture.my = my;
+    view.zoom = Math.max(ZMIN, Math.min(ZMAX, gesture.z0 * d / Math.max(1, gesture.d0)));
+    dirty = true;
+  }
+});
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+  if (gesture && gesture.type === "drag" && pointers.size === 0) {
+    const quick = performance.now() - gesture.t0 < 450;
+    if (gesture.moved < 10 && quick) { spin.lon = spin.lat = 0; onTap(e.clientX, e.clientY); }
+    if (performance.now() - gesture.lt > 80) spin.lon = spin.lat = 0;
+  }
+  if (pointers.size === 0) { gesture = null; canvas.classList.remove("dragging"); }
+  else if (pointers.size === 1) {
+    const [p] = [...pointers.values()];
+    gesture = { type: "drag", sx: p.x, sy: p.y, t0: 0, moved: 99, lx: p.x, ly: p.y, lt: performance.now() };
+  }
+}
+canvas.addEventListener("pointerup", endPointer);
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("wheel", e => {
+  e.preventDefault();
+  view.zoom = Math.max(ZMIN, Math.min(ZMAX, view.zoom * Math.exp(-e.deltaY * 0.0015)));
+  dirty = true;
+}, { passive: false });
+document.addEventListener("gesturestart", e => e.preventDefault());
+
+function zoomBy(f) { flyTo(view.lon, view.lat, Math.max(ZMIN, Math.min(ZMAX, view.zoom * f)), 300); }
+$("zoomIn").addEventListener("click", () => zoomBy(1.8));
+$("zoomOut").addEventListener("click", () => zoomBy(1 / 1.8));
+
+// ---- game flow ----------------------------------------------------------
+let toastTimer = 0;
+function toast(msg, info) {
+  const t = $("toast");
+  t.textContent = msg; t.className = "toast show" + (info ? " info" : "");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = "toast" + (info ? " info" : ""); }, 1300);
+}
+// best = fastest total time in seconds (0 = none yet)
+function readBest() { try { return +localStorage.getItem("syatyou-best-time") || 0; } catch (e) { return 0; } }
+function writeBest(v) { try { localStorage.setItem("syatyou-best-time", String(v)); } catch (e) {} }
+function showBest() {
+  const b = readBest();
+  $("best").textContent = b ? `ベストタイム：${fmtTime(b)}` : "";
+}
+function fmtTime(s, tenths = true) {
+  const m = Math.floor(s / 60), r = s - m * 60;
+  return tenths ? `${m}:${r.toFixed(1).padStart(4, "0")}` : `${m}:${String(Math.floor(r)).padStart(2, "0")}`;
+}
+
+// rough region name for the hint
+function regionOf(lon, lat) {
+  lon = ((lon + 540) % 360) - 180;
+  if (lat < -60) return "南極";
+  if (lon > -75 && lon < -11 && lat > 59 && !(lat < 67 && lon > -25)) return "グリーンランド";
+  if (lon < -140 && lat < 30) return "太平洋の島々";
+  if (lon < -30) {
+    if (lat < 7 || (lat < 8.5 && lon > -78) || (lat < 12.5 && lon > -76)) return "南米";
+    if (lat < 23.5 && lon > -100) return "中米・カリブ";
+    return "北米";
+  }
+  if ((lat < -10 && lon >= 110) || (lon >= 141 && lat < 0)) return "オセアニア";
+  if (lat < 37.5 && lon >= -20 && lon < 52) {
+    if ((lon > 36 && lat > 12) || (lon > 34.5 && lat > 29)) return "中東";
+    return "アフリカ";
+  }
+  if (lat >= 36 && lat <= 42 && lon >= 26 && lon <= 45) return "中東";
+  if (lat >= 25 && lat < 40 && lon >= 44 && lon < 63) return "中東";
+  if (lon < 40) return "ヨーロッパ";
+  if (lat >= 55 || (lat >= 52 && lon >= 90) || (lat >= 46 && lon < 60)) return "ロシア・北アジア";
+  if (lat >= 36.5 && lon < 87) return "中央アジア";
+  if (lon < 97 && lat < 36.5) return "南アジア";
+  if (lat < 23 && lon >= 92) return "東南アジア";
+  return "東アジア";
+}
+
+// one game = find 3 社長 on the same globe; the world is laid out once per game
+function startGame() {
+  round = 0; elapsed = 0; misses = 0; history = [];
+  const pool = shuffle(IDS.filter(id => sprites[id]));
+  targets = [];
+  for (const id of pool) {
+    if (targets.length >= ROUNDS) break;
+    if (targets.some(t => groupOf[t] !== undefined && groupOf[t] === groupOf[id])) continue;
+    targets.push(id);
+  }
+  const w = populate(targets);
+  objects = w.list; targetPos = w.tps;
+  $("rounds").textContent = ROUNDS;
+  $("titleScreen").hidden = true; $("resultScreen").hidden = true;
+  // start looking at the side of the world away from the first target
+  const t0 = targetPos[targets[0]];
+  flyTo(t0.lon + 180 + rand(-40, 40), rand(-20, 30), 1, 900);
+  nextRound();
+}
+
+function nextRound() {
+  round++;
+  targetId = targets[round - 1]; targetP = targetPos[targetId];
+  splitStart = elapsed; hintUsed = false; flash = null;
+  $("hintBtn").disabled = false;
+  $("tSub").textContent = "にているけど服がちがう社長に注意";
+  $("tImg").src = sprites[targetId].url;
+  $("tName").textContent = fullName(targetId);
+  $("round").textContent = round; $("misses").textContent = misses;
+  if (round > 1) flyTo(view.lon, view.lat, 1, 700);  // same world, just zoom back out
+  $("foundScreen").hidden = true;
+  $("hud").hidden = false; $("tools").hidden = false;
+  mode = "play"; dirty = true; updateTimer();
+}
+
+function updateTimer() {
+  $("timer").textContent = fmtTime(elapsed, false);
+}
+
+function fmtLoc(p) {
+  const la = p.lat >= 0 ? `北緯${p.lat.toFixed(1)}°` : `南緯${(-p.lat).toFixed(1)}°`;
+  const L = ((p.lon + 540) % 360) - 180;
+  const lo = L >= 0 ? `東経${L.toFixed(1)}°` : `西経${(-L).toFixed(1)}°`;
+  return `${la}　${lo}`;
+}
+
+function onTap(x, y) {
+  if (mode !== "play") return;
+  const hits = hitTest(x, y);
+  if (!hits.length) return;
+  // a partly hidden target still counts when the tap lands on it;
+  // tapping a landmark or animal just tells you what it is
+  const p = hits.includes(targetP) ? targetP : (hits.find(h => !h.decor) || hits[0]);
+  if (p.decor) { toast(p.name, true); return; }
+  if (p === targetP) {
+    const split = elapsed - splitStart;
+    history.push({ id: targetId, split });
+    endRound(split);
+  } else {
+    elapsed += MISS_PENALTY; misses++; updateTimer();
+    $("misses").textContent = misses;
+    toast(`それは${fullName(p.id)}！ +${MISS_PENALTY}秒`);
+    if (navigator.vibrate) try { navigator.vibrate(60); } catch (e) {}
+  }
+}
+
+function endRound(split) {
+  mode = "found";
+  flash = { p: targetP, t0: performance.now(), color: "#33c27f" };
+  flyTo(targetP.lon, targetP.lat - 2 / Math.max(1, view.zoom), Math.max(view.zoom, 5), 1000);
+  $("fHead").textContent = "発見！";
+  $("fHead").className = "big ok";
+  $("fImg").src = sprites[targetId].url;
+  $("fName").textContent = fullName(targetId) + (COSTUME[targetId] ? `（${COSTUME[targetId].country}）` : "");
+  $("fLoc").textContent = "見つけた場所　" + fmtLoc(targetP);
+  $("fPts").textContent = `${round}人目 ${fmtTime(split)}　合計 ${fmtTime(elapsed)}`;
+  $("nextBtn").textContent = round >= ROUNDS ? "結果を見る" : `${round + 1}人目をさがす`;
+  $("tools").hidden = true;
+  setTimeout(() => { if (mode === "found") $("foundScreen").hidden = false; }, 1300);
+}
+
+$("nextBtn").addEventListener("click", () => { if (mode !== "found") return; if (round >= ROUNDS) showResult(); else nextRound(); });
+
+function showResult() {
+  mode = "result";
+  $("foundScreen").hidden = true; $("hud").hidden = true; $("tools").hidden = true;
+  flash = null;
+  // rank by total time (seconds)
+  const ranks = [[60, "名探偵"], [120, "社長秘書"], [180, "部長"], [300, "課長"], [480, "係長"], [Infinity, "新入社員"]];
+  $("rRank").textContent = ranks.find(r => elapsed <= r[0])[1] + "級";
+  $("rScore").textContent = fmtTime(elapsed);
+  const best = readBest(), isBest = !best || elapsed < best;
+  if (isBest) writeBest(elapsed);
+  $("rSub").textContent = `${ROUNDS}人発見・ミス${misses}回` + (isBest ? "　ベスト更新！" : `　ベスト ${fmtTime(best)}`);
+  $("rList").replaceChildren(...history.map((h, i) => {
+    const d = document.createElement("div");
+    const im = document.createElement("img"); im.src = sprites[h.id].url; im.alt = fullName(h.id);
+    const t = document.createElement("span"); t.textContent = fmtTime(h.split);
+    d.append(im, t); return d;
+  }));
+  $("resultScreen").hidden = false;
+  flyTo(view.lon + 60, 15, 1, 1400);
+}
+$("againBtn").addEventListener("click", startGame);
+$("homeBtn").addEventListener("click", goTitle);
+
+function goTitle() {
+  mode = "title";
+  $("resultScreen").hidden = true; $("foundScreen").hidden = true; $("hud").hidden = true; $("tools").hidden = true;
+  objects = populate().list; targetP = null; flash = null;
+  flyTo(view.lon, 18, 1, 800);
+  showBest();
+  $("titleScreen").hidden = false;
+}
+
+$("hintBtn").addEventListener("click", () => {
+  if (mode !== "play" || hintUsed) return;
+  hintUsed = true; $("hintBtn").disabled = true;
+  elapsed += HINT_COST; updateTimer();
+  // name the region and turn that side of the globe toward the player, without pinpointing
+  const region = regionOf(targetP.lon, targetP.lat);
+  flyTo(targetP.lon + rand(-15, 15), Math.max(-75, Math.min(75, targetP.lat + rand(-10, 10))), 1.3, 900);
+  $("tSub").textContent = `ヒント：${region}にいるぞ！`;
+  toast(`${region}のどこかにいるぞ！ +${HINT_COST}秒`, true);
+});
+
+$("startBtn").addEventListener("click", startGame);
+
+// ---- loop ---------------------------------------------------------------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(100, now - last); last = now;
+  stepTween(now);
+  if (!tween && !gesture) {
+    if (Math.abs(spin.lon) + Math.abs(spin.lat) > 0.0005) {
+      view.lon += spin.lon * dt / 16; view.lat = Math.max(-80, Math.min(80, view.lat + spin.lat * dt / 16));
+      spin.lon *= 0.93; spin.lat *= 0.93; dirty = true;
+    } else if (mode === "title" || mode === "result") {
+      view.lon += dt * 0.006; dirty = true;
+    }
+  }
+  if (mode === "play") {
+    const before = Math.floor(elapsed);
+    elapsed += dt / 1000;
+    if (Math.floor(elapsed) !== before) updateTimer();
+  }
+  if (dirty) { dirty = false; draw(now); }
+  requestAnimationFrame(frame);
+}
+
+// ---- boot ---------------------------------------------------------------
+buildBiomes();
+resize();
+requestAnimationFrame(frame);
+showBest();
+let loaded = 0;
+const bump = () => { loaded++; $("loading").textContent = `社長を集めています… ${loaded}/${FREE_IDS.length}`; };
+Promise.all([
+  loadLand(),
+  loadCostumes(),
+  loadDecor(),
+  ...FREE_IDS.map(id => loadSprite(id).then(bump))
+]).then(() => {
+  const total = IDS.filter(id => sprites[id]).length;
+  $("startMeta").textContent = `社長${total}人の中から${ROUNDS}人を見つけるタイムを競おう`;
+  objects = populate().list;
+  $("loading").hidden = true; $("levels").hidden = false;
+  dirty = true;
+});
+})();
+</script>
+</body>
+</html>
