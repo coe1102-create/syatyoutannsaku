@@ -168,7 +168,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   </div>
 
   <div class="hud-bottom" id="tools" hidden>
-    <button class="tool" id="hintBtn" type="button">ヒント <span class="hint-cost">+10秒</span></button>
+    <button class="tool" id="hintBtn" type="button">ヒント <span class="hint-cost">+1分</span></button>
     <div class="zoomers">
       <button class="tool round" id="zoomOut" type="button" aria-label="縮小">−</button>
       <button class="tool round" id="zoomIn" type="button" aria-label="拡大">＋</button>
@@ -273,10 +273,11 @@ const fullName = id => NAMES[id] + "の社長";
 
 // every 社長 is on the globe, each exactly once
 const level = { size: 0.058 };
-const SPACING = 0.04;  // min distance between free 社長 (radians, ≈2.3°)
+const PERSON_SCALE = 1.5;  // 社長 drawn larger than landmarks, plants and animals
+const SPACING = 0.05;  // min distance between free 社長 (radians, ≈2.9°)
 const FLORA_N = 160, BUILD_N = 40, DECOR_SPACING = 0.026;  // plants / buildings scattered each round
 const ROUNDS = 3;
-const MISS_PENALTY = 3, HINT_COST = 10;
+const MISS_PENALTY = 3, HINT_COST = 60;  // seconds added to the clock
 const ZMIN = 0.85, ZMAX = 14;
 
 // ---- dom ----------------------------------------------------------------
@@ -418,7 +419,7 @@ async function loadLand() {
   while (landPoints.length < 2500 && guard++ < 40000) {
     const lon = Math.random() * 360 - 180;
     const lat = Math.asin(Math.random() * 2 - 1) * 180 / Math.PI;
-    if (lat < -58 || lat > 78) continue;
+    if (lat < -80 || lat > 78) continue;  // Antarctica included; the camera reaches ±80°
     if (!land || d3.geoContains(land, [lon, lat])) landPoints.push([lon, lat]);
   }
 }
@@ -436,9 +437,9 @@ function makePerson(id, pos, fixed) {
   if ((FLYING.has(id) || SEA_OK.has(id)) && !onLand(pos)) p.sea = true;
   return p;
 }
-// anywhere on the globe (land or sea), away from the poles
+// anywhere on the globe (land or sea), Antarctica included
 function anySpot() {
-  return [rand(-180, 180), Math.asin(rand(Math.sin(-55 * Math.PI / 180), Math.sin(70 * Math.PI / 180))) * 180 / Math.PI];
+  return [rand(-180, 180), Math.asin(rand(Math.sin(-78 * Math.PI / 180), Math.sin(70 * Math.PI / 180))) * 180 / Math.PI];
 }
 function seaSpot() {
   for (let t = 0; t < 50; t++) { const p = anySpot(); if (!onLand(p)) return p; }
@@ -572,7 +573,7 @@ function draw(now) {
     const xy = proj([p.lon, p.lat]);
     if (!xy) continue;
     const sp = sprites[p.sk];
-    const h = base * p.s * (p.nom / 200) * (0.45 + 0.55 * Math.cos(d));
+    const h = base * p.s * (p.nom / 200) * (p.decor ? 1 : PERSON_SCALE) * (0.45 + 0.55 * Math.cos(d));
     const w = h * sp.w / sp.h;
     // flyers hover above their spot; only the shadow touches the ground
     const lift = p.fly ? h * 0.45 : 0;
@@ -889,7 +890,7 @@ $("hintBtn").addEventListener("click", () => {
   const region = regionOf(targetP.lon, targetP.lat);
   flyTo(targetP.lon + rand(-15, 15), Math.max(-75, Math.min(75, targetP.lat + rand(-10, 10))), 1.3, 900);
   $("tSub").textContent = `ヒント：${region}にいるぞ！`;
-  toast(`${region}のどこかにいるぞ！ +${HINT_COST}秒`, true);
+  toast(`${region}のどこかにいるぞ！ +1分`, true);
 });
 
 $("startBtn").addEventListener("click", startGame);
