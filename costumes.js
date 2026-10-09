@@ -306,6 +306,7 @@ const LM_SVG = {
   pagoda: svgIcon(60, 104, `<line x1="30" y1="2" x2="30" y2="20" stroke="#c9a227" stroke-width="3"/>` +
     [[22, 14], [46, 18], [72, 22]].map(([y, w]) => `<rect x="${30 - w / 2 + 4}" y="${y}" width="${w - 8}" height="${y === 72 ? 30 : 24}" fill="#e9dcc0" ${S2}/><path d="M${30 - w - 6},${y + 4} Q30,${y - 10} ${30 + w + 6},${y + 4} L${30 + w},${y + 8} Q30,${y - 2} ${30 - w},${y + 8} Z" fill="#8a2f22" ${S}/>`).join("") +
     `<rect x="25" y="88" width="10" height="14" fill="#8a2f22" ${S2}/>`),
+  volcano: svgIcon(90, 64, `<path d="M4,62 L32,14 Q45,6 58,14 L86,62 Z" fill="#7a5a44" ${S}/><path d="M32,14 Q45,6 58,14 L54,22 Q45,16 36,22 Z" fill="#5a3e2e"/><ellipse cx="45" cy="13" rx="12" ry="4" fill="#ff5a1f" ${S2}/><path d="M38,16 Q35,30 40,42 M50,16 Q53,28 49,36 M44,16 Q44,24 45,30" stroke="#ff7a1f" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M14,56 Q30,48 40,58 M54,58 Q66,48 78,56" stroke="#5a3e2e" stroke-width="2" fill="none"/>`),
   uluru: svgIcon(140, 50, `<path d="M4,48 Q8,14 40,10 Q90,4 128,16 Q140,30 136,48 Z" fill="#c8552e" ${S}/><path d="M40,14 Q44,30 40,46 M70,10 Q76,28 72,46 M100,12 Q106,30 102,46" stroke="#9a3a1e" stroke-width="2" fill="none"/>`)
 };
 

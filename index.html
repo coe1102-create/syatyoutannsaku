@@ -104,6 +104,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 }
 .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 .toast.info { background: var(--ink); color: var(--gold); }
+.quake-flash { position: absolute; inset: 0; background: #fff1c9; opacity: 0; pointer-events: none; }
 
 /* --- overlays --- */
 .overlay {
@@ -113,14 +114,11 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 }
 .panel { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 14px; align-items: stretch; }
 .logo { text-align: center; }
-.logo .kicker { font-size: 13px; font-weight: 700; letter-spacing: .2em; color: var(--gold); }
 .logo h1 {
   font-family: var(--display); font-weight: 400; font-size: clamp(44px, 14vw, 64px); line-height: 1.05; margin: 4px 0 6px;
   color: var(--paper); text-shadow: 0 4px 0 var(--miss), 0 8px 0 #0006; letter-spacing: .02em;
 }
-.logo p { margin: 0; font-size: 14px; opacity: .9; }
 .start-wrap { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
-.start-meta { text-align: center; font-size: 12px; font-weight: 700; opacity: .8; font-variant-numeric: tabular-nums; }
 .best { text-align: center; font-size: 12px; opacity: .75; font-variant-numeric: tabular-nums; }
 .loading { text-align: center; font-size: 13px; color: var(--gold); }
 
@@ -176,18 +174,16 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   </div>
 
   <div class="toast" id="toast"></div>
+  <div class="quake-flash" id="quakeFlash"></div>
 
   <div class="overlay" id="titleScreen">
     <div class="panel">
       <div class="logo">
-        <div class="kicker">地球儀版</div>
         <h1>社長を探せ！</h1>
-        <p>世界じゅうにちらばった社長の中から、<br>指名の1人を見つけ出そう。</p>
       </div>
       <div class="loading" id="loading">社長を集めています…</div>
       <div class="start-wrap" id="levels" hidden>
         <button class="primary" id="startBtn" type="button">スタート</button>
-        <div class="start-meta" id="startMeta">3人を見つけるタイムを競おう</div>
       </div>
       <div class="best" id="best"></div>
     </div>
@@ -549,17 +545,20 @@ function draw(now) {
   ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 1; ctx.stroke();
 
   if (land) {
-    ctx.beginPath(); path(land);
+    // while the continents drift, draw the moved copies instead of the originals
+    const L = geo.t > 0 && landNow ? landNow : land;
+    const zones = geo.t > 0 && biomeNow ? biomeNow : biomeShapes;
+    ctx.beginPath(); path(L);
     ctx.fillStyle = "#9bd27a"; ctx.fill();
     // climate zones painted inside the coastline
     ctx.save(); ctx.clip();
-    for (const z of biomeShapes) {
+    for (const z of zones) {
       ctx.fillStyle = z.b.color;
       for (const [f, a] of z.layers) { ctx.globalAlpha = a; ctx.beginPath(); path(f); ctx.fill(); }
     }
     ctx.globalAlpha = 1;
     ctx.restore();
-    ctx.beginPath(); path(land);
+    ctx.beginPath(); path(L);
     ctx.strokeStyle = "#3f7d3a"; ctx.lineWidth = Math.max(1, Math.min(2.5, view.zoom * 0.4)); ctx.stroke();
   }
 
@@ -573,15 +572,18 @@ function draw(now) {
     const xy = proj([p.lon, p.lat]);
     if (!xy) continue;
     const sp = sprites[p.sk];
+    const fade = p.fade ?? 1;
+    if (fade < 0.02) continue;  // sea life and ships sink away while the continents are merged
     const h = base * p.s * (p.nom / 200) * (p.decor ? 1 : PERSON_SCALE) * (0.45 + 0.55 * Math.cos(d));
     const w = h * sp.w / sp.h;
     // flyers hover above their spot; only the shadow touches the ground
     const lift = p.fly ? h * 0.45 : 0;
-    vis.push({ p, sp, x: xy[0], y: xy[1] - lift, gy: xy[1], w, h, a: Math.min(1, (1.5 - d) / 0.3) });
+    vis.push({ p, sp, x: xy[0], y: xy[1] - lift, gy: xy[1], w, h, a: Math.min(1, (1.5 - d) / 0.3) * fade });
   }
   vis.sort((a, b) => a.gy - b.gy);
   for (const v of vis) {
     if (v.x + v.w < 0 || v.x - v.w > W || v.gy < 0 || v.y - v.h > H) continue;
+    if (v.p.volcano) drawVolcanoGlow(v, now);
     ctx.globalAlpha = v.a;
     const sea = v.p.sea, fly = v.p.fly;
     ctx.fillStyle = fly ? (sea ? "rgba(0,30,80,0.22)" : "rgba(0,40,0,0.18)") : sea ? "rgba(255,255,255,0.35)" : "rgba(0,40,0,0.28)";
@@ -592,9 +594,11 @@ function draw(now) {
     } else {
       ctx.drawImage(v.sp.img, v.x - v.w / 2, v.y - v.h, v.w, v.h);
     }
+    if (v.p.volcano) { ctx.globalAlpha = 1; drawVolcanoSmoke(v, now); }
   }
   ctx.globalAlpha = 1;
   lastVis = vis;
+  drawLava(now);
 
   // sphere shading on top so the limb reads round
   g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.35, r * 0.2, cx, cy, r);
@@ -659,6 +663,7 @@ let gesture = null;
 function degPerPx() { return 180 / (Math.PI * radius()); }
 
 canvas.addEventListener("pointerdown", e => {
+  if (geoBusy()) return;  // the globe can't be grabbed while it rumbles, merges or erupts
   try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   tween = null; spin.lon = spin.lat = 0;
@@ -680,7 +685,7 @@ canvas.addEventListener("pointermove", e => {
     gesture.moved = Math.max(gesture.moved, Math.hypot(e.clientX - gesture.sx, e.clientY - gesture.sy));
     const k = degPerPx();
     view.lon -= dx * k; view.lat = Math.max(-80, Math.min(80, view.lat + dy * k));
-    const now = performance.now(), dt = Math.max(1, now - gesture.lt);
+    const now = performance.now(), dt = Math.max(8, now - gesture.lt);  // floor avoids spikes from bunched events
     spin.lon = -dx * k / dt * 16; spin.lat = dy * k / dt * 16;
     gesture.lt = now;
     dirty = true;
@@ -724,10 +729,10 @@ $("zoomOut").addEventListener("click", () => zoomBy(1 / 1.8));
 
 // ---- game flow ----------------------------------------------------------
 let toastTimer = 0;
-function toast(msg, info) {
+function toast(msg, info, ms = 1300) {
   const t = $("toast");
   t.textContent = msg; t.className = "toast show" + (info ? " info" : "");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = "toast" + (info ? " info" : ""); }, 1300);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = "toast" + (info ? " info" : ""); }, ms);
 }
 // best = fastest total time in seconds (0 = none yet)
 function readBest() { try { return +localStorage.getItem("syatyou-best-time") || 0; } catch (e) { return 0; } }
@@ -777,6 +782,7 @@ function startGame() {
     if (targets.some(t => groupOf[t] !== undefined && groupOf[t] === groupOf[id])) continue;
     targets.push(id);
   }
+  resetGeo();  // a new world always starts with today's continents
   const w = populate(targets);
   objects = w.list; targetPos = w.tps;
   $("rounds").textContent = ROUNDS;
@@ -814,9 +820,13 @@ function fmtLoc(p) {
 }
 
 function onTap(x, y) {
-  if (mode !== "play") return;
+  if (geoBusy()) return;
   const hits = hitTest(x, y);
   if (!hits.length) return;
+  // an active volcano erupts from any screen
+  const vol = hits.find(h => h.volcano);
+  if (vol && geo.phase === "pangaea") { erupt(vol); return; }
+  if (mode !== "play") return;
   // a partly hidden target still counts when the tap lands on it;
   // tapping a landmark or animal just tells you what it is
   const p = hits.includes(targetP) ? targetP : (hits.find(h => !h.decor) || hits[0]);
@@ -876,6 +886,7 @@ $("homeBtn").addEventListener("click", goTitle);
 function goTitle() {
   mode = "title";
   $("resultScreen").hidden = true; $("foundScreen").hidden = true; $("hud").hidden = true; $("tools").hidden = true;
+  resetGeo();
   objects = populate().list; targetP = null; flash = null;
   flyTo(view.lon, 18, 1, 800);
   showBest();
@@ -887,7 +898,8 @@ $("hintBtn").addEventListener("click", () => {
   hintUsed = true; $("hintBtn").disabled = true;
   elapsed += HINT_COST; updateTimer();
   // name the region and turn that side of the globe toward the player, without pinpointing
-  const region = regionOf(targetP.lon, targetP.lat);
+  const home = targetP.home || [targetP.lon, targetP.lat];  // name the real-world region even on Pangaea
+  const region = regionOf(home[0], home[1]);
   flyTo(targetP.lon + rand(-15, 15), Math.max(-75, Math.min(75, targetP.lat + rand(-10, 10))), 1.3, 900);
   $("tSub").textContent = `ヒント：${region}にいるぞ！`;
   toast(`${region}のどこかにいるぞ！ +1分`, true);
@@ -895,15 +907,284 @@ $("hintBtn").addEventListener("click", () => {
 
 $("startBtn").addEventListener("click", startGame);
 
+// ---- hidden feature: Pangaea and the eruption ----------------------------------
+// Spin the globe hard enough and it starts to rumble; past the runaway line the
+// continents drift into one supercontinent. Tapping one of its volcanoes erupts
+// and sends everything back home.
+const OMEN_SPEED = 14;    // spin (°/frame at zoom 1, ≈2400px/s flick on a phone) that starts the rumble
+const RUN_SPEED = 24;     // runaway line: crossing it merges the continents
+const OMEN_MIN_MS = 2600, MERGE_MS = 3200, ERUPT_MS = 1400, RESTORE_MS = 2800;
+const VOLCANO_N = 6, VOLCANO_GAP = 0.5;  // min distance between volcanoes (radians ≈ 29°)
+// phases: normal → omen → merge → pangaea → erupt → restore → normal
+const geo = { phase: "normal", t: 0, t0: 0, dir: 1 };
+const geoBusy = () => ["omen", "merge", "erupt", "restore"].includes(geo.phase);
+let landNow = null, biomeNow = null, plateGeo = null, shakeAmp = 0, lava = [];
+
+const RAD = Math.PI / 180;
+const vec = ([lon, lat]) => { const l = lon * RAD, p = lat * RAD, c = Math.cos(p); return [c * Math.cos(l), c * Math.sin(l), Math.sin(p)]; };
+const lonlat = ([x, y, z]) => [Math.atan2(y, x) / RAD, Math.asin(Math.max(-1, Math.min(1, z))) / RAD];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const unit = a => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; };
+function rotateVec(v, k, th) {  // Rodrigues' rotation of v around unit axis k
+  const c = Math.cos(th), s = Math.sin(th), d = k[0] * v[0] + k[1] * v[1] + k[2] * v[2], kv = cross(k, v);
+  return [0, 1, 2].map(i => v[i] * c + kv[i] * s + k[i] * d * (1 - c));
+}
+function drift(from, to) {
+  const a = vec(from), b = vec(to);
+  return { axis: unit(cross(a, b)), angle: Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) };
+}
+// plates: 0 = Africa + Eurasia stays put, the others drift onto it
+const PLATES = [null, { axis: [0, 0, 1], angle: 45 * RAD }, drift([25, -90], [25, -57]), drift([134, -25], [72, -40])];
+function plateOf(lon, lat) {
+  lon = ((lon + 540) % 360) - 180;
+  if (lat < -60) return 2;                                          // Antarctica
+  if (lat < 0 && (lon >= 140 || lon < -150)) return 3;              // New Guinea, NZ, Pacific islands
+  if (lon >= 112 && lat < -10) return 3;                            // Australia
+  if (lon < -165 && lat > 60) return 0;                             // far-east Siberia
+  if (lon < -30) return 1;                                          // the Americas and Greenland
+  return 0;
+}
+const moveAt = (pos, plate, t) => plate && t ? lonlat(rotateVec(vec(pos), PLATES[plate].axis, PLATES[plate].angle * t)) : pos;
+
+function prepPlates() {
+  if (!land) return;
+  const feats = land.type === "FeatureCollection" ? land.features : [land];
+  const polys = [];
+  for (const f of feats) {
+    const g = f.geometry;
+    for (const poly of g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : []) {
+      const c = d3.geoCentroid({ type: "Polygon", coordinates: poly });
+      // drop the points that run along the south pole so Antarctica keeps a clean coastline when it moves
+      polys.push({ plate: plateOf(c[0], c[1]), rings: poly.map(r => r.filter(pt => pt[1] > -89.99).map(vec)) });
+    }
+  }
+  const zones = biomeShapes.map(z => ({
+    b: z.b,
+    layers: z.layers.map(([f, a]) => ({ a, polys: f.coordinates.map((poly, i) => ({ plate: plateOf(z.b.circles[i][0], z.b.circles[i][1]), rings: poly.map(r => r.map(vec)) })) }))
+  }));
+  plateGeo = { polys, zones };
+}
+function buildAt(t) {
+  if (!plateGeo) return;
+  const ll = (rings, plate) => rings.map(r => r.map(v => lonlat(plate ? rotateVec(v, PLATES[plate].axis, PLATES[plate].angle * t) : v)));
+  landNow = { type: "MultiPolygon", coordinates: plateGeo.polys.map(p => ll(p.rings, p.plate)) };
+  biomeNow = plateGeo.zones.map(z => ({ b: z.b, layers: z.layers.map(l => [{ type: "MultiPolygon", coordinates: l.polys.map(p => ll(p.rings, p.plate)) }, l.a]) }));
+}
+
+// remember where everything lives, then decide how it travels
+function startMerge() {
+  for (const o of objects) {
+    o.home = [o.lon, o.lat];
+    const onL = onLand(o.home);
+    if (o.decor && !onL) { o.plate = 0; o.sinks = true; continue; }        // sea life and ships fade out
+    if (!onL) {                                                            // 社長 at sea hop onto Pangaea
+      const lp = pick(landPoints);
+      o.plate = 0; o.hop = d3.geoInterpolate(o.home, moveAt(lp, plateOf(lp[0], lp[1]), 1));
+    } else o.plate = plateOf(o.home[0], o.home[1]);
+  }
+}
+function placeObjects(t) {
+  for (const o of objects) {
+    if (!o.home) continue;
+    [o.lon, o.lat] = o.hop ? o.hop(t) : moveAt(o.home, o.plate, t);
+    o.fade = o.sinks ? 1 - t : 1;
+  }
+}
+function finishRestore() {
+  for (const o of objects) {
+    if (!o.home) continue;
+    [o.lon, o.lat] = o.home;
+    delete o.home; delete o.hop; delete o.plate; delete o.sinks; delete o.fade;
+  }
+  geo.phase = "normal"; geo.t = 0; landNow = biomeNow = null; shakeAmp = 0;
+}
+function resetGeo() {
+  stopRumble();
+  geo.phase = "normal"; geo.t = 0; landNow = biomeNow = null; shakeAmp = 0; lava = [];
+  applyShake();
+}
+
+function spawnVolcanoes() {
+  const cands = shuffle(landPoints.map(lp => moveAt(lp, plateOf(lp[0], lp[1]), 1)).filter(p => Math.abs(p[1]) < 68));
+  const center = [view.lon, view.lat], chosen = [];
+  const fits = p => chosen.every(q => d3.geoDistance(p, q) >= VOLCANO_GAP);
+  // a couple on the far side so the player has to turn the globe to find them
+  for (const p of cands) { if (chosen.length >= 2) break; if (d3.geoDistance(p, center) > 1.75 && fits(p)) chosen.push(p); }
+  for (const p of cands) { if (chosen.length >= VOLCANO_N) break; if (fits(p)) chosen.push(p); }
+  for (const p of chosen) objects.push({ decor: true, volcano: true, sk: "l:volcano", name: "活火山", lon: p[0], lat: p[1], nom: 150, s: 1, flip: false });
+}
+
+function erupt(vol) {
+  const v = lastVis.find(o => o.p === vol);
+  geo.phase = "erupt"; geo.t0 = performance.now();
+  shakeAmp = 18;
+  const fl = $("quakeFlash");
+  fl.style.transition = "none"; fl.style.opacity = "1"; void fl.offsetWidth;
+  fl.style.transition = "opacity .9s ease-out"; fl.style.opacity = "0";
+  boom();
+  if (navigator.vibrate) try { navigator.vibrate([90, 40, 220]); } catch (e) {}
+  if (v) {
+    const x = v.x, y = v.y - v.h * 0.88, sc = Math.max(0.6, v.h / 80);
+    for (let i = 0; i < 160; i++) {
+      const a = -Math.PI / 2 + rand(-0.9, 0.9), sp = rand(4, 15) * sc;
+      lava.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: rand(2, 6) * sc, life: rand(900, 1800), age: 0,
+        c: pick(["#ff3b1f", "#ff7a1f", "#ffb02e", "#ffd54a"]) });
+    }
+  }
+}
+
+// ---- volcano and lava drawing ----
+function drawVolcanoGlow(v, now) {
+  const pulse = 0.5 + 0.5 * Math.sin(now / 260);
+  const x = v.x, y = v.y - v.h * 0.85, r = v.h * (0.9 + 0.25 * pulse);
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, `rgba(255,70,20,${0.55 + 0.3 * pulse})`); g.addColorStop(1, "rgba(255,40,0,0)");
+  ctx.globalAlpha = v.a; ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  dirty = true;
+}
+function drawVolcanoSmoke(v, now) {
+  const x0 = v.x, y0 = v.y - v.h * 0.9;
+  for (let i = 0; i < 4; i++) {
+    const ph = (now / 1700 + i / 4) % 1;
+    const x = x0 + Math.sin(ph * 5 + i) * v.h * 0.18, y = y0 - ph * v.h * 1.3, r = v.h * (0.1 + ph * 0.28);
+    ctx.fillStyle = `rgba(90,90,96,${0.55 * (1 - ph) * v.a})`;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+}
+let lavaLast = 0;
+function drawLava(now) {
+  if (!lava.length) { lavaLast = now; return; }
+  const dt = Math.min(50, now - lavaLast); lavaLast = now;
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  for (const p of lava) {
+    p.age += dt; p.x += p.vx * dt / 16; p.y += p.vy * dt / 16; p.vy += 0.38 * dt / 16;
+    const k = 1 - p.age / p.life;
+    if (k <= 0) continue;
+    ctx.globalAlpha = k; ctx.fillStyle = p.c;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (0.6 + 0.4 * k), 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+  lava = lava.filter(p => p.age < p.life);
+  dirty = true;
+}
+function applyShake() {
+  const app = $("app");
+  if (shakeAmp > 0.3) app.style.transform = `translate(${rand(-shakeAmp, shakeAmp).toFixed(1)}px,${rand(-shakeAmp, shakeAmp).toFixed(1)}px)`;
+  else if (app.style.transform) app.style.transform = "";
+}
+
+// ---- sound (Web Audio; only after the player has touched the screen) ----
+let actx = null, rumble = null;
+function unlockAudio() {
+  try {
+    if (!actx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; actx = new AC(); }
+    if (actx.state === "suspended") actx.resume();
+  } catch (e) { actx = null; }
+}
+document.addEventListener("pointerdown", unlockAudio, true);
+function brownNoise(sec) {
+  const b = actx.createBuffer(1, Math.floor(actx.sampleRate * sec), actx.sampleRate), d = b.getChannelData(0);
+  let last = 0;
+  for (let i = 0; i < d.length; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+  return b;
+}
+function startRumble() {
+  if (!actx || rumble) return;
+  try {
+    const src = actx.createBufferSource(); src.buffer = brownNoise(3); src.loop = true;
+    const lp = actx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 140;
+    const osc = actx.createOscillator(); osc.frequency.value = 34;
+    const og = actx.createGain(); og.gain.value = 0.35;
+    const g = actx.createGain(); g.gain.value = 0;
+    src.connect(lp).connect(g); osc.connect(og).connect(g); g.connect(actx.destination);
+    src.start(); osc.start();
+    rumble = { src, osc, g };
+  } catch (e) { rumble = null; }
+}
+function rumbleLevel(v) { if (rumble) rumble.g.gain.setTargetAtTime(v, actx.currentTime, 0.12); }
+function stopRumble() {
+  if (!rumble) return;
+  const r = rumble; rumble = null;
+  r.g.gain.setTargetAtTime(0, actx.currentTime, 0.25);
+  setTimeout(() => { try { r.src.stop(); r.osc.stop(); } catch (e) {} }, 1500);
+}
+function boom() {
+  if (!actx) return;
+  try {
+    const t = actx.currentTime;
+    const src = actx.createBufferSource(); src.buffer = brownNoise(2.6);
+    const lp = actx.createBiquadFilter(); lp.type = "lowpass";
+    lp.frequency.setValueAtTime(1200, t); lp.frequency.exponentialRampToValueAtTime(60, t + 2.3);
+    const g = actx.createGain(); g.gain.setValueAtTime(1.2, t); g.gain.exponentialRampToValueAtTime(0.001, t + 2.5);
+    src.connect(lp).connect(g).connect(actx.destination); src.start(t);
+    const o = actx.createOscillator(); o.frequency.setValueAtTime(75, t); o.frequency.exponentialRampToValueAtTime(26, t + 1.5);
+    const og = actx.createGain(); og.gain.setValueAtTime(0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
+    o.connect(og).connect(actx.destination); o.start(t); o.stop(t + 1.7);
+  } catch (e) {}
+}
+
+function stepGeo(now) {
+  const speed = Math.hypot(spin.lon, spin.lat) * view.zoom;  // on-screen speed, so zooming in doesn't make it harder
+  switch (geo.phase) {
+    case "normal":
+      if (!gesture && !tween && speed > OMEN_SPEED && objects.length) {
+        geo.phase = "omen"; geo.t0 = now; geo.dir = Math.sign(spin.lon) || 1;
+        startRumble();
+      }
+      break;
+    case "omen": {  // once started it never calms down: the globe spins itself up
+      const k = Math.min(1, (now - geo.t0) / OMEN_MIN_MS);
+      spin.lon = geo.dir * Math.min(RUN_SPEED * 1.2, Math.max(Math.abs(spin.lon), OMEN_SPEED) * 1.012);
+      spin.lat *= 0.9;
+      shakeAmp = 1 + 6 * k; rumbleLevel(0.15 + 0.6 * k);
+      if (k >= 1 && Math.abs(spin.lon) > RUN_SPEED) { geo.phase = "merge"; geo.t0 = now; startMerge(); }
+      dirty = true;
+      break;
+    }
+    case "merge": {
+      const k = Math.min(1, (now - geo.t0) / MERGE_MS);
+      geo.t = ease(k); buildAt(geo.t); placeObjects(geo.t);
+      spin.lon *= 0.965; shakeAmp = 1 + 6 * (1 - k); rumbleLevel(0.75 * (1 - k));
+      dirty = true;
+      if (k >= 1) {
+        geo.phase = "pangaea"; shakeAmp = 0; spin.lon = spin.lat = 0;
+        stopRumble(); spawnVolcanoes();
+        toast("大陸がひとつに！ 光る火山をさがしてタップ", true, 3200);
+      }
+      break;
+    }
+    case "erupt": {
+      const k = (now - geo.t0) / ERUPT_MS;
+      shakeAmp = 18 * Math.max(0, 1 - k);
+      if (k >= 1) { geo.phase = "restore"; geo.t0 = now; objects = objects.filter(o => !o.volcano); }
+      dirty = true;
+      break;
+    }
+    case "restore": {
+      const k = Math.min(1, (now - geo.t0) / RESTORE_MS);
+      geo.t = 1 - ease(k); buildAt(geo.t); placeObjects(geo.t);
+      shakeAmp = 3 * (1 - k);
+      dirty = true;
+      if (k >= 1) { finishRestore(); toast("大陸が元に戻った！", true); }
+      break;
+    }
+  }
+  applyShake();
+}
+
 // ---- loop ---------------------------------------------------------------
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(100, now - last); last = now;
   stepTween(now);
+  stepGeo(now);
   if (!tween && !gesture) {
     if (Math.abs(spin.lon) + Math.abs(spin.lat) > 0.0005) {
       view.lon += spin.lon * dt / 16; view.lat = Math.max(-80, Math.min(80, view.lat + spin.lat * dt / 16));
-      spin.lon *= 0.93; spin.lat *= 0.93; dirty = true;
+      // no friction while the rumble is building: it can't be stopped
+      if (geo.phase !== "omen" && geo.phase !== "merge") { spin.lon *= 0.93; spin.lat *= 0.93; }
+      dirty = true;
     } else if (mode === "title" || mode === "result") {
       view.lon += dt * 0.006; dirty = true;
     }
@@ -930,8 +1211,7 @@ Promise.all([
   loadDecor(),
   ...FREE_IDS.map(id => loadSprite(id).then(bump))
 ]).then(() => {
-  const total = IDS.filter(id => sprites[id]).length;
-  $("startMeta").textContent = `社長${total}人の中から${ROUNDS}人を見つけるタイムを競おう`;
+  prepPlates();
   objects = populate().list;
   $("loading").hidden = true; $("levels").hidden = false;
   dirty = true;
