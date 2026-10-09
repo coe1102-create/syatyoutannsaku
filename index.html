@@ -666,9 +666,11 @@ canvas.addEventListener("pointerdown", e => {
   if (geoBusy()) return;  // the globe can't be grabbed while it rumbles, merges or erupts
   try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  // grabbing stops the globe, but a flick in the same direction keeps the old momentum (see endPointer)
+  const carry = { lon: spin.lon, lat: spin.lat };
   tween = null; spin.lon = spin.lat = 0;
   if (pointers.size === 1) {
-    gesture = { type: "drag", sx: e.clientX, sy: e.clientY, t0: performance.now(), moved: 0, lx: e.clientX, ly: e.clientY, lt: performance.now() };
+    gesture = { type: "drag", sx: e.clientX, sy: e.clientY, t0: performance.now(), moved: 0, lx: e.clientX, ly: e.clientY, lt: performance.now(), carry, samples: [] };
   } else if (pointers.size === 2) {
     const [a, b] = [...pointers.values()];
     gesture = { type: "pinch", d0: Math.hypot(a.x - b.x, a.y - b.y), z0: view.zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, moved: 99 };
@@ -685,8 +687,10 @@ canvas.addEventListener("pointermove", e => {
     gesture.moved = Math.max(gesture.moved, Math.hypot(e.clientX - gesture.sx, e.clientY - gesture.sy));
     const k = degPerPx();
     view.lon -= dx * k; view.lat = Math.max(-80, Math.min(80, view.lat + dy * k));
-    const now = performance.now(), dt = Math.max(8, now - gesture.lt);  // floor avoids spikes from bunched events
-    spin.lon = -dx * k / dt * 16; spin.lat = dy * k / dt * 16;
+    // keep the last 100ms of movement to measure the flick speed on release
+    const now = performance.now();
+    gesture.samples.push({ t: now, lon: -dx * k, lat: dy * k });
+    while (gesture.samples.length && now - gesture.samples[0].t > 100) gesture.samples.shift();
     gesture.lt = now;
     dirty = true;
   } else if (gesture.type === "pinch" && pointers.size >= 2) {
@@ -700,18 +704,32 @@ canvas.addEventListener("pointermove", e => {
     dirty = true;
   }
 });
+// flick speed in °/frame, averaged over the end of the swipe; flicking again in the
+// same direction adds to the spin that was already there, like pushing a real globe
+function releaseFlick(g) {
+  const now = performance.now(), s = g.samples;
+  let vl = 0, vp = 0;
+  if (s && s.length && now - s[s.length - 1].t < 80) {
+    const span = Math.max(16, s[s.length - 1].t - s[0].t + 8);
+    for (const m of s) { vl += m.lon; vp += m.lat; }
+    vl = vl / span * 16; vp = vp / span * 16;
+  }
+  const c = g.carry || { lon: 0, lat: 0 };
+  if (vl && Math.sign(vl) === Math.sign(c.lon)) vl += c.lon * 0.9;
+  spin.lon = Math.max(-40, Math.min(40, vl)); spin.lat = vp;
+}
 function endPointer(e) {
   if (!pointers.has(e.pointerId)) return;
   pointers.delete(e.pointerId);
   if (gesture && gesture.type === "drag" && pointers.size === 0) {
     const quick = performance.now() - gesture.t0 < 450;
     if (gesture.moved < 10 && quick) { spin.lon = spin.lat = 0; onTap(e.clientX, e.clientY); }
-    if (performance.now() - gesture.lt > 80) spin.lon = spin.lat = 0;
+    else releaseFlick(gesture);
   }
   if (pointers.size === 0) { gesture = null; canvas.classList.remove("dragging"); }
   else if (pointers.size === 1) {
     const [p] = [...pointers.values()];
-    gesture = { type: "drag", sx: p.x, sy: p.y, t0: 0, moved: 99, lx: p.x, ly: p.y, lt: performance.now() };
+    gesture = { type: "drag", sx: p.x, sy: p.y, t0: 0, moved: 99, lx: p.x, ly: p.y, lt: performance.now(), samples: [] };
   }
 }
 canvas.addEventListener("pointerup", endPointer);
@@ -911,7 +929,7 @@ $("startBtn").addEventListener("click", startGame);
 // Spin the globe hard enough and it starts to rumble; past the runaway line the
 // continents drift into one supercontinent. Tapping one of its volcanoes erupts
 // and sends everything back home.
-const OMEN_SPEED = 14;    // spin (°/frame at zoom 1, ≈2400px/s flick on a phone) that starts the rumble
+const OMEN_SPEED = 12;    // spin (°/frame at zoom 1) that starts the rumble: one hard flick or a few quick ones
 const RUN_SPEED = 24;     // runaway line: crossing it merges the continents
 const OMEN_MIN_MS = 2600, MERGE_MS = 3200, ERUPT_MS = 1400, RESTORE_MS = 2800;
 const VOLCANO_N = 6, VOLCANO_GAP = 0.5;  // min distance between volcanoes (radians ≈ 29°)
@@ -1183,7 +1201,7 @@ function frame(now) {
     if (Math.abs(spin.lon) + Math.abs(spin.lat) > 0.0005) {
       view.lon += spin.lon * dt / 16; view.lat = Math.max(-80, Math.min(80, view.lat + spin.lat * dt / 16));
       // no friction while the rumble is building: it can't be stopped
-      if (geo.phase !== "omen" && geo.phase !== "merge") { spin.lon *= 0.93; spin.lat *= 0.93; }
+      if (geo.phase !== "omen" && geo.phase !== "merge") { spin.lon *= 0.955; spin.lat *= 0.9; }
       dirty = true;
     } else if (mode === "title" || mode === "result") {
       view.lon += dt * 0.006; dirty = true;
