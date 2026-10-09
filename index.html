@@ -548,7 +548,11 @@ function draw(now) {
     // while the continents drift, draw the moved copies instead of the originals
     const L = geo.t > 0 && landNow ? landNow : land;
     const zones = geo.t > 0 && biomeNow ? biomeNow : biomeShapes;
+    // outline first at double width, then fill on top: only the outer coastline survives,
+    // so merged plates and filler land show no seams
     ctx.beginPath(); path(L);
+    ctx.strokeStyle = "#3f7d3a"; ctx.lineWidth = 2 * Math.max(1, Math.min(2.5, view.zoom * 0.4)); ctx.lineJoin = "round";
+    ctx.stroke();
     ctx.fillStyle = "#9bd27a"; ctx.fill();
     // climate zones painted inside the coastline
     ctx.save(); ctx.clip();
@@ -558,8 +562,6 @@ function draw(now) {
     }
     ctx.globalAlpha = 1;
     ctx.restore();
-    ctx.beginPath(); path(L);
-    ctx.strokeStyle = "#3f7d3a"; ctx.lineWidth = Math.max(1, Math.min(2.5, view.zoom * 0.4)); ctx.stroke();
   }
 
   // people
@@ -952,10 +954,20 @@ function drift(from, to) {
   return { axis: unit(cross(a, b)), angle: Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) };
 }
 // plates: 0 = Africa + Eurasia stays put, the others drift onto it
-const PLATES = [null, { axis: [0, 0, 1], angle: 45 * RAD }, drift([25, -90], [25, -57]), drift([134, -25], [72, -40])];
+// targets overlap their neighbours a little so the coastlines fuse into one landmass
+const PLATES = [null, drift([-75, 20], [-15, 10]), drift([25, -90], [30, -52]), drift([134, -25], [62, -38])];
+// water channels that stay enclosed between the drifted plates (found by scanning the merged map);
+// land grows over them at the end of the merge so Pangaea reads as one continent
+const PANGAEA_FILL = [[32,-60],[35,-60],[38,-60],[41,-60],[29,-57],[32,-57],[35,-57],[38,-57],[41,-57],[17,-51],[17,-48],[8,-45],[14,-45],[5,-42],[11,-39],[14,-39],[14,-36],[14,-33],[17,-33],[17,-30],[32,-30],[35,-30],[38,-30],[35,-27],[38,-27],[41,-27],[38,-24],[38,-21],[11,-18],[38,-18],[5,-15],[8,-15],[11,-15],[8,-12],[11,-12],[8,-9],[-10,0],[-4,0],[-19,9],[-19,15],[-28,18],[-31,21],[-28,21],[-22,21],[-31,24],[-28,24],[-7,45],[-4,45],[-10,48],[-7,48],[-10,51],[-7,51],[-4,54],[-4,60],[-13,63],[-25,72],
+  // second pass: lakes left between South America, Africa and Antarctica
+  [12,-54],[9,-51],[3,-48],[-3,-45],[42,-21],[3,-9],[-3,-6],[0,-6],[3,-6],[6,-6],[12,-6],[0,-3],[3,-3],[6,-3],[9,-3],[0,0],[3,0],[6,0],[9,0],
+  [-18,3],[-6,3],[0,3],[3,3],[6,3],[9,3],[-24,6],[-12,6],[3,6],[-24,9],[-15,9],[-27,12],[-24,12],[-24,15],
+  [45,-26],[44,-23],[47,-29]];
+const FILL_R = 3.6;
 function plateOf(lon, lat) {
   lon = ((lon + 540) % 360) - 180;
   if (lat < -60) return 2;                                          // Antarctica
+  if (lon > -75 && lon < -10 && lat > 58 && !(lat < 67 && lon > -25)) return 1;  // Greenland (not Iceland)
   if (lat < 0 && (lon >= 140 || lon < -150)) return 3;              // New Guinea, NZ, Pacific islands
   if (lon >= 112 && lat < -10) return 3;                            // Australia
   if (lon < -165 && lat > 60) return 0;                             // far-east Siberia
@@ -985,7 +997,9 @@ function prepPlates() {
 function buildAt(t) {
   if (!plateGeo) return;
   const ll = (rings, plate) => rings.map(r => r.map(v => lonlat(plate ? rotateVec(v, PLATES[plate].axis, PLATES[plate].angle * t) : v)));
-  landNow = { type: "MultiPolygon", coordinates: plateGeo.polys.map(p => ll(p.rings, p.plate)) };
+  const fillK = Math.max(0, (t - 0.55) / 0.45);  // filler land grows in over the last part of the drift
+  const fill = fillK > 0 ? PANGAEA_FILL.map(c => d3.geoCircle().center(c).radius(FILL_R * fillK).precision(8)().coordinates) : [];
+  landNow = { type: "MultiPolygon", coordinates: [...plateGeo.polys.map(p => ll(p.rings, p.plate)), ...fill] };
   biomeNow = plateGeo.zones.map(z => ({ b: z.b, layers: z.layers.map(l => [{ type: "MultiPolygon", coordinates: l.polys.map(p => ll(p.rings, p.plate)) }, l.a]) }));
 }
 
