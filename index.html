@@ -225,7 +225,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
-<script src="costumes.js"></script>
+<script src="costumes.js?v=20261016"></script>
 <script>
 (() => {
 "use strict";
@@ -275,6 +275,30 @@ JAPAN_IDS.forEach((id, i) => { NAMES[id] = PREFS[i]; });
 const JREGIONS = [["北海道", 1, 1], ["東北地方", 2, 7], ["関東地方", 8, 14], ["中部地方", 15, 23],
   ["近畿地方", 24, 30], ["中国地方", 31, 35], ["四国地方", 36, 39], ["九州・沖縄地方", 40, 47]];
 const JCOLORS = ["#a6d68f", "#c3e08a", "#f2dc8c", "#f5c58e", "#f2ab9c", "#d7b8e6", "#9fcbe8", "#9fdcc2"];
+// a local specialty or landmark per prefecture (index = prefecture no. − 1; Hokkaido has two).
+// emoji keys; "l:" keys are drawings in costumes.js
+const JAPAN_DECO = [
+  [["🌽", "とうもろこし"], ["🦀", "毛ガニ"]], [["🍎", "りんご"]], [["🐴", "南部馬"]], [["🎋", "仙台七夕まつり"]],
+  [["🐕", "秋田犬"]], [["🍒", "さくらんぼ"]], [["🍑", "もも"]], [["🍈", "メロン"]], [["🙈", "日光の三猿"]],
+  [["🥬", "嬬恋キャベツ"]], [["🍠", "川越のさつまいも"]], [["✈️", "成田空港"]], [["🗼", "東京タワー"]],
+  [["🚢", "横浜港"]], [["🍙", "コシヒカリのおにぎり"]], [["🦑", "ホタルイカ"]], [["🌳", "兼六園"]],
+  [["🦕", "恐竜博物館"]], [["🗻", "富士山"]], [["🐒", "地獄谷の温泉ザル"]], [["🛖", "白川郷の合掌造り"]],
+  [["🍵", "静岡茶"]], [["🍤", "エビフライ"]], [["🦞", "伊勢えび"]], [["🌊", "琵琶湖"]], [["👘", "京都の着物"]],
+  [["l:tsutenkaku", "通天閣"]], [["🏯", "姫路城"]], [["🦌", "奈良の鹿"]], [["🐼", "白浜のパンダ"]],
+  [["🐪", "鳥取砂丘のラクダ"]], [["⛩️", "出雲大社"]], [["🍇", "マスカット"]], [["🦪", "広島の牡蠣"]],
+  [["🌉", "錦帯橋"]], [["🌀", "鳴門の渦潮"]], [["🫒", "小豆島のオリーブ"]], [["🍊", "みかん"]], [["🐟", "カツオ"]],
+  [["🍓", "あまおう"]], [["🎈", "バルーンフェスタ"]], [["⛪", "大浦天主堂"]], [["🏯", "熊本城"]],
+  [["♨️", "別府温泉"]], [["🥭", "マンゴー"]], [["🌋", "桜島"]], [["🌺", "ハイビスカス"]]
+];
+const JDECO_H = 5.5;  // decoration height in map units (a 社長 is JCHAR_H): small and in the background
+// the seas around Japan: names, and a few creatures and boats at fixed spots (map units)
+const JSEA_NAMES = [["日本海", 352, 232], ["太平洋", 548, 332], ["オホーツク海", 592, 18], ["東シナ海", 172, 462]];
+const JSEA = [
+  ["🐋", "クジラ（太平洋）", 542, 232], ["🐬", "イルカ（太平洋）", 484, 372], ["🐟", "カツオ（黒潮）", 352, 404],
+  ["🐢", "ウミガメ（太平洋）", 292, 424], ["🦑", "イカ釣り（日本海）", 396, 236], ["🦀", "ズワイガニ（日本海）", 330, 289],
+  ["🐠", "熱帯魚（沖縄の海）", 190, 546], ["🦈", "サメ（東シナ海）", 200, 472], ["🚢", "フェリー（太平洋）", 430, 384],
+  ["⛵", "ヨット（日本海）", 290, 300], ["🦭", "アザラシ（オホーツク海）", 580, 48]
+];
 // 空を飛んでいる社長（と海にいる社長）は海の上にも出てよい
 const FLYING = new Set([
   "s4_00","s4_01","s4_02","s4_03","s4_04","s4_05","s4_06","s4_07","s4_08","s4_09","s4_10","s4_11","s4_13","s4_14",
@@ -409,6 +433,8 @@ async function loadDecor() {
   SYX.BIOMES.forEach(b => b.plants.forEach(p => items.push("e:" + p[0])));
   [...Object.values(SYX.BUILD_BY_BIOME), ...Object.values(SYX.BUILD_BY_REGION)].forEach(l => l.forEach(b => items.push(b[0])));
   items.forEach(k => { if (k.startsWith("e:")) emojis.add(k.slice(2)); });
+  JAPAN_DECO.forEach(list => list.forEach(([k]) => { if (!k.startsWith("l:")) emojis.add(k); }));
+  JSEA.forEach(([k]) => emojis.add(k));
   // skip emoji this device can't draw (they come out as grey boxes)
   emojis.forEach(e => { const c = emojiCanvas(e); if (emojiOk(c)) addSprite("e:" + e, c, 0); });
   await Promise.all(Object.entries(SYX.LM_SVG).map(async ([k, svg]) => {
@@ -1061,9 +1087,24 @@ async function loadJapan() {
     jmap = d.prefs.map(p => {
       const path = new Path2D();
       for (const r of p.rings) { r.forEach(([x, y], i) => i ? path.lineTo(x, y) : path.moveTo(x, y)); path.closePath(); }
-      return { id: p.id, path, pt: p.pt, color: jColor(p.id) };
+      return { id: p.id, path, pt: p.pt, deco: p.deco || [], color: jColor(p.id) };
     });
+    jWaves = makeWaves();
   } catch (e) { jmap = null; }
+}
+const hitCtx = document.createElement("canvas").getContext("2d");
+const jOnLand = (x, y) => (jmap || []).some(p => hitCtx.isPointInPath(p.path, x, y, "evenodd"));
+// little wave marks scattered over open water (fixed per page load)
+let jWaves = [];
+function makeWaves() {
+  const out = [];
+  for (let t = 0; t < 3000 && out.length < 90; t++) {
+    const x = rand(90, 660), y = rand(0, 640);
+    if ([[0, 0], [6, 0], [-6, 0], [0, 6], [0, -6]].some(([dx, dy]) => jOnLand(x + dx, y + dy))) continue;
+    if (out.some(w => Math.hypot(w.x - x, w.y - y) < 22)) continue;
+    out.push({ x, y, ph: rand(0, Math.PI * 2), k: rand(0.8, 1.2) });
+  }
+  return out;
 }
 // each prefecture's 社長 stands centred on the spot farthest from its borders
 function populateJapan() {
@@ -1073,8 +1114,52 @@ function populateJapan() {
     if (!sprites[id]) continue;
     const o = { id, sk: id, nom: sprites[id].nom, jx: p.pt[0], jy: p.pt[1] + JCHAR_H * 0.42, pref: p.id, s: 1, flip: false };
     list.push(o); tps[id] = o;
+    // the prefecture's specialty / landmark, on its own spot clear of the 社長
+    (JAPAN_DECO[p.id - 1] || []).forEach(([k, name], i) => {
+      const sk = k.startsWith("l:") ? k : "e:" + k, at = p.deco[i];
+      if (!sprites[sk] || !at) return;
+      list.push({ decor: true, sk, name: `${name}（${PREFS[p.id - 1]}）`, jx: at[0], jy: at[1], hu: sk === "l:tsutenkaku" ? JDECO_H * 1.5 : JDECO_H, pref: p.id, flip: false });
+    });
   }
+  for (const [k, name, x, y] of JSEA) {
+    const sk = "e:" + k;
+    if (sprites[sk] && !jOnLand(x, y)) list.push({ decor: true, sea: true, sk, name, jx: x, jy: y, hu: JDECO_H * 1.1, flip: Math.random() < 0.5 });
+  }
+  layoutJapan(list);
   return { list, tps };
+}
+// push overlapping figures apart (map units, so it holds at every zoom). A 社長 is heavy and barely
+// moves for a decoration; each is pulled gently back toward home. A 社長 that ends up far from home
+// gets a leader line pointing at its prefecture.
+function layoutJapan(list) {
+  const PAD = 0.7;
+  const box = o => {
+    const sp = sprites[o.sk], h = o.decor ? o.hu : JCHAR_H * (o.nom / 200);
+    return { h, w: h * sp.w / sp.h * (o.decor ? 0.9 : 0.78) };  // sprites have empty margins at the sides
+  };
+  for (const o of list) { o.hx = o.jx; o.hy = o.jy; Object.assign(o, box(o)); o.m = o.decor ? 0.2 : 1; }
+  for (let it = 0; it < 2000; it++) {
+    let moved = false;
+    for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+      const a = list[i], b = list[j];
+      const dx = b.jx - a.jx, dy = (b.jy - b.h / 2) - (a.jy - a.h / 2);
+      const ox = (a.w + b.w) / 2 + PAD - Math.abs(dx), oy = (a.h + b.h) / 2 + PAD - Math.abs(dy);
+      if (ox <= 0 || oy <= 0) continue;
+      moved = true;
+      const ka = b.m / (a.m + b.m), kb = a.m / (a.m + b.m);
+      if (ox < oy) { const s = Math.sign(dx) || (i % 2 ? 1 : -1); a.jx -= s * ox * ka; b.jx += s * ox * kb; }
+      else { const s = Math.sign(dy) || 1; a.jy -= s * oy * ka; b.jy += s * oy * kb; }
+    }
+    // the pull home only in the first part, so the last iterations settle with no overlap at all
+    if (it < 1200) for (const o of list) { const k = o.decor ? 0.03 : 0.01; o.jx += (o.hx - o.jx) * k; o.jy += (o.hy - o.jy) * k; }
+    else if (!moved) break;
+  }
+  // a line home when moved far, or when the feet no longer stand inside their own prefecture
+  for (const o of list) {
+    if (o.decor) continue;
+    const p = jmap.find(q => q.id === o.pref);
+    o.leader = Math.hypot(o.jx - o.hx, o.jy - o.hy) > JCHAR_H * 0.45 || !hitCtx.isPointInPath(p.path, o.jx, o.jy - 0.5, "evenodd");
+  }
 }
 function jRegionCenter(ri) {
   const [, a, b] = JREGIONS[ri], pts = (jmap || []).filter(p => p.id >= a && p.id <= b).map(p => p.pt);
@@ -1090,6 +1175,21 @@ function drawJapan(now) {
   if (jmap) {
     ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * ox, dpr * oy);
     ctx.lineJoin = "round";
+    // sea names, faint, under everything
+    ctx.fillStyle = "rgba(255,255,255,0.32)"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = `400 11px ${getComputedStyle(document.body).getPropertyValue("--display") || "sans-serif"}`;
+    for (const [n, x, y] of JSEA_NAMES) ctx.fillText(n, x, y);
+    // waves: small white arcs that sway a little
+    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 1.4 / s; ctx.lineCap = "round";
+    for (const w of jWaves) {
+      const x = w.x + Math.sin(now / 1400 + w.ph) * 1.2, y = w.y, r = 2.6 * w.k;
+      ctx.beginPath(); ctx.arc(x - r, y, r, Math.PI * 1.15, Math.PI * 1.85); ctx.arc(x + r, y, r, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+    }
+    // shallow water: a pale band along every coast (the land fill covers its inner half)
+    ctx.strokeStyle = "rgba(190,235,255,0.45)"; ctx.lineWidth = Math.min(9, 36 / s);
+    for (const p of jmap) ctx.stroke(p.path);
+    ctx.strokeStyle = "rgba(190,235,255,0.35)"; ctx.lineWidth = Math.min(4, 16 / s);
+    for (const p of jmap) ctx.stroke(p.path);
     // coastline: every outline thick first, fills on top, so only the outer edge stays dark
     ctx.strokeStyle = "#2f6d3a"; ctx.lineWidth = 3 / s;
     for (const p of jmap) ctx.stroke(p.path);
@@ -1101,21 +1201,36 @@ function drawJapan(now) {
   const vis = [];
   for (const o of objects) {
     const sp = sprites[o.sk];
-    const h = JCHAR_H * s * (o.nom / 200), w = h * sp.w / sp.h;
+    const h = (o.decor ? o.hu : JCHAR_H * (o.nom / 200)) * s, w = h * sp.w / sp.h;
     const x = ox + o.jx * s, gy = oy + o.jy * s;
     if (x + w < 0 || x - w > W || gy < 0 || gy - h > H) continue;
     vis.push({ p: o, sp, x, y: gy, gy, w, h, a: 1 });
   }
-  vis.sort((a, b) => a.gy - b.gy);
+  // leader lines: a 社長 moved aside to avoid a neighbour points back at their prefecture
+  for (const o of objects) {
+    if (!o.leader) continue;
+    const fx = ox + o.jx * s, fy = oy + o.jy * s, hx = ox + o.hx * s, hy = oy + (o.hy - JCHAR_H * 0.42) * s;
+    ctx.strokeStyle = "rgba(40,40,40,0.55)"; ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(fx, fy - JCHAR_H * s * 0.15); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.strokeStyle = "rgba(40,40,40,0.8)"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(hx, hy, Math.max(2.2, s * 0.9), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+  // decorations first, so a 社長 is never hidden behind one
+  vis.sort((a, b) => (!!b.p.decor - !!a.p.decor) || a.gy - b.gy);
   for (const v of vis) {
-    ctx.fillStyle = "rgba(0,40,0,0.25)";
-    ctx.beginPath(); ctx.ellipse(v.x, v.gy, v.w * 0.32, v.h * 0.04 + 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = v.p.decor ? 0.82 : 1;   // specialties and sea life stay in the background
+    if (!v.p.sea) {
+      ctx.fillStyle = v.p.decor ? "rgba(0,40,0,0.12)" : "rgba(0,40,0,0.25)";
+      ctx.beginPath(); ctx.ellipse(v.x, v.gy, v.w * 0.32, v.h * 0.04 + 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    }
     if (v.p.flip) {
       ctx.save(); ctx.translate(v.x, 0); ctx.scale(-1, 1);
       ctx.drawImage(v.sp.img, -v.w / 2, v.y - v.h, v.w, v.h); ctx.restore();
     } else ctx.drawImage(v.sp.img, v.x - v.w / 2, v.y - v.h, v.w, v.h);
   }
+  ctx.globalAlpha = 1;
   lastVis = vis;
+  if (jWaves.length) dirty = true;  // keep the waves moving
   drawFlash(vis, now);
 }
 
