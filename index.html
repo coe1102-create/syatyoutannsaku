@@ -94,6 +94,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .tool[disabled] { opacity: .45; }
 .tool.round { padding: 0; width: 52px; justify-content: center; font-size: 26px; line-height: 1; }
 .zoomers { display: flex; gap: 10px; }
+.tool.small { height: 40px; min-width: 0; padding: 0 12px; font-size: 13px; border-radius: 20px; }
+.tool.small.armed { background: var(--miss); color: var(--white); }
 .hint-cost { font-size: 11px; opacity: .7; font-weight: 700; }
 
 .toast {
@@ -172,6 +174,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
   <div class="hud-bottom" id="tools" hidden>
     <button class="tool" id="hintBtn" type="button">ヒント <span class="hint-cost">+1分</span></button>
+    <button class="tool small" id="quitBtn" type="button">タイトルへ</button>
     <div class="zoomers">
       <button class="tool round" id="zoomOut" type="button" aria-label="縮小">−</button>
       <button class="tool round" id="zoomIn" type="button" aria-label="拡大">＋</button>
@@ -1030,6 +1033,16 @@ $("hintBtn").addEventListener("click", () => {
   toast(`${region}のどこかにいるぞ！ +1分`, true);
 });
 
+// back to the title mid-game: the first tap asks, a second tap within 3 seconds goes
+// (the viewer can't show confirm() dialogs, so the button itself does the asking)
+let quitTimer = 0;
+function disarmQuit() { clearTimeout(quitTimer); $("quitBtn").classList.remove("armed"); $("quitBtn").textContent = "タイトルへ"; }
+$("quitBtn").addEventListener("click", () => {
+  if (mode !== "play") return;
+  if ($("quitBtn").classList.contains("armed")) { disarmQuit(); goTitle(); return; }
+  $("quitBtn").classList.add("armed"); $("quitBtn").textContent = "もう一度で戻る";
+  quitTimer = setTimeout(disarmQuit, 3000);
+});
 $("startJapan").addEventListener("click", () => startGame("japan"));
 $("startGlobe").addEventListener("click", () => startGame("globe"));
 
