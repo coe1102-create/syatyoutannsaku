@@ -59,11 +59,12 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   box-shadow: 0 6px 0 #0004; transform: rotate(-1.2deg); pointer-events: auto;
 }
 .poster .frame {
-  width: 62px; height: 62px; flex: none; border: 2px solid var(--ink); border-radius: 4px;
+  width: 60px; height: 80px; flex: none; border: 2px solid var(--ink); border-radius: 4px; padding: 3px; box-sizing: border-box;
   background: repeating-linear-gradient(45deg, #f6e3b0 0 6px, #fbeccb 6px 12px);
-  display: grid; place-items: center; overflow: hidden;
+  overflow: hidden;
 }
-.poster .frame img { max-width: 92%; max-height: 92%; }
+/* explicit size + contain: the whole figure, head to feet, always fits the frame */
+.poster .frame img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .poster .txt { min-width: 0; }
 .poster .eyebrow { font-family: var(--display); font-size: 11px; letter-spacing: .12em; color: var(--miss); }
 .poster .name { font-weight: 800; font-size: 16px; line-height: 1.25; text-wrap: balance; }
@@ -878,6 +879,7 @@ function nextRound() {
     // the prefecture stays secret until found: the outfit and what they hold are the clue
     $("tName").textContent = "どこの県の社長かな？";
     $("tSub").textContent = "持ち物や衣装がヒント";
+    for (const o of objects) if (o.wait === Infinity) o.wait = 1200;  // last round's find walks on again
     if (round > 1) jFitView(700);
   } else {
     $("tName").textContent = fullName(targetId);
@@ -931,6 +933,7 @@ function endRound(split) {
   $("fHead").className = "big ok";
   $("fImg").src = sprites[targetId].url;
   if (gameMode === "japan") {
+    targetP.wait = Infinity; targetP.moving = false;   // stands still while the marker is on them
     jFlyTo(targetP.jx, targetP.jy - JCHAR_H * 0.9, Math.max(jv.s, jFitScale() * 5), 1000);
     $("fName").textContent = fullName(targetId);
     const region = JREGIONS[jRegion(targetP.pref)][0], pref = PREFS[targetP.pref - 1];
@@ -1014,7 +1017,7 @@ let jmap = null;
 const jv = { x: 382, y: 302, s: 1 };   // map point at the screen centre, px per map unit
 let jtween = null;
 const jspin = { x: 0, y: 0 };
-const JCHAR_H = 11;                     // a character's height in map units
+const JCHAR_H = 16.5;                   // a character's height in map units
 const JFIT = { x0: 150, y0: 22, x1: 615, y1: 582 };  // Hokkaido to Okinawa
 const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
 const jFitScale = () => Math.min((W - 24) / (JFIT.x1 - JFIT.x0), (H - 210) / (JFIT.y1 - JFIT.y0));
@@ -1039,6 +1042,7 @@ function jStep(now, dt) {
     jv.x += jspin.x * dt / 16; jv.y += jspin.y * dt / 16;
     jspin.x *= 0.9; jspin.y *= 0.9; jClamp(); dirty = true;
   }
+  if (jmap && objects.length) { jWalk(dt); dirty = true; }
 }
 // zoom so the map point under (sx, sy) stays under the finger
 function jZoomAt(sx, sy, ns) {
@@ -1057,20 +1061,61 @@ function jColor(id) {
 async function loadJapan() {
   try {
     const d = await (await fetch("data/japan-pref.json")).json();
+    const area = r => r.reduce((s, [x, y], i) => { const [px, py] = r[(i || r.length) - 1]; return s + px * y - x * py; }, 0) / 2;
     jmap = d.prefs.map(p => {
       const path = new Path2D();
       for (const r of p.rings) { r.forEach(([x, y], i) => i ? path.lineTo(x, y) : path.moveTo(x, y)); path.closePath(); }
-      return { id: p.id, path, pt: p.pt, color: jColor(p.id) };
+      // the biggest ring is the main island: the 社長 walks only there
+      const main = p.rings.reduce((a, r) => Math.abs(area(r)) > Math.abs(area(a)) ? r : a, p.rings[0]);
+      const xs = main.map(q => q[0]), ys = main.map(q => q[1]);
+      return { id: p.id, path, pt: p.pt, color: jColor(p.id), main, mbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] };
     });
+    jmapById = Object.fromEntries(jmap.map(p => [p.id, p]));
   } catch (e) { jmap = null; }
 }
-// each prefecture's 社長 stands on the spot farthest from its borders
+let jmapById = {};
+function inRing(x, y, r) {
+  let c = false;
+  for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const [xi, yi] = r[i], [xj, yj] = r[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+}
+// ---- strolling: each 社長 walks slowly to random spots inside their own prefecture ----
+const JWALK = 1.6;              // walking speed, map units per second
+const FOOT = 0.9;               // keep both feet this far inside the border
+const inside = (p, x, y) => inRing(x, y, p.main) && inRing(x - FOOT, y, p.main) && inRing(x + FOOT, y, p.main);
+function jNextSpot(o) {
+  const p = jmapById[o.pref], [x0, y0, x1, y1] = p.mbox;
+  for (let t = 0; t < 40; t++) {
+    const x = rand(x0, x1), y = rand(y0, y1);
+    if (!inside(p, x, y)) continue;
+    // a straight walk that never leaves the island (no strolling across a bay)
+    let ok = true;
+    for (let i = 1; i < 8 && ok; i++) { const k = i / 8; ok = inRing(o.jx + (x - o.jx) * k, o.jy + (y - o.jy) * k, p.main); }
+    if (ok) return [x, y];
+  }
+  return null;
+}
+function jWalk(dt) {
+  for (const o of objects) {
+    if (o.wait > 0) { o.wait -= dt; o.moving = false; continue; }
+    if (!o.dest) { o.dest = jNextSpot(o); if (!o.dest) { o.wait = 1500; continue; } }
+    const dx = o.dest[0] - o.jx, dy = o.dest[1] - o.jy, d = Math.hypot(dx, dy), step = JWALK * dt / 1000;
+    if (d <= step) { o.jx = o.dest[0]; o.jy = o.dest[1]; o.dest = null; o.wait = rand(900, 3500); o.moving = false; continue; }
+    o.jx += dx / d * step; o.jy += dy / d * step; o.moving = true;
+    if (Math.abs(dx) > 0.05) o.flip = dx < 0;   // face the way they walk
+  }
+}
+// each prefecture's 社長 starts on the spot farthest from its borders
 function populateJapan() {
   const list = [], tps = {};
   for (const p of jmap || []) {
     const id = JAPAN_IDS[p.id - 1];
     if (!sprites[id]) continue;
-    const o = { id, sk: id, nom: sprites[id].nom, jx: p.pt[0], jy: p.pt[1] + JCHAR_H * 0.42, pref: p.id, s: 1, flip: false };
+    const o = { id, sk: id, nom: sprites[id].nom, jx: p.pt[0], jy: p.pt[1], pref: p.id, s: 1, flip: false,
+      wait: rand(0, 2500), dest: null, moving: false, step: rand(0, Math.PI * 2) };
     list.push(o); tps[id] = o;
   }
   return { list, tps };
@@ -1101,15 +1146,20 @@ function drawJapan(now) {
   for (const o of objects) {
     const sp = sprites[o.sk];
     const h = JCHAR_H * s * (o.nom / 200), w = h * sp.w / sp.h;
-    const x = ox + o.jx * s, y = oy + o.jy * s;
-    if (x + w < 0 || x - w > W || y < 0 || y - h > H) continue;
-    vis.push({ p: o, sp, x, y, gy: y, w, h, a: 1 });
+    const x = ox + o.jx * s, gy = oy + o.jy * s;
+    if (x + w < 0 || x - w > W || gy < 0 || gy - h > H) continue;
+    // a small hop with each step while walking
+    const hop = o.moving ? Math.abs(Math.sin(now / 170 + o.step)) * h * 0.05 : 0;
+    vis.push({ p: o, sp, x, y: gy - hop, gy, w, h, a: 1 });
   }
   vis.sort((a, b) => a.gy - b.gy);
   for (const v of vis) {
     ctx.fillStyle = "rgba(0,40,0,0.25)";
-    ctx.beginPath(); ctx.ellipse(v.x, v.y, v.w * 0.32, v.h * 0.04 + 0.5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.drawImage(v.sp.img, v.x - v.w / 2, v.y - v.h, v.w, v.h);
+    ctx.beginPath(); ctx.ellipse(v.x, v.gy, v.w * 0.32, v.h * 0.04 + 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    if (v.p.flip) {
+      ctx.save(); ctx.translate(v.x, 0); ctx.scale(-1, 1);
+      ctx.drawImage(v.sp.img, -v.w / 2, v.y - v.h, v.w, v.h); ctx.restore();
+    } else ctx.drawImage(v.sp.img, v.x - v.w / 2, v.y - v.h, v.w, v.h);
   }
   lastVis = vis;
   drawFlash(vis, now);
