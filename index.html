@@ -136,6 +136,10 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   background: var(--gold); border-radius: 30px; height: 56px; font-size: 18px; box-shadow: 0 5px 0 #0007; width: 100%;
 }
 .primary:active { transform: translateY(4px); box-shadow: 0 1px 0 #0007; }
+.secondary {
+  background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 30px; height: 48px; font-size: 16px; width: 100%;
+}
+.secondary:active { transform: translateY(2px); }
 .ghost { background: transparent; color: var(--paper); font-size: 14px; height: 40px; text-decoration: underline; }
 .rank { font-family: var(--display); font-size: 30px; color: var(--ink); }
 .score-total { font-family: var(--display); font-size: 48px; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -183,7 +187,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       </div>
       <div class="loading" id="loading">社長を集めています…</div>
       <div class="start-wrap" id="levels" hidden>
-        <button class="primary" id="startBtn" type="button">スタート</button>
+        <button class="primary" id="startJapan" type="button">ノーマル（日本列島）</button>
+        <button class="secondary" id="startGlobe" type="button">地球儀版</button>
       </div>
       <div class="best" id="best"></div>
     </div>
@@ -257,6 +262,18 @@ const FREE_IDS = Object.keys(NAMES);
 const COSTUME = {};
 SYX.COSTUMES.forEach(c => { NAMES[c.id] = c.name; COSTUME[c.id] = c; });
 const IDS = Object.keys(NAMES);
+// normal mode: one 社長 per prefecture, j01 (北海道) … j47 (沖縄県)
+const PREFS = ["北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県", "茨城県", "栃木県", "群馬県",
+  "埼玉県", "千葉県", "東京都", "神奈川県", "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県",
+  "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県", "鳥取県", "島根県",
+  "岡山県", "広島県", "山口県", "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県", "長崎県", "熊本県",
+  "大分県", "宮崎県", "鹿児島県", "沖縄県"];
+const JAPAN_IDS = PREFS.map((_, i) => "j" + String(i + 1).padStart(2, "0"));
+JAPAN_IDS.forEach((id, i) => { NAMES[id] = PREFS[i]; });
+// [region, first prefecture no., last prefecture no.] and a map colour per region
+const JREGIONS = [["北海道", 1, 1], ["東北地方", 2, 7], ["関東地方", 8, 14], ["中部地方", 15, 23],
+  ["近畿地方", 24, 30], ["中国地方", 31, 35], ["四国地方", 36, 39], ["九州・沖縄地方", 40, 47]];
+const JCOLORS = ["#a6d68f", "#c3e08a", "#f2dc8c", "#f5c58e", "#f2ab9c", "#d7b8e6", "#9fcbe8", "#9fdcc2"];
 // 空を飛んでいる社長（と海にいる社長）は海の上にも出てよい
 const FLYING = new Set([
   "s4_00","s4_01","s4_02","s4_03","s4_04","s4_05","s4_06","s4_07","s4_08","s4_09","s4_10","s4_11","s4_13","s4_14",
@@ -329,8 +346,8 @@ function addSprite(key, img, nom, url) {
 function loadImage(src) {
   return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
 }
-async function loadSprite(id) {
-  const im = await loadImage("chars/" + id + ".webp");
+async function loadSprite(id, dir = "chars/") {
+  const im = await loadImage(dir + id + ".webp");
   if (im) addSprite(id, im, im.naturalHeight, im.src);
 }
 async function loadCostumes() {
@@ -526,6 +543,7 @@ function populate(targets = []) {
 
 // ---- render -------------------------------------------------------------
 function draw(now) {
+  if (gameMode === "japan") return drawJapan(now);
   syncProj();
   const r = radius(), [cx, cy] = globeCenter();
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -607,19 +625,21 @@ function draw(now) {
   g.addColorStop(0, "rgba(255,255,255,0.08)"); g.addColorStop(0.75, "rgba(0,0,30,0)"); g.addColorStop(1, "rgba(0,0,40,0.35)");
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
 
-  // found / reveal marker
-  if (flash) {
-    const t = (now - flash.t0) / 1000;
-    const v = vis.find(o => o.p === flash.p);
-    if (v) {
-      const rr = Math.max(v.h, 40) * (0.7 + 0.08 * Math.sin(t * 5));
-      ctx.lineWidth = 5; ctx.strokeStyle = flash.color;
-      ctx.beginPath(); ctx.arc(v.x, v.y - v.h / 2, rr, 0, Math.PI * 2); ctx.stroke();
-      ctx.lineWidth = 2; ctx.strokeStyle = "#fff";
-      ctx.beginPath(); ctx.arc(v.x, v.y - v.h / 2, rr + 6, 0, Math.PI * 2); ctx.stroke();
-    }
-    dirty = true;
+  drawFlash(vis, now);
+}
+// found / reveal marker
+function drawFlash(vis, now) {
+  if (!flash) return;
+  const t = (now - flash.t0) / 1000;
+  const v = vis.find(o => o.p === flash.p);
+  if (v) {
+    const rr = Math.max(v.h, 40) * (0.7 + 0.08 * Math.sin(t * 5));
+    ctx.lineWidth = 5; ctx.strokeStyle = flash.color;
+    ctx.beginPath(); ctx.arc(v.x, v.y - v.h / 2, rr, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#fff";
+    ctx.beginPath(); ctx.arc(v.x, v.y - v.h / 2, rr + 6, 0, Math.PI * 2); ctx.stroke();
   }
+  dirty = true;
 }
 let lastVis = [];
 
@@ -671,11 +691,12 @@ canvas.addEventListener("pointerdown", e => {
   // grabbing stops the globe, but a flick in the same direction keeps the old momentum (see endPointer)
   const carry = { lon: spin.lon, lat: spin.lat };
   tween = null; spin.lon = spin.lat = 0;
+  jtween = null; jspin.x = jspin.y = 0;
   if (pointers.size === 1) {
     gesture = { type: "drag", sx: e.clientX, sy: e.clientY, t0: performance.now(), moved: 0, lx: e.clientX, ly: e.clientY, lt: performance.now(), carry, samples: [] };
   } else if (pointers.size === 2) {
     const [a, b] = [...pointers.values()];
-    gesture = { type: "pinch", d0: Math.hypot(a.x - b.x, a.y - b.y), z0: view.zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, moved: 99 };
+    gesture = { type: "pinch", d0: Math.hypot(a.x - b.x, a.y - b.y), z0: gameMode === "japan" ? jv.s : view.zoom, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, moved: 99 };
   }
   canvas.classList.add("dragging");
 });
@@ -687,10 +708,18 @@ canvas.addEventListener("pointermove", e => {
   if (gesture.type === "drag" && pointers.size === 1) {
     const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
     gesture.moved = Math.max(gesture.moved, Math.hypot(e.clientX - gesture.sx, e.clientY - gesture.sy));
+    const now = performance.now();
+    if (gameMode === "japan") {
+      // the map follows the finger; samples are in map units for the glide after release
+      jv.x -= dx / jv.s; jv.y -= dy / jv.s; jClamp();
+      gesture.samples.push({ t: now, lon: -dx / jv.s, lat: -dy / jv.s });
+      while (gesture.samples.length && now - gesture.samples[0].t > 100) gesture.samples.shift();
+      gesture.lt = now; dirty = true;
+      return;
+    }
     const k = degPerPx();
     view.lon -= dx * k; view.lat = Math.max(-80, Math.min(80, view.lat + dy * k));
     // keep the last 100ms of movement to measure the flick speed on release
-    const now = performance.now();
     gesture.samples.push({ t: now, lon: -dx * k, lat: dy * k });
     while (gesture.samples.length && now - gesture.samples[0].t > 100) gesture.samples.shift();
     gesture.lt = now;
@@ -699,6 +728,12 @@ canvas.addEventListener("pointermove", e => {
     const [a, b] = [...pointers.values()];
     const d = Math.hypot(a.x - b.x, a.y - b.y);
     const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    if (gameMode === "japan") {
+      jv.x -= (mx - gesture.mx) / jv.s; jv.y -= (my - gesture.my) / jv.s;
+      gesture.mx = mx; gesture.my = my;
+      jZoomAt(mx, my, gesture.z0 * d / Math.max(1, gesture.d0));
+      return;
+    }
     const k = degPerPx();
     view.lon -= (mx - gesture.mx) * k; view.lat = Math.max(-80, Math.min(80, view.lat + (my - gesture.my) * k));
     gesture.mx = mx; gesture.my = my;
@@ -716,6 +751,7 @@ function releaseFlick(g) {
     for (const m of s) { vl += m.lon; vp += m.lat; }
     vl = vl / span * 16; vp = vp / span * 16;
   }
+  if (gameMode === "japan") { jspin.x = vl; jspin.y = vp; return; }
   const c = g.carry || { lon: 0, lat: 0 };
   if (vl && Math.sign(vl) === Math.sign(c.lon)) vl += c.lon * 0.9;
   spin.lon = Math.max(-40, Math.min(40, vl)); spin.lat = vp;
@@ -738,12 +774,16 @@ canvas.addEventListener("pointerup", endPointer);
 canvas.addEventListener("pointercancel", endPointer);
 canvas.addEventListener("wheel", e => {
   e.preventDefault();
+  if (gameMode === "japan") { jtween = null; jZoomAt(e.clientX, e.clientY, jv.s * Math.exp(-e.deltaY * 0.0015)); return; }
   view.zoom = Math.max(ZMIN, Math.min(ZMAX, view.zoom * Math.exp(-e.deltaY * 0.0015)));
   dirty = true;
 }, { passive: false });
 document.addEventListener("gesturestart", e => e.preventDefault());
 
-function zoomBy(f) { flyTo(view.lon, view.lat, Math.max(ZMIN, Math.min(ZMAX, view.zoom * f)), 300); }
+function zoomBy(f) {
+  if (gameMode === "japan") return jFlyTo(jv.x, jv.y, jv.s * f, 300);
+  flyTo(view.lon, view.lat, Math.max(ZMIN, Math.min(ZMAX, view.zoom * f)), 300);
+}
 $("zoomIn").addEventListener("click", () => zoomBy(1.8));
 $("zoomOut").addEventListener("click", () => zoomBy(1 / 1.8));
 
@@ -755,11 +795,12 @@ function toast(msg, info, ms = 1300) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.className = "toast" + (info ? " info" : ""); }, ms);
 }
 // best = fastest total time in seconds (0 = none yet)
-function readBest() { try { return +localStorage.getItem("syatyou-best-time") || 0; } catch (e) { return 0; } }
-function writeBest(v) { try { localStorage.setItem("syatyou-best-time", String(v)); } catch (e) {} }
+const bestKey = m => m === "japan" ? "syatyou-best-time-japan" : "syatyou-best-time";
+function readBest(m = gameMode) { try { return +localStorage.getItem(bestKey(m)) || 0; } catch (e) { return 0; } }
+function writeBest(v) { try { localStorage.setItem(bestKey(gameMode), String(v)); } catch (e) {} }
 function showBest() {
-  const b = readBest();
-  $("best").textContent = b ? `ベストタイム：${fmtTime(b)}` : "";
+  const parts = [["日本列島", readBest("japan")], ["地球儀", readBest("globe")]].filter(([, b]) => b).map(([n, b]) => `${n} ${fmtTime(b)}`);
+  $("best").textContent = parts.length ? "ベストタイム：" + parts.join(" / ") : "";
 }
 function fmtTime(s, tenths = true) {
   const m = Math.floor(s / 60), r = s - m * 60;
@@ -792,9 +833,22 @@ function regionOf(lon, lat) {
   return "東アジア";
 }
 
-// one game = find 3 社長 on the same globe; the world is laid out once per game
-function startGame() {
+// one game = find 3 社長 on the same map; the world is laid out once per game
+function startGame(m) {
+  gameMode = m;
   round = 0; elapsed = 0; misses = 0; history = [];
+  if (m === "japan") {
+    // normal mode: all 47 stand in their own prefecture, 3 of them picked at random
+    resetGeo();
+    targets = shuffle(JAPAN_IDS.filter(id => sprites[id])).slice(0, ROUNDS);
+    const w = populateJapan();
+    objects = w.list; targetPos = w.tps;
+    $("rounds").textContent = ROUNDS;
+    $("titleScreen").hidden = true; $("resultScreen").hidden = true;
+    jv.x = (JFIT.x0 + JFIT.x1) / 2; jv.y = (JFIT.y0 + JFIT.y1) / 2; jv.s = jFitScale();
+    nextRound();
+    return;
+  }
   const pool = shuffle(IDS.filter(id => sprites[id]));
   targets = [];
   for (const id of pool) {
@@ -818,11 +872,18 @@ function nextRound() {
   targetId = targets[round - 1]; targetP = targetPos[targetId];
   splitStart = elapsed; hintUsed = false; flash = null;
   $("hintBtn").disabled = false;
-  $("tSub").textContent = "にているけど服がちがう社長に注意";
   $("tImg").src = sprites[targetId].url;
-  $("tName").textContent = fullName(targetId);
   $("round").textContent = round; $("misses").textContent = misses;
-  if (round > 1) flyTo(view.lon, view.lat, 1, 700);  // same world, just zoom back out
+  if (gameMode === "japan") {
+    // the prefecture stays secret until found: the outfit and what they hold are the clue
+    $("tName").textContent = "どこの県の社長かな？";
+    $("tSub").textContent = "持ち物や衣装がヒント";
+    if (round > 1) jFitView(700);
+  } else {
+    $("tName").textContent = fullName(targetId);
+    $("tSub").textContent = "にているけど服がちがう社長に注意";
+    if (round > 1) flyTo(view.lon, view.lat, 1, 700);  // same world, just zoom back out
+  }
   $("foundScreen").hidden = true;
   $("hud").hidden = false; $("tools").hidden = false;
   mode = "play"; dirty = true; updateTimer();
@@ -866,12 +927,19 @@ function onTap(x, y) {
 function endRound(split) {
   mode = "found";
   flash = { p: targetP, t0: performance.now(), color: "#33c27f" };
-  flyTo(targetP.lon, targetP.lat - 2 / Math.max(1, view.zoom), Math.max(view.zoom, 5), 1000);
   $("fHead").textContent = "発見！";
   $("fHead").className = "big ok";
   $("fImg").src = sprites[targetId].url;
-  $("fName").textContent = fullName(targetId) + (COSTUME[targetId] ? `（${COSTUME[targetId].country}）` : "");
-  $("fLoc").textContent = "見つけた場所　" + fmtLoc(targetP);
+  if (gameMode === "japan") {
+    jFlyTo(targetP.jx, targetP.jy - JCHAR_H * 0.9, Math.max(jv.s, jFitScale() * 5), 1000);
+    $("fName").textContent = fullName(targetId);
+    const region = JREGIONS[jRegion(targetP.pref)][0], pref = PREFS[targetP.pref - 1];
+    $("fLoc").textContent = region === pref ? pref : `${region}　${pref}`;
+  } else {
+    flyTo(targetP.lon, targetP.lat - 2 / Math.max(1, view.zoom), Math.max(view.zoom, 5), 1000);
+    $("fName").textContent = fullName(targetId) + (COSTUME[targetId] ? `（${COSTUME[targetId].country}）` : "");
+    $("fLoc").textContent = "見つけた場所　" + fmtLoc(targetP);
+  }
   $("fPts").textContent = `${round}人目 ${fmtTime(split)}　合計 ${fmtTime(elapsed)}`;
   $("nextBtn").textContent = round >= ROUNDS ? "結果を見る" : `${round + 1}人目をさがす`;
   $("tools").hidden = true;
@@ -898,13 +966,16 @@ function showResult() {
     d.append(im, t); return d;
   }));
   $("resultScreen").hidden = false;
-  flyTo(view.lon + 60, 15, 1, 1400);
+  if (gameMode === "japan") jFitView(1200);
+  else flyTo(view.lon + 60, 15, 1, 1400);
 }
-$("againBtn").addEventListener("click", startGame);
+$("againBtn").addEventListener("click", () => startGame(gameMode));
 $("homeBtn").addEventListener("click", goTitle);
 
 function goTitle() {
   mode = "title";
+  gameMode = "globe";  // the title screen always shows the spinning globe
+  jtween = null;
   $("resultScreen").hidden = true; $("foundScreen").hidden = true; $("hud").hidden = true; $("tools").hidden = true;
   resetGeo();
   objects = populate().list; targetP = null; flash = null;
@@ -917,6 +988,13 @@ $("hintBtn").addEventListener("click", () => {
   if (mode !== "play" || hintUsed) return;
   hintUsed = true; $("hintBtn").disabled = true;
   elapsed += HINT_COST; updateTimer();
+  if (gameMode === "japan") {
+    const ri = jRegion(targetP.pref), [cx, cy] = jRegionCenter(ri), name = JREGIONS[ri][0];
+    jFlyTo(cx, cy, jFitScale() * (ri === 0 ? 1.8 : 2.4), 900);
+    $("tSub").textContent = `ヒント：${name}にいるぞ！`;
+    toast(`${name}のどこかにいるぞ！ +1分`, true);
+    return;
+  }
   // name the region and turn that side of the globe toward the player, without pinpointing
   const home = targetP.home || [targetP.lon, targetP.lat];  // name the real-world region even on Pangaea
   const region = regionOf(home[0], home[1]);
@@ -925,7 +1003,117 @@ $("hintBtn").addEventListener("click", () => {
   toast(`${region}のどこかにいるぞ！ +1分`, true);
 });
 
-$("startBtn").addEventListener("click", startGame);
+$("startJapan").addEventListener("click", () => startGame("japan"));
+$("startGlobe").addEventListener("click", () => startGame("globe"));
+
+// ---- normal mode: the Japan map ------------------------------------------------
+// The 47 prefecture 社長 stand in their own prefecture on a flat map (jpn-atlas data:
+// pre-projected map units, about 850×680, y down). Drag pans, pinch zooms.
+let gameMode = "globe";   // globe | japan
+let jmap = null;
+const jv = { x: 382, y: 302, s: 1 };   // map point at the screen centre, px per map unit
+let jtween = null;
+const jspin = { x: 0, y: 0 };
+const JCHAR_H = 11;                     // a character's height in map units
+const JFIT = { x0: 150, y0: 22, x1: 615, y1: 582 };  // Hokkaido to Okinawa
+const clampN = (v, a, b) => Math.max(a, Math.min(b, v));
+const jFitScale = () => Math.min((W - 24) / (JFIT.x1 - JFIT.x0), (H - 210) / (JFIT.y1 - JFIT.y0));
+const jCenterY = () => H * 0.53;
+const jsMin = () => jFitScale() * 0.9, jsMax = () => jFitScale() * 14;
+function jClamp() {
+  jv.s = clampN(jv.s, jsMin(), jsMax());
+  jv.x = clampN(jv.x, JFIT.x0, JFIT.x1); jv.y = clampN(jv.y, JFIT.y0, JFIT.y1);
+}
+function jFlyTo(x, y, s, ms = 900) {
+  jtween = { t0: performance.now(), ms: reduceMotion ? 1 : ms, from: { ...jv }, to: { x, y, s: clampN(s, jsMin(), jsMax()) } };
+  jspin.x = jspin.y = 0;
+}
+const jFitView = (ms = 900) => jFlyTo((JFIT.x0 + JFIT.x1) / 2, (JFIT.y0 + JFIT.y1) / 2, jFitScale(), ms);
+function jStep(now, dt) {
+  if (jtween) {
+    const t = Math.min(1, (now - jtween.t0) / jtween.ms), k = ease(t), f = jtween.from, to = jtween.to;
+    jv.x = f.x + (to.x - f.x) * k; jv.y = f.y + (to.y - f.y) * k; jv.s = f.s * Math.pow(to.s / f.s, k);  // zoom evenly
+    if (t >= 1) jtween = null;
+    dirty = true;
+  } else if (!gesture && Math.abs(jspin.x) + Math.abs(jspin.y) > 0.01) {
+    jv.x += jspin.x * dt / 16; jv.y += jspin.y * dt / 16;
+    jspin.x *= 0.9; jspin.y *= 0.9; jClamp(); dirty = true;
+  }
+}
+// zoom so the map point under (sx, sy) stays under the finger
+function jZoomAt(sx, sy, ns) {
+  const wx = jv.x + (sx - W / 2) / jv.s, wy = jv.y + (sy - jCenterY()) / jv.s;
+  jv.s = clampN(ns, jsMin(), jsMax());
+  jv.x = wx - (sx - W / 2) / jv.s; jv.y = wy - (sy - jCenterY()) / jv.s;
+  jClamp(); dirty = true;
+}
+
+const jRegion = id => JREGIONS.findIndex(([, a, b]) => id >= a && id <= b);
+function jColor(id) {
+  const hex = JCOLORS[jRegion(id)], k = (id % 3) * 0.13;  // neighbours in a region differ a little
+  const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).map(v => Math.round(v + (255 - v) * k));
+  return `rgb(${c.join(",")})`;
+}
+async function loadJapan() {
+  try {
+    const d = await (await fetch("data/japan-pref.json")).json();
+    jmap = d.prefs.map(p => {
+      const path = new Path2D();
+      for (const r of p.rings) { r.forEach(([x, y], i) => i ? path.lineTo(x, y) : path.moveTo(x, y)); path.closePath(); }
+      return { id: p.id, path, pt: p.pt, color: jColor(p.id) };
+    });
+  } catch (e) { jmap = null; }
+}
+// each prefecture's 社長 stands on the spot farthest from its borders
+function populateJapan() {
+  const list = [], tps = {};
+  for (const p of jmap || []) {
+    const id = JAPAN_IDS[p.id - 1];
+    if (!sprites[id]) continue;
+    const o = { id, sk: id, nom: sprites[id].nom, jx: p.pt[0], jy: p.pt[1] + JCHAR_H * 0.42, pref: p.id, s: 1, flip: false };
+    list.push(o); tps[id] = o;
+  }
+  return { list, tps };
+}
+function jRegionCenter(ri) {
+  const [, a, b] = JREGIONS[ri], pts = (jmap || []).filter(p => p.id >= a && p.id <= b).map(p => p.pt);
+  return [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+}
+
+function drawJapan(now) {
+  const s = jv.s, ox = W / 2 - jv.x * s, oy = jCenterY() - jv.y * s;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#63b4f2"); g.addColorStop(1, "#2a72c4");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (jmap) {
+    ctx.setTransform(dpr * s, 0, 0, dpr * s, dpr * ox, dpr * oy);
+    ctx.lineJoin = "round";
+    // coastline: every outline thick first, fills on top, so only the outer edge stays dark
+    ctx.strokeStyle = "#2f6d3a"; ctx.lineWidth = 3 / s;
+    for (const p of jmap) ctx.stroke(p.path);
+    for (const p of jmap) { ctx.fillStyle = p.color; ctx.fill(p.path, "evenodd"); }
+    ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 1.1 / s;
+    for (const p of jmap) ctx.stroke(p.path);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  const vis = [];
+  for (const o of objects) {
+    const sp = sprites[o.sk];
+    const h = JCHAR_H * s * (o.nom / 200), w = h * sp.w / sp.h;
+    const x = ox + o.jx * s, y = oy + o.jy * s;
+    if (x + w < 0 || x - w > W || y < 0 || y - h > H) continue;
+    vis.push({ p: o, sp, x, y, gy: y, w, h, a: 1 });
+  }
+  vis.sort((a, b) => a.gy - b.gy);
+  for (const v of vis) {
+    ctx.fillStyle = "rgba(0,40,0,0.25)";
+    ctx.beginPath(); ctx.ellipse(v.x, v.y, v.w * 0.32, v.h * 0.04 + 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(v.sp.img, v.x - v.w / 2, v.y - v.h, v.w, v.h);
+  }
+  lastVis = vis;
+  drawFlash(vis, now);
+}
 
 // ---- hidden feature: Pangaea and the eruption ----------------------------------
 // Spin the globe hard enough and it starts to rumble; past the runaway line the
@@ -933,7 +1121,7 @@ $("startBtn").addEventListener("click", startGame);
 // and sends everything back home.
 const OMEN_SPEED = 12;    // spin (°/frame at zoom 1) that starts the rumble: one hard flick or a few quick ones
 const RUN_SPEED = 24;     // runaway line: crossing it merges the continents
-const OMEN_MIN_MS = 2600, MERGE_MS = 3200, ERUPT_MS = 1400, RESTORE_MS = 2800;
+const OMEN_MIN_MS = 2600, MERGE_MS = 4500, ERUPT_MS = 1400, RESTORE_MS = 2800;
 const VOLCANO_N = 6, VOLCANO_GAP = 0.5;  // min distance between volcanoes (radians ≈ 29°)
 // phases: normal → omen → merge → pangaea → erupt → restore → normal
 const geo = { phase: "normal", t: 0, t0: 0, dir: 1 };
@@ -958,11 +1146,12 @@ function drift(from, to) {
 const PLATES = [null, drift([-75, 20], [-15, 10]), drift([25, -90], [30, -52]), drift([134, -25], [62, -38])];
 // water channels that stay enclosed between the drifted plates (found by scanning the merged map);
 // land grows over them at the end of the merge so Pangaea reads as one continent
-const PANGAEA_FILL = [[32,-60],[35,-60],[38,-60],[41,-60],[29,-57],[32,-57],[35,-57],[38,-57],[41,-57],[17,-51],[17,-48],[8,-45],[14,-45],[5,-42],[11,-39],[14,-39],[14,-36],[14,-33],[17,-33],[17,-30],[32,-30],[35,-30],[38,-30],[35,-27],[38,-27],[41,-27],[38,-24],[38,-21],[11,-18],[38,-18],[5,-15],[8,-15],[11,-15],[8,-12],[11,-12],[8,-9],[-10,0],[-4,0],[-19,9],[-19,15],[-28,18],[-31,21],[-28,21],[-22,21],[-31,24],[-28,24],[-7,45],[-4,45],[-10,48],[-7,48],[-10,51],[-7,51],[-4,54],[-4,60],[-13,63],[-25,72],
-  // second pass: lakes left between South America, Africa and Antarctica
-  [12,-54],[9,-51],[3,-48],[-3,-45],[42,-21],[3,-9],[-3,-6],[0,-6],[3,-6],[6,-6],[12,-6],[0,-3],[3,-3],[6,-3],[9,-3],[0,0],[3,0],[6,0],[9,0],
-  [-18,3],[-6,3],[0,3],[3,3],[6,3],[9,3],[-24,6],[-12,6],[3,6],[-24,9],[-15,9],[-27,12],[-24,12],[-24,15],
-  [45,-26],[44,-23],[47,-29]];
+const PANGAEA_FILL = [[-14,-54],[13,-51],[10,-48],[13,-48],[4,-45],[7,-45],[10,-45],[13,-45],[16,-45],[7,-42],[10,-42],[13,-42],[13,-39],[16,-36],[16,-33],[16,-30],
+  [28,-30],[31,-30],[31,-27],[34,-27],[37,-27],[31,-24],[34,-24],[34,-21],[13,-18],[10,-15],[10,-12],[7,-9],[13,-9],[4,-6],[13,-6],[4,-3],[10,-3],[13,-3],
+  [-2,0],[7,0],[10,0],[-8,3],[7,6],[-11,9],[37,12],[-8,15],[-17,18],[-11,18],[-8,18],[-14,21],[-8,21],[-14,24],[1,48],[-2,51],[1,51],[7,51],[7,54],
+  [10,54],[10,57],[1,60],[7,60],[7,63],[7,66],[52,72],
+  // second pass: what was still enclosed once the first pass had grown in
+  [38,-60],[-7,-54],[-10,-51],[-7,-51],[-4,-51],[-1,-51],[-4,-48],[-1,-48],[59,-27],[35,-15],[2,0],[-4,3],[2,3],[5,3],[-4,6],[-7,9],[-4,9],[-4,66]];
 const FILL_R = 3.6;
 function plateOf(lon, lat) {
   lon = ((lon + 540) % 360) - 180;
@@ -974,7 +1163,17 @@ function plateOf(lon, lat) {
   if (lon < -30) return 1;                                          // the Americas and Greenland
   return 0;
 }
-const moveAt = (pos, plate, t) => plate && t ? lonlat(rotateVec(vec(pos), PLATES[plate].axis, PLATES[plate].angle * t)) : pos;
+// on top of the plate drift, every longitude is pulled toward 20°E, so the Americas close in from
+// the west and Asia from the east and the whole supercontinent fits on one side of the globe
+const SQ_C = 20, SQUEEZE = 0.3;
+function squeeze([lon, lat], t) {
+  const d = ((lon - SQ_C + 540) % 360) - 180;
+  return [SQ_C + d * (1 - SQUEEZE * t), lat];
+}
+const moveAt = (pos, plate, t) => {
+  if (!t) return pos;
+  return squeeze(plate ? lonlat(rotateVec(vec(pos), PLATES[plate].axis, PLATES[plate].angle * t)) : pos, t);
+};
 
 function prepPlates() {
   if (!land) return;
@@ -996,13 +1195,20 @@ function prepPlates() {
 }
 function buildAt(t) {
   if (!plateGeo) return;
-  const ll = (rings, plate) => rings.map(r => r.map(v => lonlat(plate ? rotateVec(v, PLATES[plate].axis, PLATES[plate].angle * t) : v)));
+  const ll = (rings, plate) => rings.map(r => r.map(v => squeeze(lonlat(plate ? rotateVec(v, PLATES[plate].axis, PLATES[plate].angle * t) : v), t)));
   const fillK = Math.max(0, (t - 0.55) / 0.45);  // filler land grows in over the last part of the drift
   const fill = fillK > 0 ? PANGAEA_FILL.map(c => d3.geoCircle().center(c).radius(FILL_R * fillK).precision(8)().coordinates) : [];
   landNow = { type: "MultiPolygon", coordinates: [...plateGeo.polys.map(p => ll(p.rings, p.plate)), ...fill] };
   biomeNow = plateGeo.zones.map(z => ({ b: z.b, layers: z.layers.map(l => [{ type: "MultiPolygon", coordinates: l.polys.map(p => ll(p.rings, p.plate)) }, l.a]) }));
 }
 
+// middle of the merged landmass (mean direction of the land sample points after the drift)
+function pangaeaCenter() {
+  let x = 0, y = 0, z = 0;
+  for (const lp of landPoints) { const v = vec(moveAt(lp, plateOf(lp[0], lp[1]), 1)); x += v[0]; y += v[1]; z += v[2]; }
+  const c = lonlat(unit([x, y, z]));
+  return [c[0], Math.max(-40, Math.min(40, c[1]))];
+}
 // remember where everything lives, then decide how it travels
 function startMerge() {
   for (const o of objects) {
@@ -1041,7 +1247,7 @@ function spawnVolcanoes() {
   const center = [view.lon, view.lat], chosen = [];
   const fits = p => chosen.every(q => d3.geoDistance(p, q) >= VOLCANO_GAP);
   // a couple on the far side so the player has to turn the globe to find them
-  for (const p of cands) { if (chosen.length >= 2) break; if (d3.geoDistance(p, center) > 1.75 && fits(p)) chosen.push(p); }
+  for (const p of cands) { if (chosen.length >= 2) break; if (d3.geoDistance(p, center) > 1.3 && fits(p)) chosen.push(p); }
   for (const p of cands) { if (chosen.length >= VOLCANO_N) break; if (fits(p)) chosen.push(p); }
   for (const p of chosen) objects.push({ decor: true, volcano: true, sk: "l:volcano", name: "活火山", lon: p[0], lat: p[1], nom: 150, s: 1, flip: false });
 }
@@ -1170,14 +1376,19 @@ function stepGeo(now) {
       spin.lon = geo.dir * Math.min(RUN_SPEED * 1.2, Math.max(Math.abs(spin.lon), OMEN_SPEED) * 1.012);
       spin.lat *= 0.9;
       shakeAmp = 1 + 6 * k; rumbleLevel(0.15 + 0.6 * k);
-      if (k >= 1 && Math.abs(spin.lon) > RUN_SPEED) { geo.phase = "merge"; geo.t0 = now; startMerge(); }
+      if (k >= 1 && Math.abs(spin.lon) > RUN_SPEED) {
+        geo.phase = "merge"; geo.t0 = now; startMerge();
+        // stop spinning and face the supercontinent so the drift can be watched
+        const c = pangaeaCenter();
+        flyTo(c[0], c[1], 0.95, 1400);
+      }
       dirty = true;
       break;
     }
     case "merge": {
       const k = Math.min(1, (now - geo.t0) / MERGE_MS);
       geo.t = ease(k); buildAt(geo.t); placeObjects(geo.t);
-      spin.lon *= 0.965; shakeAmp = 1 + 6 * (1 - k); rumbleLevel(0.75 * (1 - k));
+      shakeAmp = 1 + 6 * (1 - k); rumbleLevel(0.75 * (1 - k));
       dirty = true;
       if (k >= 1) {
         geo.phase = "pangaea"; shakeAmp = 0; spin.lon = spin.lat = 0;
@@ -1209,9 +1420,9 @@ function stepGeo(now) {
 let last = performance.now();
 function frame(now) {
   const dt = Math.min(100, now - last); last = now;
-  stepTween(now);
-  stepGeo(now);
-  if (!tween && !gesture) {
+  if (gameMode === "japan") jStep(now, dt);
+  else { stepTween(now); stepGeo(now); }
+  if (gameMode === "globe" && !tween && !gesture) {
     if (Math.abs(spin.lon) + Math.abs(spin.lat) > 0.0005) {
       view.lon += spin.lon * dt / 16; view.lat = Math.max(-80, Math.min(80, view.lat + spin.lat * dt / 16));
       // no friction while the rumble is building: it can't be stopped
@@ -1236,12 +1447,15 @@ resize();
 requestAnimationFrame(frame);
 showBest();
 let loaded = 0;
-const bump = () => { loaded++; $("loading").textContent = `社長を集めています… ${loaded}/${FREE_IDS.length}`; };
+const allSprites = FREE_IDS.length + JAPAN_IDS.length;
+const bump = () => { loaded++; $("loading").textContent = `社長を集めています… ${loaded}/${allSprites}`; };
 Promise.all([
   loadLand(),
+  loadJapan(),
   loadCostumes(),
   loadDecor(),
-  ...FREE_IDS.map(id => loadSprite(id).then(bump))
+  ...FREE_IDS.map(id => loadSprite(id).then(bump)),
+  ...JAPAN_IDS.map(id => loadSprite(id, "chars/japan/").then(bump))
 ]).then(() => {
   prepPlates();
   objects = populate().list;
