@@ -123,7 +123,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
       <h2>ゴミ箱シュート</h2>
       <div class="swipe-demo"><span>👆</span></div>
       <ol>
-        <li>社長の席から、画面を<b>上に向かってスワイプ</b>すると紙くずが<b>奥のゴミ箱</b>へ飛びます。速くはらうほど遠くへ、紙くずはスワイプした向きに飛び、山なりに落ちてきます。弱いとデスクに落ちます。</li>
+        <li>社長の席から、画面を<b>上に向かってスワイプ</b>すると紙くずが<b>奥のゴミ箱</b>へ飛びます。速くはらうほど遠くへ、<b>ゴミ箱に向かってはらう</b>と、そのまっすぐ先に山なりで落ちてきます。弱いとデスクに落ちます。</li>
         <li>紙なのでフワフワ漂います。<b>エアコンの風</b>で左右に流されます（羽の向きと風の流れで風向きがわかります）。</li>
         <li><b>奥の壁に当てて</b>入れると<b>バンクショット</b>で＋1点。</li>
         <li>ゴミ箱は1球ごとに場所が変わります。10球で得点を競います。風がむずかしいときは「エアコン停止」。</li>
@@ -295,7 +295,7 @@ cv.addEventListener("pointerdown", e => {
   if (!T.on || T.phase !== "aim" || !$("tutorial").hidden) return;
   try { cv.setPointerCapture(e.pointerId); } catch (err) {}
   const [x, y] = toLogical(e);
-  swipe = { id: e.pointerId, pts: [{ x, y, t: performance.now() }] };
+  swipe = { id: e.pointerId, start: { x, y }, pts: [{ x, y, t: performance.now() }] };
 });
 cv.addEventListener("pointermove", e => {
   if (!swipe || e.pointerId !== swipe.id) return;
@@ -305,31 +305,35 @@ cv.addEventListener("pointermove", e => {
 });
 function endSwipe(e) {
   if (!swipe || e.pointerId !== swipe.id) return;
-  const p = swipe.pts, a = p[0], b = p[p.length - 1];
+  const p = swipe.pts, a = p[0], b = p[p.length - 1], s = swipe.start;
   swipe = null;
   const dt = Math.max(16, b.t - a.t) / 1000;
   let vx = (b.x - a.x) / dt, vy = (b.y - a.y) / dt;
   if (vy > -150 || Math.hypot(vx, vy) < 220) { callout("上にスワイプ！"); return; }   // a tap or a downward flick isn't a throw
-  throwFromSwipe(vx, vy);
+  // the aim is the line of the whole stroke (the flick's last instant tends to hook), carried on
+  // up the screen to the bin's row: wherever that line crosses is where the paper comes down
+  const [lx, ly] = s.y - b.y > 30 ? [b.x - s.x, b.y - s.y] : [vx, vy];
+  throwFromSwipe(vx, vy, b.x + lx / ly * (aimRow() - b.y));
 }
+// the screen row of the bin's rim, which the aim line is measured against
+function aimRow() { return proj(CAN.x, CAN.h, CAN.z)[1]; }
 cv.addEventListener("pointerup", endSwipe);
 cv.addEventListener("pointercancel", endSwipe);
 
 // a swipe (screen px/s, logical) becomes a throw: its speed — whatever its direction — sets
 // how far and high the paper goes (distance grows gently with speed, since people swipe at
-// very different speeds), and the paper leaves the hand moving on screen in exactly the
-// direction of the swipe
-const SW = { z0: 1.95, fwd: 0.0015, y0: 1.35, up: 0.0009, max: 2400 };
-function swipeToVel(sx, sy) {
+// very different speeds), and it heads across the floor for the spot along the back wall
+// under aimX, the screen x the swipe pointed at on the bin's row
+const SW = { z0: 1.95, fwd: 0.0015, y0: 1.35, up: 0.0009, max: 2400, reach: 0.8 };
+function swipeToVel(sx, sy, aimX) {
   const p = Math.min(SW.max, Math.hypot(sx, sy));
   const vz = SW.z0 + p * SW.fwd, vy = SW.y0 + p * SW.up;
-  // on screen the paper rises at FOC·(vy + (EYE.y − y)·vz/d)/d and slides sideways at
-  // FOC·(vx − x·vz/d)/d; pick vx so their ratio is the swipe's
-  const d = START.z - EYE.z;
-  const vx = START.x * vz / d + (sx / -sy) * (vy + (EYE.y - START.y) * vz / d);
-  return [vx, vy, vz];
+  const tx = Math.max(-2, Math.min(2, (aimX - LW / 2) * (CAN.z - EYE.z) / FOC));
+  // drag slows every direction alike, so the paper runs straight over the floor toward tx
+  // (it drops into the bin a little past CAN.z on the typical arc, so it heads slightly inside tx)
+  return [vz * (tx - START.x) / (CAN.z - START.z) * SW.reach, vy, vz];
 }
-function throwFromSwipe(sx, sy) { throwBall(...swipeToVel(sx, sy)); }
+function throwFromSwipe(sx, sy, aimX) { throwBall(...swipeToVel(sx, sy, aimX)); }
 function throwBall(vx, vy, vz) {
   const b = T.ball;
   Object.assign(b, { vx, vy, vz, held: false, spin: rand(-6, 6) });
