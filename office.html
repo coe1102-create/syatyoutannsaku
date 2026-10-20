@@ -69,6 +69,39 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 }
 #callout.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
+/* ---- AI secretary ---- */
+.ai-bubble {
+  position: absolute; left: 150px; top: 112px; width: 194px; box-sizing: border-box; padding: 9px 11px; border-radius: 12px;
+  background: #fff; font-size: 12.5px; font-weight: 700; line-height: 1.45; box-shadow: 0 3px 0 #0004; min-height: 46px;
+}
+.ai-bubble::before { content: ""; position: absolute; left: -9px; top: 18px; border: 6px solid transparent; border-right: 9px solid #fff; border-left: 0; }
+.ai-bubble.good { background: #e3f6e9; } .ai-bubble.good::before { border-right-color: #e3f6e9; }
+.ai-bubble.bad { background: #fde4e1; } .ai-bubble.bad::before { border-right-color: #fde4e1; }
+.ai-bubble small { display: block; font-weight: 600; opacity: .75; margin-top: 2px; }
+.ai-card {
+  position: absolute; left: 22px; right: 22px; top: 296px; height: 212px; box-sizing: border-box; padding: 14px 16px 12px;
+  background: var(--paper); border-radius: 14px; box-shadow: 0 6px 0 #0006, 0 0 0 1px #0001 inset; touch-action: none;
+  display: flex; flex-direction: column; cursor: grab; will-change: transform;
+  background-image: repeating-linear-gradient(#0000 0 27px, #e9dcc3 27px 28px); background-position: 0 58px;
+}
+.ai-card.fly { transition: transform .28s ease-in, opacity .28s; }
+.ai-card.snap { transition: transform .2s; }
+.ai-card .kind { align-self: flex-start; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 10px; background: var(--navy); color: #fff; }
+.ai-card h3 { margin: 10px 0 6px; font-size: 18px; line-height: 1.35; font-weight: 900; }
+.ai-card p { margin: 0; font-size: 13px; line-height: 1.55; opacity: .85; }
+.ai-card .from { margin-top: auto; font-size: 11px; font-weight: 700; opacity: .55; text-align: right; }
+.ai-card .stamp {
+  position: absolute; top: 16px; padding: 4px 12px; font-size: 22px; font-weight: 900; border: 4px solid; border-radius: 8px; opacity: 0; pointer-events: none;
+}
+.ai-card .stamp.ok { left: 14px; color: var(--green); transform: rotate(-14deg); }
+.ai-card .stamp.ng { right: 14px; color: var(--red); transform: rotate(14deg); }
+.ai-btns { position: absolute; left: 16px; right: 16px; bottom: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ai-btns button { height: 58px; border-radius: 29px; font-size: 19px; box-shadow: 0 5px 0 #0007; }
+.ai-btns button:active { transform: translateY(4px); box-shadow: 0 1px 0 #0007; }
+.ai-btns .ng { background: #f8cfca; color: #8a1c14; }
+.ai-btns .ok { background: #c9eed5; color: #145c32; }
+.hurry b#aTime { color: #ff6b5e; }
+
 /* ---- overlays (tutorial, result) ---- */
 .sheet { position: absolute; inset: 0; background: #0009; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
 .card { background: var(--paper); border-radius: 16px; padding: 18px 18px 16px; width: 100%; box-shadow: 0 8px 0 #0007; text-align: center; }
@@ -98,7 +131,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
     <div class="menu">
       <button type="button" id="goTrash"><span class="ic">🗑️</span><span>ゴミ箱シュート<span class="sub">紙くずをスワイプで投げ入れろ</span></span></button>
       <button type="button" id="goChair"><span class="ic">🪑</span><span>椅子スライド<span class="sub">椅子に乗って社長室をめぐれ</span></span></button>
-      <button type="button" id="goAI" disabled><span class="ic">🤖</span><span>AI秘書<span class="sub">準備中</span></span></button>
+      <button type="button" id="goAI"><span class="ic">🤖</span><span>AI秘書<span class="sub">AIの提案をさばけ</span></span></button>
     </div>
   </section>
 
@@ -145,6 +178,34 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
     </div>
   </section>
 
+  <!-- AI secretary -->
+  <section id="aiHud" hidden>
+    <div class="hudbar">
+      <div class="score">
+        <span>残り</span><b id="aTime">60秒</b>
+        <span>得点</span><b id="aPts">0</b>
+        <span>コンボ</span><b id="aCombo">0</b>
+      </div>
+      <div class="hud-right">
+        <button type="button" class="pill small" id="aHelp">あそびかた</button>
+        <button type="button" class="pill small" id="aQuit">やめる</button>
+      </div>
+    </div>
+    <div class="ai-bubble" id="aSay">社長、本日の書類です。</div>
+    <div class="ai-card" id="aCard">
+      <div class="kind" id="aKind">提案</div>
+      <h3 id="aTitle"></h3>
+      <p id="aDetail"></p>
+      <div class="from">AI秘書より 🤖</div>
+      <div class="stamp ok">採用</div>
+      <div class="stamp ng">却下</div>
+    </div>
+    <div class="ai-btns">
+      <button type="button" class="ng" id="aNo">← 却下</button>
+      <button type="button" class="ok" id="aYes">採用 →</button>
+    </div>
+  </section>
+
   <div id="callout"></div>
 
   <section class="sheet" id="chairTut" hidden>
@@ -157,6 +218,18 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
         <li><b>①コーヒー → ②本棚 → ③観葉植物 → ④ドア</b>の順に、マークの上で<b>止まって</b>いき、最後に<b>⑤社長席</b>に戻ってきたらゴール。タイムを競います。光っているマークがつぎの行き先です。</li>
       </ol>
       <button type="button" class="primary" id="cTutOk">はじめる</button>
+    </div>
+  </section>
+
+  <section class="sheet" id="aiTut" hidden>
+    <div class="card">
+      <h2>AI秘書</h2>
+      <ol>
+        <li>AI秘書が提案や書類を次々に持ってきます。カードを<b>右にスワイプで採用</b>、<b>左にスワイプで却下</b>（下のボタンでもOK）。</li>
+        <li>まともな提案は採用。AIの<b>勘違い・ハルシネーション</b>（ありえない話）は却下。</li>
+        <li>正しく判断すると得点、連続で正解するとコンボでボーナス。まちがえると減点。<b>60秒</b>でできるだけ稼ごう。</li>
+      </ol>
+      <button type="button" class="primary" id="aTutOk">はじめる</button>
     </div>
   </section>
 
@@ -329,11 +402,11 @@ $("acBtn").addEventListener("click", () => { setAC(!T.ac); callout(T.ac ? "エ�
 $("quitBtn").addEventListener("click", toOffice);
 // the result card is shared; "もう一度" replays whichever game just ended
 let lastGame = "trash";
-$("again").addEventListener("click", () => (lastGame === "chair" ? startChair : startTrash)());
+$("again").addEventListener("click", () => ({ trash: startTrash, chair: startChair, ai: startAI })[lastGame]());
 $("toOffice").addEventListener("click", toOffice);
 function toOffice() {
-  T.on = false; C.on = false;
-  ["trashHud", "chairHud", "result", "tutorial", "chairTut"].forEach(id => { $(id).hidden = true; });
+  T.on = false; C.on = false; A.on = false;
+  ["trashHud", "chairHud", "aiHud", "result", "tutorial", "chairTut", "aiTut"].forEach(id => { $(id).hidden = true; });
   $("callout").classList.remove("show");
   $("home").hidden = false; dirty = true;
 }
@@ -1318,6 +1391,277 @@ function drawChairGame(time) {
   }
 }
 
+// =====================================================================
+// AI秘書
+// =====================================================================
+// The AI secretary brings proposals one card at a time: swipe right to approve, left to
+// reject. Sound ones should be approved; the AI's hallucinations rejected. 60 seconds.
+// [kind, title, detail, why] — `why` is what the secretary admits when a mistake slips past.
+const AI_GOOD = [
+  ["提案", "定例会議を統合して週2時間削減", "似た内容の会議を3つ→1つにまとめます。", "ムダな会議が減る、良い提案でした"],
+  ["提案", "経費精算をスマホでできるように", "レシートを撮影するだけで申請完了。", "みんなが楽になる、良い提案でした"],
+  ["提案", "新人研修に先輩とのランチ会を追加", "毎週金曜、1人1,500円まで会社負担。", "新人が職場に慣れやすくなる提案でした"],
+  ["提案", "社内の照明をLEDに交換", "電気代が年間12%下がる見込みです。", "コストが下がる、良い提案でした"],
+  ["書類", "来期の採用計画", "営業2名・エンジニア3名を募集します。", "ふつうの採用計画でした"],
+  ["提案", "会議室の予約システム導入", "ダブルブッキングをなくします。", "便利になる提案でした"],
+  ["書類", "防災訓練のお知らせ", "来月10日 14時、全社で実施します。", "大事な訓練でした"],
+  ["提案", "毎週水曜をノー残業デーに", "定時の18時に消灯します。", "働きやすくなる提案でした"],
+  ["提案", "請求書を電子化", "郵送費が年間30万円減る見込みです。", "コスト削減になる提案でした"],
+  ["予定", "14時 銀行との面談", "来期の融資について。資料は準備済みです。", "本当の予定でした"],
+  ["報告", "顧客アンケートのまとめ", "満足度は5点中4.2点。前年より0.3点アップ。", "ちゃんとした報告でした"],
+  ["提案", "全社でセキュリティ研修", "怪しいメールの見分け方を30分で学びます。", "大事な研修でした"],
+  ["書類", "健康診断の日程表", "部署ごとに3日間に分けて受診します。", "ちゃんとした書類でした"],
+  ["提案", "新商品は試作3案から社員投票で決定", "投票は来週月曜まで。", "みんなの意見を聞く良い提案でした"],
+  ["書類", "社用車の車検のお知らせ", "車検の期限は来月末です。", "忘れると困るお知らせでした"],
+  ["提案", "品薄の人気商品を追加発注", "在庫が残り2週間分です。", "売り切れを防ぐ提案でした"],
+  ["提案", "社内報に新入社員の紹介ページ", "趣味や好きな食べ物を紹介します。", "社内が和む提案でした"],
+  ["提案", "コピー用紙を再生紙に切り替え", "価格は同じで環境にやさしいです。", "良い提案でした"],
+  ["提案", "給湯室の冷蔵庫を買い替え", "10年使って、ドアが閉まりにくくなっています。", "必要な買い替えでした"],
+  ["予定", "決算資料の提出期限", "今月25日までに税理士さんへ提出です。", "大事な期限でした"],
+  ["提案", "在宅勤務を週1日まで認める", "通勤時間が減り、集中できる日ができます。", "働きやすくなる提案でした"],
+  ["報告", "今月の売上速報", "前年同月比 108%。新商品が好調です。", "ちゃんとした報告でした"],
+  ["提案", "取引先へのお歳暮リスト", "昨年と同じ15社に、同じ予算で送ります。", "ふつうの提案でした"],
+  ["提案", "社員の誕生日にケーキを用意", "その月の誕生日の人をまとめてお祝いします。", "社内が和む提案でした"]
+];
+const AI_BAD = [
+  ["契約書", "株式会社ナイデスとの業務提携", "調べても見つからない、新しい取引先です。", "株式会社ナイデスは存在しない会社でした"],
+  ["提案", "社長の誕生日を毎月お祝い", "年12回分のパーティー予算を計上します。", "社長の誕生日は年1回でした"],
+  ["提案", "全社員の椅子を回転しないものに交換", "安全のため、キャスターも外します。", "椅子スライドができなくなるところでした"],
+  ["提案", "売上を2倍にするため1年を24か月に", "決算が2回になり、売上も2倍です。", "暦は変えられませんでした"],
+  ["予定", "2月30日（金）取締役会", "全員出席でお願いします。", "2月30日は存在しませんでした"],
+  ["提案", "新入社員を全員「社長」に任命", "やる気が出ると思います。", "社長だらけになるところでした"],
+  ["提案", "経費削減のため電気を全部止める", "パソコンも止まりますが、節約できます。", "仕事ができなくなるところでした"],
+  ["予定", "社長の出身地「月面」で凱旋講演", "交通費は片道38万km分です。", "社長は地球出身でした"],
+  ["報告", "昨年の決算：マイナス3億円の黒字", "マイナスなので、たぶん黒字です。", "マイナスは赤字でした"],
+  ["提案", "会議はすべてAI秘書がひとりで出席", "人間のみなさんは来なくて大丈夫です。", "誰も参加しない会議になるところでした"],
+  ["提案", "社訓を「たぶん、なんとかなる」に変更", "肩の力が抜けます。", "社員が不安になるところでした"],
+  ["提案", "東京-大阪の出張は徒歩で", "交通費が0円になります（片道約500km）。", "片道1週間以上かかるところでした"],
+  ["書類", "お客様へのおわび状", "「AIなので反省はできません」と書きました。", "まったく謝っていませんでした"],
+  ["提案", "社員証を紙粘土で作り直す", "手作りのあたたかみがあります。", "すぐ崩れるところでした"],
+  ["提案", "お中元に社長の好物「ネジ」を配布", "社長が毎朝食べていると記憶しています。", "社長はネジを食べませんでした"],
+  ["提案", "新商品「飲める消しゴム」発売", "おなかの中もきれいになります。", "消しゴムは飲めませんでした"],
+  ["予定", "株主総会の会場：社長の自宅の押入れ", "株主300名が入る予定です。", "押入れには入りきりませんでした"],
+  ["提案", "今年の目標：目標を達成した気分になる", "気分なので必ず達成できます。", "気分だけでした"],
+  ["提案", "Wi-Fiのパスワードを玄関に掲示", "お客様がすぐつなげて便利です。", "セキュリティ的に大問題でした"],
+  ["書類", "山田社長（300歳）の長寿お祝い", "取引先の山田社長が来月300歳です。", "300歳の社長はいませんでした"],
+  ["提案", "ゴミ箱を社内から全部撤去", "ゴミが出なくなります。", "社長のゴミ箱シュートができなくなるところでした"],
+  ["報告", "来週の会議の議事録", "会議の前に、議事録を作っておきました。", "まだ開いていない会議の議事録でした"],
+  ["提案", "社長室を水族館にする", "社長がイルカと泳げます。", "書類がぬれるところでした"],
+  ["提案", "来客用のお茶をイメージで提供", "AIが心の中でお茶を淹れます。", "お茶が出てこないところでした"]
+];
+// things she says between cards, and when she's caught out or praised
+const AI_QUIPS = [
+  "社長、おやつの時間です。", "私、AIなので有給はいりません。…でも、ほしいです。", "今日の運勢：書類運◎ だそうです。",
+  "ハンコは心で押してください。", "さっきの書類、自信100%でした！（たぶん）", "コーヒー淹れました。データ上は。",
+  "社長の髪型、今日も解像度が高いですね。", "確認しました。…いま確認しました。", "私の学習データによると、社長は天才です。"
+];
+const AI_RIGHT_OK = ["さすが社長！", "承知しました！", "すぐ手配します！"];
+const AI_RIGHT_NG = ["ばれました…", "しっぽを出しちゃいました", "今のはテストです（汗）"];
+const AI_DURATION = 60;
+const A = { on: false, phase: "ready", left: AI_DURATION, pts: 0, combo: 0, maxCombo: 0, right: 0, total: 0, deck: [], card: null, mood: "normal", moodT: 0, missed: [], busy: false };
+
+function startAI() {
+  // a fresh shuffled deck of sound and hallucinated cards
+  const deck = [...AI_GOOD.map(c => [...c, true]), ...AI_BAD.map(c => [...c, false])];
+  for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+  Object.assign(A, { on: true, phase: "ready", left: AI_DURATION, pts: 0, combo: 0, maxCombo: 0, right: 0, total: 0, deck, card: null, mood: "normal", moodT: 0, missed: [], busy: false });
+  lastGame = "ai";
+  $("home").hidden = true; $("aiHud").hidden = false; $("result").hidden = true;
+  say("社長、本日の書類です。よろしくお願いします！");
+  nextCard(); aiHud();
+  let seen = false; try { seen = localStorage.getItem("office-ai-tut") === "1"; } catch (e) {}
+  if (!seen) $("aiTut").hidden = false; else A.phase = "run";
+}
+$("goAI").addEventListener("click", startAI);
+$("aTutOk").addEventListener("click", () => {
+  $("aiTut").hidden = true; try { localStorage.setItem("office-ai-tut", "1"); } catch (e) {}
+  if (A.on && A.phase === "ready") A.phase = "run";
+});
+$("aHelp").addEventListener("click", () => { $("aiTut").hidden = false; if (A.phase === "run") A.phase = "ready"; });
+$("aQuit").addEventListener("click", toOffice);
+function aiHud() {
+  $("aTime").textContent = `${Math.ceil(A.left)}秒`;
+  $("aPts").textContent = A.pts; $("aCombo").textContent = A.combo;
+  $("aiHud").classList.toggle("hurry", A.left <= 10);
+}
+function say(text, sub = "", tone = "") {
+  const b = $("aSay");
+  b.className = "ai-bubble" + (tone ? " " + tone : "");
+  b.innerHTML = "";
+  b.append(text);
+  if (sub) { const s = document.createElement("small"); s.textContent = sub; b.append(s); }
+}
+function setMood(m, sec = 1.2) { A.mood = m; A.moodT = sec; }
+
+// ---- the card ----
+const card = $("aCard");
+function nextCard() {
+  if (!A.deck.length) startAIDeck();
+  A.card = A.deck.pop();
+  const [kind, title, detail] = A.card;
+  $("aKind").textContent = kind; $("aTitle").textContent = title; $("aDetail").textContent = detail;
+  card.className = "ai-card"; card.style.opacity = "1";
+  card.style.transform = "translate(0, 30px) scale(.96)";
+  requestAnimationFrame(() => { card.classList.add("snap"); card.style.transform = ""; });
+  dragStamps(0);
+  A.busy = false;
+}
+function startAIDeck() {
+  // ran out: deal everything again
+  A.deck = [...AI_GOOD.map(c => [...c, true]), ...AI_BAD.map(c => [...c, false])].sort(() => Math.random() - 0.5);
+}
+function dragStamps(dx) {
+  card.querySelector(".stamp.ok").style.opacity = Math.max(0, Math.min(1, dx / 90));
+  card.querySelector(".stamp.ng").style.opacity = Math.max(0, Math.min(1, -dx / 90));
+}
+// judge the card: approve (true) or reject (false)
+function decide(approve) {
+  if (!A.on || A.busy || A.phase !== "run" || !A.card) return;
+  A.busy = true;
+  const [, title, , why, sound] = A.card, right = approve === sound;
+  A.total++;
+  if (right) {
+    A.right++; A.combo++; A.maxCombo = Math.max(A.maxCombo, A.combo);
+    const gain = 10 + Math.min(A.combo - 1, 5) * 2;
+    A.pts += gain;
+    callout(A.combo >= 3 ? `${A.combo}コンボ！ +${gain}` : `+${gain}`);
+    if (sound) { say(pick(AI_RIGHT_OK), "", "good"); setMood("happy"); }
+    else { say(pick(AI_RIGHT_NG), why, "good"); setMood("busted"); }
+  } else {
+    A.combo = 0; A.pts = Math.max(0, A.pts - 5);
+    callout("−5");
+    if (sound) { say("えぇ…いい案なのに…", why, "bad"); setMood("sad"); }
+    else { say("えっ、通っちゃった…", why, "bad"); setMood("busted"); A.missed.push(title); }
+    if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
+  }
+  aiHud();
+  // the card flies off the way it was sent, then the next one comes in
+  card.className = "ai-card fly";
+  card.style.transform = `translate(${approve ? 420 : -420}px, -20px) rotate(${approve ? 24 : -24}deg)`;
+  card.style.opacity = "0";
+  setTimeout(() => {
+    if (!A.on || A.phase === "done") return;
+    // now and then she chats instead of just handing over the next card
+    if (A.total % 5 === 0) setTimeout(() => { if (A.on && A.phase !== "done") say(pick(AI_QUIPS)); }, 900);
+    nextCard();
+  }, 300);
+}
+const pick = list => list[Math.floor(Math.random() * list.length)];
+$("aYes").addEventListener("click", () => decide(true));
+$("aNo").addEventListener("click", () => decide(false));
+addEventListener("keydown", e => {
+  if (!A.on) return;
+  if (e.key === "ArrowRight") decide(true);
+  if (e.key === "ArrowLeft") decide(false);
+});
+// dragging the card: it follows the finger, tilting; let go far enough (or flick) to decide
+let drag = null;
+card.addEventListener("pointerdown", e => {
+  if (A.busy || A.phase !== "run") return;
+  try { card.setPointerCapture(e.pointerId); } catch (err) {}
+  drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, pts: [{ x: e.clientX, t: performance.now() }] };
+  card.className = "ai-card";
+});
+card.addEventListener("pointermove", e => {
+  if (!drag || e.pointerId !== drag.id) return;
+  const k = LW / stage.getBoundingClientRect().width;   // screen px → logical px
+  const dx = (e.clientX - drag.x0) * k, dy = (e.clientY - drag.y0) * k;
+  card.style.transform = `translate(${dx}px, ${dy * 0.3}px) rotate(${dx * 0.06}deg)`;
+  dragStamps(dx);
+  drag.pts.push({ x: e.clientX, t: performance.now() });
+  if (drag.pts.length > 6) drag.pts.shift();
+});
+function endDrag(e) {
+  if (!drag || e.pointerId !== drag.id) return;
+  const k = LW / stage.getBoundingClientRect().width, dx = (e.clientX - drag.x0) * k;
+  const p = drag.pts, v = p.length > 1 ? (p[p.length - 1].x - p[0].x) * k / Math.max(16, p[p.length - 1].t - p[0].t) : 0;   // logical px/ms
+  drag = null;
+  if (Math.abs(dx) > 90 || (Math.abs(dx) > 30 && Math.abs(v) > 0.6)) decide(dx > 0);
+  else { card.className = "ai-card snap"; card.style.transform = ""; dragStamps(0); }
+}
+card.addEventListener("pointerup", endDrag);
+card.addEventListener("pointercancel", endDrag);
+
+function stepAI(dt) {
+  if (A.moodT > 0) { A.moodT -= dt; if (A.moodT <= 0) A.mood = "normal"; }
+  if (A.phase !== "run") return;
+  A.left -= dt;
+  if (A.left <= 0) { A.left = 0; finishAI(); }
+}
+function finishAI() {
+  A.phase = "done"; aiHud();
+  say("社長、お疲れさまでした！");
+  callout("しゅうりょう！");
+  setTimeout(() => { if (A.on) showAIResult(); }, 1100);
+}
+function aiTitle(p) {
+  return p >= 400 ? "名経営者" : p >= 250 ? "敏腕社長" : p >= 120 ? "ふつうの社長" : "AIにふりまわされ社長";
+}
+function showAIResult() {
+  let best = -1; try { const v = localStorage.getItem("office-ai-best"); if (v !== null) best = +v; } catch (e) {}
+  const isBest = A.pts > best;
+  if (isBest) try { localStorage.setItem("office-ai-best", String(A.pts)); } catch (e) {}
+  $("rPts").textContent = `${A.pts}点`;
+  $("rL1").textContent = "正しく判断";
+  $("rIn").textContent = `${A.right} / ${A.total}`;
+  $("rBest").textContent = isBest ? `${A.pts}点（更新！）` : `${best}点`;
+  const missed = A.missed.length ? ` ／ 見逃したハルシネーション：「${A.missed[0]}」${A.missed.length > 1 ? ` ほか${A.missed.length - 1}件` : ""}` : "";
+  $("rFx").hidden = false; $("rFx").textContent = `称号：${aiTitle(A.pts)}（最大${A.maxCombo}コンボ）${missed}`;
+  $("result").hidden = false;
+}
+
+// ---- drawing: the office wall behind, and the secretary robot in front of it ----
+function drawSecretary(x, y, time) {
+  const bob = Math.sin(time * 2.2) * 2.5, m = A.mood;
+  ctx.save(); ctx.translate(x, y + bob);
+  // shadow
+  ctx.fillStyle = "#0002"; ctx.beginPath(); ctx.ellipse(0, 168 - bob, 52, 8, 0, 0, Math.PI * 2); ctx.fill();
+  // body: a navy jacket with a white collar and a red ribbon
+  ctx.fillStyle = "#26335a";
+  ctx.beginPath(); ctx.moveTo(-44, 160); ctx.quadraticCurveTo(-46, 92, -20, 80); ctx.lineTo(20, 80); ctx.quadraticCurveTo(46, 92, 44, 160); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(-16, 80); ctx.lineTo(0, 104); ctx.lineTo(16, 80); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = "#e2483d"; ctx.beginPath(); ctx.moveTo(0, 92); ctx.lineTo(-9, 86); ctx.lineTo(-9, 98); ctx.closePath(); ctx.moveTo(0, 92); ctx.lineTo(9, 86); ctx.lineTo(9, 98); ctx.closePath(); ctx.fill();
+  // the clipboard she holds
+  ctx.fillStyle = "#a8744a"; ctx.beginPath(); ctx.roundRect(-30, 112, 40, 46, 4); ctx.fill();
+  ctx.fillStyle = "#fffdf6"; ctx.fillRect(-26, 118, 32, 36);
+  ctx.fillStyle = "#c9c3b3"; for (let i = 0; i < 4; i++) ctx.fillRect(-22, 124 + i * 7, 22, 2);
+  ctx.fillStyle = "#c0c6cc"; ctx.beginPath(); ctx.arc(-34, 132, 8, 0, Math.PI * 2); ctx.arc(14, 132, 8, 0, Math.PI * 2); ctx.fill();   // hands
+  // neck and head: a rounded monitor with a face on the screen, a headset, an antenna
+  ctx.fillStyle = "#9aa3ab"; ctx.fillRect(-7, 68, 14, 14);
+  ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(0, -12); ctx.stroke();
+  ctx.fillStyle = Math.sin(time * 4) > 0 ? "#3fd2ff" : "#1b8fb3"; ctx.beginPath(); ctx.arc(0, -15, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#e8ecef"; ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.roundRect(-38, 0, 76, 70, 18); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#1d2a3a"; ctx.beginPath(); ctx.roundRect(-30, 9, 60, 50, 12); ctx.fill();
+  ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 34, 44, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();   // headset band
+  ctx.fillStyle = "#5b6670"; ctx.beginPath(); ctx.roundRect(-46, 26, 9, 18, 4); ctx.roundRect(37, 26, 9, 18, 4); ctx.fill();
+  ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-42, 44); ctx.quadraticCurveTo(-36, 62, -16, 60); ctx.stroke();   // mic
+  // the face, by mood
+  const eye = "#5ff0ff";
+  ctx.strokeStyle = eye; ctx.fillStyle = eye; ctx.lineWidth = 3.5; ctx.lineCap = "round";
+  const blink = m === "normal" && (time % 3.2) < 0.12;
+  if (m === "happy") {
+    [-13, 13].forEach(ex => { ctx.beginPath(); ctx.arc(ex, 31, 6, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); });
+    ctx.beginPath(); ctx.arc(0, 40, 8, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  } else if (m === "sad") {
+    [-13, 13].forEach(ex => { ctx.beginPath(); ctx.moveTo(ex - 6, 26 + (ex < 0 ? 0 : 3)); ctx.lineTo(ex + 6, 26 + (ex < 0 ? 3 : 0)); ctx.stroke(); ctx.beginPath(); ctx.arc(ex, 33, 2.5, 0, Math.PI * 2); ctx.fill(); });
+    ctx.beginPath(); ctx.arc(0, 50, 7, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
+    ctx.fillStyle = "#8fd8ff"; ctx.beginPath(); ctx.ellipse(-14, 42 + (time * 20) % 10, 2, 3.5, 0, 0, Math.PI * 2); ctx.fill();   // a tear
+  } else if (m === "busted") {
+    [[-13, 1], [13, -1]].forEach(([ex, d]) => { ctx.beginPath(); ctx.moveTo(ex - 5 * d, 26); ctx.lineTo(ex + 5 * d, 31); ctx.lineTo(ex - 5 * d, 36); ctx.stroke(); });
+    ctx.beginPath(); ctx.moveTo(-8, 46); ctx.lineTo(-3, 43); ctx.lineTo(2, 46); ctx.lineTo(7, 43); ctx.stroke();
+    ctx.fillStyle = "#8fd8ff"; ctx.beginPath(); ctx.moveTo(26, 4); ctx.quadraticCurveTo(33, 14, 26, 18); ctx.quadraticCurveTo(19, 14, 26, 4); ctx.fill();   // a sweat drop
+  } else {
+    [-13, 13].forEach(ex => { ctx.beginPath(); ctx.roundRect(ex - 4, blink ? 31 : 24, 8, blink ? 2 : 14, 4); ctx.fill(); });
+    ctx.beginPath(); ctx.arc(0, 41, 6, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawAIGame(time) {
+  drawRoom(false);
+  drawSecretary(76, 118, time);
+}
+
 // ---- loop ----
 let last = performance.now(), clock = 0;
 function frame(now) {
@@ -1333,6 +1677,10 @@ function frame(now) {
     for (let i = 0; i < 3; i++) stepChair(dt / 3);
     chairHud();
     drawChairGame(clock);
+  } else if (A.on) {
+    stepAI(dt);
+    if (A.phase === "run") aiHud();
+    drawAIGame(clock);
   } else if (dirty) {
     drawRoom(true); dirty = false;
   }
@@ -1343,4 +1691,5 @@ requestAnimationFrame(frame);
 </script>
 </body>
 </html>
+
 
