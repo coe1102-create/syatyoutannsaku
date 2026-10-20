@@ -315,16 +315,17 @@ function endSwipe(e) {
 cv.addEventListener("pointerup", endSwipe);
 cv.addEventListener("pointercancel", endSwipe);
 
-// a swipe (screen px/s, logical) becomes a throw: the upward speed sends it away from you
-// and up, the sideways part aims it left or right
-// distance grows gently with speed (people swipe at very different speeds), and the swipe's
-// angle — not its sideways speed — aims left or right
-const SW = { z0: 1.95, fwd: 0.0015, y0: 1.35, up: 0.0009, aim: 0.4, max: 2400 };
+// a swipe (screen px/s, logical) becomes a throw: its speed — whatever its direction — sets
+// how far and high the paper goes, and its angle sets the heading across the floor, so a
+// diagonal swipe toward a bin off to the side carries just as far as a straight one
+// distance grows gently with speed (people swipe at very different speeds)
+const SW = { z0: 1.95, fwd: 0.0015, y0: 1.35, up: 0.0009, aim: 0.33, max: 2400 };
 function swipeToVel(sx, sy) {
-  const up = Math.min(SW.max, -sy), vz = SW.z0 + up * SW.fwd;
-  // a straight-up swipe heads for the middle of the back wall, though his hand is off to the left
+  const p = Math.min(SW.max, Math.hypot(sx, sy)), h = SW.z0 + p * SW.fwd;
+  // a straight-up swipe heads for the middle of the back wall
   const lean = -START.x / (CAN.z - START.z);
-  return [vz * ((sx / -sy) * SW.aim + lean), SW.y0 + up * SW.up, vz];
+  const head = Math.atan((sx / -sy) * SW.aim + lean);
+  return [h * Math.sin(head), SW.y0 + p * SW.up, h * Math.cos(head)];
 }
 function throwFromSwipe(sx, sy) { throwBall(...swipeToVel(sx, sy)); }
 function throwBall(vx, vy, vz) {
