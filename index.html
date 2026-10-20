@@ -122,6 +122,15 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   color: var(--paper); text-shadow: 0 4px 0 var(--miss), 0 8px 0 #0006; letter-spacing: .02em;
 }
 .start-wrap { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+/* the door to the hidden office, tucked in the title's top-right corner */
+.secret {
+  position: absolute; top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 10px 7px;
+  background: #fff4d61f; border: 1.5px solid #ffc53d99; border-radius: 12px;
+  color: var(--gold); font-size: 10px; font-weight: 800; line-height: 1.25; text-align: center; text-decoration: none;
+}
+.secret .door { font-size: 26px; line-height: 1; }
+.secret:active { transform: translateY(2px); }
 .best { text-align: center; font-size: 12px; opacity: .75; font-variant-numeric: tabular-nums; }
 .loading { text-align: center; font-size: 13px; color: var(--gold); }
 
@@ -185,6 +194,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   <div class="quake-flash" id="quakeFlash"></div>
 
   <div class="overlay" id="titleScreen">
+    <a class="secret" href="office.html"><span class="door">🚪</span>ひみつの<br>社長部屋</a>
     <div class="panel">
       <div class="logo">
         <h1>社長を探せ！</h1>
