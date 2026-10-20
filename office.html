@@ -124,7 +124,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
       <div class="swipe-demo"><span>👆</span></div>
       <ol>
         <li>社長の席から、画面を<b>上に向かってスワイプ</b>すると紙くずが<b>奥のゴミ箱</b>へ飛びます。速くはらうほど遠くへ、斜めにはらうと左右へ。弱いとデスクに落ちます。</li>
-        <li>紙なのでフワフワ漂います。<b>エアコンの風</b>で左右に流されます（羽の向きと矢印で風向きがわかります）。</li>
+        <li>紙なのでフワフワ漂います。<b>エアコンの風</b>で左右に流されます（羽の向きと風の流れで風向きがわかります）。</li>
         <li><b>奥の壁に当てて</b>入れると<b>バンクショット</b>で＋1点。</li>
         <li>ゴミ箱は1球ごとに場所が変わります。10球で得点を競います。風がむずかしいときは「エアコン停止」。</li>
       </ol>
@@ -229,13 +229,13 @@ function drawRoom(withDesk) {
 // The camera sits just behind the 社長's chair: you look over his shoulder and his desk at the bin.
 const ROOM = { w: 1.55, h: 2.6, d: 3.0, back: -1.1 };    // half-width, height, depth, wall behind you
 const EYE = { y: 1.62, z: -1.75 }, FOC = 590, HZ = 252;  // camera height and position, focal length (px), horizon
-const DESK = { x0: -0.82, x1: 0.82, z0: -0.02, z1: 0.36, y: 0.7 };  // the 社長's desk top
+const DESK = { x0: -0.82, x1: 0.82, z0: -0.02, z1: 0.36, y: 0.62 };  // the 社長's desk top
 function proj(x, y, z) { const d = Math.max(0.05, z - EYE.z); return [LW / 2 + FOC * x / d, HZ - FOC * (y - EYE.y) / d, FOC / d]; }
 const BR = 0.055;                                        // paper ball radius
 const CAN = { x: 0, z: ROOM.d - 0.26, r: 0.23, h: 0.42 }; // against the back wall; x changes every throw
 // the 社長's back-view sprite (raised right hand at hand[] of its width/height), seated left of the bin
 const PRES = { H: 0.7, aspect: 187 / 400, hand: [0.825, 0.348] };
-const START = { x: -0.26, y: 1.23, z: -0.15 };            // the paper in his raised hand
+const START = { x: 0, y: 0.88, z: -0.4 };                 // the paper in his raised hand: bottom centre, below the bin on screen
 const AC = { y0: 2.02, y1: 2.34, hw: 0.52 };             // on the back wall, top centre
 const THROWS = 10;
 const T = {
@@ -260,7 +260,7 @@ function startTrash() {
 }
 function newBall() {
   // the bin moves along the back wall between throws
-  CAN.x = T.thrown === 0 ? 0 : rand(-0.4, 0.85);   // not behind the 社長 on the left
+  CAN.x = T.thrown === 0 ? 0 : rand(-0.85, 0.85);
   T.ball = { x: START.x, y: START.y, z: START.z, vx: 0, vy: 0, vz: 0, spin: 0, rot: rand(0, 6), ph: rand(0, 6), ph2: rand(0, 6), held: true, hitWall: false, inCan: false, done: 0, age: 0 };
   T.phase = "aim"; T.trail = [];
 }
@@ -319,7 +319,7 @@ cv.addEventListener("pointercancel", endSwipe);
 // and up, the sideways part aims it left or right
 // distance grows gently with speed (people swipe at very different speeds), and the swipe's
 // angle — not its sideways speed — aims left or right
-const SW = { z0: 1.55, fwd: 0.0015, y0: 0.9, up: 0.0009, aim: 0.44, max: 2400 };
+const SW = { z0: 1.95, fwd: 0.0015, y0: 1.35, up: 0.0009, aim: 0.4, max: 2400 };
 function swipeToVel(sx, sy) {
   const up = Math.min(SW.max, -sy), vz = SW.z0 + up * SW.fwd;
   // a straight-up swipe heads for the middle of the back wall, though his hand is off to the left
@@ -490,16 +490,6 @@ function drawAC() {
   for (let i = 0; i < 9; i++) {
     const x = x0 + 8 + (x1 - x0 - 16) * i / 8;
     ctx.beginPath(); ctx.moveTo(x - Math.sin(a) * 3, oy - 3); ctx.lineTo(x + Math.sin(a) * 5, oy + 4); ctx.stroke();
-  }
-  // an arrow under the unit pointing where the draft pushes
-  if (T.ac) {
-    const cx = (x0 + x1) / 2, cy = y1 + 14, dx = Math.sin(a) * 22;
-    ctx.strokeStyle = "#3d8fd6"; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(cx - dx * 0.4, cy - 6); ctx.lineTo(cx + dx, cy + 8); ctx.stroke();
-    const ang = Math.atan2(14, dx * 1.4);
-    ctx.beginPath(); ctx.moveTo(cx + dx, cy + 8);
-    ctx.lineTo(cx + dx - 7 * Math.cos(ang - 0.5), cy + 8 - 7 * Math.sin(ang - 0.5));
-    ctx.moveTo(cx + dx, cy + 8); ctx.lineTo(cx + dx - 7 * Math.cos(ang + 0.5), cy + 8 - 7 * Math.sin(ang + 0.5)); ctx.stroke();
   }
 }
 // the draft, drawn as a few soft ribbons of air that leave the A/C and bend with the louver;
@@ -687,7 +677,7 @@ function drawPresident() {
   if (img.back.complete && img.back.naturalWidth) ctx.drawImage(img.back, x0, y0, w, h);
   // the chair's backrest, in front of his lower back and legs
   const cx = START.x - (PRES.hand[0] - 0.5) * PRES.H * PRES.aspect;
-  const [cx0, cy0] = proj(cx - 0.23, 1.09, -0.34), [cx1, cy1] = proj(cx + 0.23, 0.5, -0.34);
+  const [cx0, cy0] = proj(cx - 0.3, 0.92, -0.6), [cx1, cy1] = proj(cx + 0.3, 0.3, -0.6);
   ctx.fillStyle = "#2b2b30"; ctx.beginPath(); ctx.roundRect(cx0, cy0, cx1 - cx0, cy1 - cy0, 18); ctx.fill();
   ctx.fillStyle = "#3d3d44"; ctx.beginPath(); ctx.roundRect(cx0 + 8, cy0 + 8, cx1 - cx0 - 16, (cy1 - cy0) * 0.5, 12); ctx.fill();
 }
