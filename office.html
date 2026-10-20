@@ -136,7 +136,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
     <div class="hudbar">
       <div class="score">
         <span>タイム</span><b id="cTime">0.0秒</b>
-        <span>つぎ</span><b id="cNext">①窓</b>
+        <span>つぎ</span><b id="cNext">①コーヒー</b>
       </div>
       <div class="hud-right">
         <button type="button" class="pill small" id="cHelp">あそびかた</button>
@@ -153,8 +153,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
       <div class="swipe-demo"><span>👆</span></div>
       <ol>
         <li>画面を<b>スワイプ</b>すると、その向きに社長の椅子をひと押しします。<b>何回でも</b>押せます。</li>
-        <li>椅子は勢いでしばらく滑ります。家具や壁にぶつかると跳ね返って、くるくる回ります。</li>
-        <li><b>①窓 → ②本棚 → ③コーヒー → ④ドア</b>の順にマークに乗って、ドアに着くまでのタイムを競います。光っているマークがつぎの行き先です。</li>
+        <li>椅子は勢いでしばらく滑ります。逆向きにはらうとブレーキ。家具や壁に<b>強くぶつかるとクラッシュ</b>して、目が回って<b>2秒動けません</b>。</li>
+        <li><b>①コーヒー → ②本棚 → ③観葉植物 → ④ドア</b>の順に、マークの上で<b>止まって</b>いき、最後に<b>⑤社長席</b>に戻ってきたらゴール。タイムを競います。光っているマークがつぎの行き先です。</li>
       </ol>
       <button type="button" class="primary" id="cTutOk">はじめる</button>
     </div>
@@ -949,32 +949,41 @@ function drawShoot(time) {
 // Visit the marks ①→④ in order; the clock runs from the first shove to the door.
 const CRM = { x0: 14, x1: 346, y0: 100, y1: 626, wall: 14 };   // the room's inner walls
 const CHAIR_R = 17;
-const CSTART = { x: 180, y: 346 };                                 // his seat, just below the desk
+// The 社長 sits with the window at his back, his desk in front of him, facing the door; the
+// visitors' sofas and table fill the lower half of the room.
+const WIN = { x0: 116, x1: 244 };                                  // window in the top wall
+const DOOR = { x0: 40, x1: 100 };                                  // door in the bottom wall
+const CSTART = { x: 180, y: 134 };                                 // his seat, between the window and the desk
 const FURN = [                                                     // solid furniture (rectangles)
-  { kind: "desk", x: 112, y: 250, w: 136, h: 58 },
-  { kind: "shelf", x: 226, y: 100, w: 106, h: 26 },
-  { kind: "counter", x: 314, y: 470, w: 32, h: 76 },
-  { kind: "sofa", x: 14, y: 330, w: 34, h: 96 },
-  { kind: "table", x: 132, y: 444, w: 92, h: 44 }
+  { kind: "desk", x: 100, y: 168, w: 160, h: 54 },
+  { kind: "shelf", x: 14, y: 112, w: 26, h: 150 },
+  { kind: "counter", x: 316, y: 246, w: 30, h: 86 },
+  { kind: "sofa", x: 92, y: 392, w: 32, h: 86, face: 1 },
+  { kind: "sofa", x: 236, y: 392, w: 32, h: 86, face: -1 },
+  { kind: "table", x: 140, y: 410, w: 80, h: 50 }
 ];
 const ROUND = [                                                    // solid round things
-  { kind: "plant", x: 34, y: 268, r: 17 },
-  { kind: "plant", x: 326, y: 340, r: 17 },
-  { kind: "plant", x: 326, y: 196, r: 14 },
-  { kind: "bin", x: 268, y: 236, r: 11 }
+  { kind: "plant", x: 34, y: 344, r: 17 },
+  { kind: "plant", x: 326, y: 560, r: 17 },
+  { kind: "plant", x: 180, y: 300, r: 13 },
+  { kind: "bin", x: 330, y: 116, r: 11 }
 ];
 const MARKS = [
-  { name: "窓", x: 92, y: 140 },
-  { name: "本棚", x: 279, y: 156 },
-  { name: "コーヒー", x: 284, y: 508 },
-  { name: "ドア", x: 72, y: 598 }
+  { name: "コーヒー", x: 288, y: 289 },
+  { name: "本棚", x: 66, y: 190 },
+  { name: "観葉植物", x: 286, y: 518 },
+  { name: "ドア", x: 70, y: 598 },
+  { name: "社長席", x: CSTART.x, y: CSTART.y }    // back to his own seat: the goal
 ];
-const NUM = ["①", "②", "③", "④"];
-const MARK_R = 24;
-const C = { on: false, phase: "ready", x: 0, y: 0, vx: 0, vy: 0, head: Math.PI / 2, spin: 0, next: 0, t0: 0, time: 0, bumps: 0, flash: [] };
+const NUM = ["①", "②", "③", "④", "⑤"];
+const MARK_R = 22;
+const STOP_SPEED = 75;    // a mark counts only once the chair has all but stopped on it
+const CRASH_TIME = 2;     // a hard knock leaves the 社長 dizzy and unable to shove for this long
+const CRASH_HIT = 160;    // how hard (px/s into the surface) counts as a crash
+const C = { on: false, phase: "ready", x: 0, y: 0, vx: 0, vy: 0, head: Math.PI / 2, spin: 0, next: 0, t0: 0, time: 0, bumps: 0, flash: [], stun: 0, over: false };
 
 function startChair() {
-  Object.assign(C, { on: true, phase: "ready", x: CSTART.x, y: CSTART.y, vx: 0, vy: 0, head: Math.PI / 2, spin: 0, next: 0, time: 0, bumps: 0, flash: [] });
+  Object.assign(C, { on: true, phase: "ready", x: CSTART.x, y: CSTART.y, vx: 0, vy: 0, head: Math.PI / 2, spin: 0, next: 0, time: 0, bumps: 0, flash: [], stun: 0, over: false });
   lastGame = "chair";
   $("home").hidden = true; $("chairHud").hidden = false; $("result").hidden = true;
   chairHud();
@@ -1019,6 +1028,7 @@ cv.addEventListener("pointercancel", endShove);
 // swipe pushes harder, up to a top speed
 const SHOVE = { gain: 0.3, min: 110, max: 420, top: 460 };
 function pushChair(sx, sy) {
+  if (C.stun > 0) { callout("目が回って動けない…"); return; }
   const sp = Math.hypot(sx, sy), mag = Math.max(SHOVE.min, Math.min(SHOVE.max, sp * SHOVE.gain));
   C.vx += sx / sp * mag; C.vy += sy / sp * mag;
   const v = Math.hypot(C.vx, C.vy);
@@ -1033,19 +1043,24 @@ function bump(nx, ny, e = 0.55) {
   if (vn >= 0) return;
   C.vx -= (1 + e) * vn * nx; C.vy -= (1 + e) * vn * ny;
   const hit = -vn;
-  if (hit > 90) {
-    C.spin += (C.vx * ny - C.vy * nx >= 0 ? 1 : -1) * Math.min(14, hit * 0.03);
-    C.bumps++;
-    if (hit > 200) callout(["ゴン！", "ガタッ", "いてっ", "おっと"][C.bumps % 4]);
-    if (navigator.vibrate) try { navigator.vibrate(20); } catch (err) {}
+  if (hit > 90) C.spin += (C.vx * ny - C.vy * nx >= 0 ? 1 : -1) * Math.min(14, hit * 0.03);
+  // a hard knock (once the clock is running) is a crash: he's left spinning and dizzy, and the
+  // chair soon comes to a halt
+  if (hit > CRASH_HIT && C.phase === "run" && C.stun <= 0) {
+    C.bumps++; C.stun = CRASH_TIME;
+    C.spin += (C.spin >= 0 ? 1 : -1) * 10;
+    callout(["ガシャーン！", "ドカッ！", "いててて…", "クラッシュ！"][C.bumps % 4]);
+    if (navigator.vibrate) try { navigator.vibrate([60, 40, 60]); } catch (err) {}
   }
 }
 function stepChair(dt) {
   if (C.phase === "run") C.time += dt;
-  // rolling friction: a gentle drag plus a little constant resistance, so it comes to rest
+  // rolling friction: a gentle drag plus a little constant resistance, so it comes to rest;
+  // after a crash the chair grinds to a halt quickly
+  if (C.stun > 0) C.stun = Math.max(0, C.stun - dt);
   const v0 = Math.hypot(C.vx, C.vy);
   if (v0 > 0) {
-    const v1 = Math.max(0, v0 * Math.exp(-0.75 * dt) - 26 * dt);
+    const v1 = Math.max(0, v0 * Math.exp(-(C.stun > 0 ? 4 : 0.75) * dt) - 26 * dt);
     C.vx *= v1 / v0; C.vy *= v1 / v0;
   }
   C.x += C.vx * dt; C.y += C.vy * dt;
@@ -1056,7 +1071,7 @@ function stepChair(dt) {
     let d = want - C.head; d = Math.atan2(Math.sin(d), Math.cos(d));
     C.head += d * Math.min(1, dt * 2.2 * Math.min(1, v / 200));
   }
-  C.head += C.spin * dt; C.spin *= Math.exp(-1.6 * dt);
+  C.head += C.spin * dt; C.spin *= Math.exp(-(C.stun > 0 ? 0.6 : 1.6) * dt);
   // walls
   const r = CHAIR_R;
   if (C.x < CRM.x0 + r) { C.x = CRM.x0 + r; bump(1, 0); }
@@ -1080,14 +1095,18 @@ function stepChair(dt) {
     dx /= d; dy /= d; C.x = o.x + dx * (r + o.r); C.y = o.y + dy * (r + o.r);
     bump(dx, dy, 0.7);
   }
-  // marks, in order
+  // marks, in order: the chair has to come to a stop on the next one
   const m = MARKS[C.next];
-  if (m && C.phase === "run" && Math.hypot(C.x - m.x, C.y - m.y) < MARK_R + 4) {
+  const onMark = m && C.phase === "run" && Math.hypot(C.x - m.x, C.y - m.y) < MARK_R;
+  if (onMark && Math.hypot(C.vx, C.vy) < STOP_SPEED) {
     C.flash.push({ i: C.next, t: clock });
     C.next++;
     if (C.next === MARKS.length) finishChair();
     else callout(`${NUM[C.next - 1]}${m.name} OK！`);
+  } else if (onMark && !C.over) {
+    callout("止まって！");
   }
+  C.over = onMark;
 }
 function finishChair() {
   C.phase = "done"; chairHud();
@@ -1096,14 +1115,14 @@ function finishChair() {
   setTimeout(() => { if (C.on) showChairResult(); }, 1100);
 }
 function chairTitle(t) {
-  return t < 18 ? "伝説のスピード社長" : t < 28 ? "やり手社長" : t < 45 ? "ふつうの社長" : "のんびり社長";
+  return t < 32 ? "伝説のスピード社長" : t < 50 ? "やり手社長" : t < 75 ? "ふつうの社長" : "のんびり社長";
 }
 function showChairResult() {
   let best = 0; try { best = +localStorage.getItem("office-chair-best") || 0; } catch (e) {}
   const t = Math.round(C.time * 10) / 10, isBest = !best || t < best;
   if (isBest) try { localStorage.setItem("office-chair-best", String(t)); } catch (e) {}
   $("rPts").textContent = `${t.toFixed(1)}秒`;
-  $("rL1").textContent = "ぶつかった回数";
+  $("rL1").textContent = "クラッシュ回数";
   $("rIn").textContent = `${C.bumps}回`;
   $("rBest").textContent = isBest ? `${t.toFixed(1)}秒（更新！）` : `${best.toFixed(1)}秒`;
   $("rFx").hidden = false; $("rFx").textContent = `称号：${chairTitle(t)}`;
@@ -1123,26 +1142,28 @@ function drawOfficeTop(time) {
     ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
     for (let x = x0 + (k % 3) * 40; x < x1; x += 120) { ctx.beginPath(); ctx.moveTo(x, y - 22); ctx.lineTo(x, y); ctx.stroke(); }
   }
-  // sunlight from the window falling across the floor
+  // sunlight from the window behind the 社長 falling across the floor
   ctx.fillStyle = "#ffe9a833";
-  ctx.beginPath(); ctx.moveTo(36, y0); ctx.lineTo(148, y0); ctx.lineTo(176, y0 + 120); ctx.lineTo(56, y0 + 120); ctx.closePath(); ctx.fill();
-  // a rug under the low table
-  ctx.fillStyle = "#9b2f35"; ctx.fillRect(106, 410, 144, 112);
-  ctx.strokeStyle = "#e9c46a"; ctx.lineWidth = 2; ctx.strokeRect(113, 417, 130, 98);
+  ctx.beginPath(); ctx.moveTo(WIN.x0, y0); ctx.lineTo(WIN.x1, y0); ctx.lineTo(WIN.x1 + 30, y0 + 150); ctx.lineTo(WIN.x0 + 10, y0 + 150); ctx.closePath(); ctx.fill();
+  // a rug under the visitors' sofas and table
+  ctx.fillStyle = "#9b2f35"; ctx.fillRect(80, 376, 200, 118);
+  ctx.strokeStyle = "#e9c46a"; ctx.lineWidth = 2; ctx.strokeRect(87, 383, 186, 104);
   ctx.restore();
   // inner wall edge shadow
   ctx.strokeStyle = "#0000002a"; ctx.lineWidth = 3; ctx.strokeRect(x0 + 1.5, y0 + 1.5, x1 - x0 - 3, y1 - y0 - 3);
   // the window in the top wall
-  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(34, y0 - wall, 116, wall);
-  ctx.fillStyle = "#9fd0f0"; ctx.fillRect(38, y0 - wall + 4, 108, wall - 8);
-  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(90, y0 - wall + 3, 4, wall - 6);
+  const wm = (WIN.x0 + WIN.x1) / 2;
+  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(WIN.x0, y0 - wall, WIN.x1 - WIN.x0, wall);
+  ctx.fillStyle = "#9fd0f0"; ctx.fillRect(WIN.x0 + 4, y0 - wall + 4, WIN.x1 - WIN.x0 - 8, wall - 8);
+  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(wm - 2, y0 - wall + 3, 4, wall - 6);
   // the door in the bottom wall, and its swing
-  ctx.fillStyle = "#3b2a1e"; ctx.fillRect(42, y1, 60, wall);
-  ctx.fillStyle = "#8a5a32"; ctx.fillRect(42, y1 + 2, 60, 6);
+  const dw = DOOR.x1 - DOOR.x0;
+  ctx.fillStyle = "#3b2a1e"; ctx.fillRect(DOOR.x0, y1, dw, wall);
+  ctx.fillStyle = "#8a5a32"; ctx.fillRect(DOOR.x0, y1 + 2, dw, 6);
   ctx.strokeStyle = "#ffffff55"; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(42, y1, 60, -Math.PI / 2, 0); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(DOOR.x0, y1, dw, -Math.PI / 2, 0); ctx.stroke(); ctx.setLineDash([]);
   ctx.fillStyle = "#fff"; ctx.font = `800 9px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("EXIT", 72, y1 + wall / 2 + 1);
+  ctx.fillText("EXIT", (DOOR.x0 + DOOR.x1) / 2, y1 + wall / 2 + 1);
   drawMarks(time);
   FURN.forEach(drawFurniture);
   ROUND.forEach(drawRoundThing);
@@ -1151,29 +1172,34 @@ function drawFurniture(f) {
   const { x, y, w, h } = f;
   ctx.fillStyle = "#0003"; ctx.fillRect(x + 3, y + 4, w, h);   // a soft shadow
   if (f.kind === "desk") {
+    // the 社長 works from the window side: laptop facing him, the name plate facing visitors
     ctx.fillStyle = "#8a5a32"; ctx.fillRect(x, y, w, h);
     ctx.fillStyle = "#9a6a40"; ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
-    ctx.fillStyle = "#5d656b"; ctx.fillRect(x + 12, y + 10, 40, 28);          // laptop
-    ctx.fillStyle = "#8f979e"; ctx.fillRect(x + 14, y + 12, 36, 24);
-    ctx.fillStyle = "#fffdf6"; ctx.fillRect(x + 66, y + 12, 26, 32);          // papers
-    ctx.fillStyle = "#f4f1e8"; ctx.beginPath(); ctx.arc(x + 112, y + 20, 7, 0, Math.PI * 2); ctx.fill();   // mug
-    ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.arc(x + 112, y + 20, 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#5d656b"; ctx.fillRect(x + w / 2 - 22, y + 6, 44, 26);   // laptop
+    ctx.fillStyle = "#8f979e"; ctx.fillRect(x + w / 2 - 20, y + 8, 40, 22);
+    ctx.fillStyle = "#fffdf6"; ctx.fillRect(x + 14, y + 8, 26, 32);          // papers
+    ctx.fillStyle = "#f4f1e8"; ctx.beginPath(); ctx.arc(x + w - 24, y + 18, 7, 0, Math.PI * 2); ctx.fill();   // mug
+    ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.arc(x + w - 24, y + 18, 4.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#2a2118"; ctx.fillRect(x + w / 2 - 16, y + h - 12, 32, 8);   // name plate
     ctx.fillStyle = "#e9c46a"; ctx.font = `900 7px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("社長", x + w / 2, y + h - 7.5);
   } else if (f.kind === "shelf") {
+    // a tall bookcase along the wall, the tops of its books seen from above
     ctx.fillStyle = "#6b4426"; ctx.fillRect(x, y, w, h);
     const books = ["#d64545", "#2f6db5", "#f2c230", "#2f9e5b", "#7a3fa0", "#e07b39", "#3a8f8f"];
-    for (let bx = x + 4, k = 0; bx < x + w - 8; k++) { const bw = 6 + (k * 7) % 5; ctx.fillStyle = books[k % 7]; ctx.fillRect(bx, y + 4, bw, h - 10); bx += bw + 1; }
+    for (let by = y + 4, k = 0; by < y + h - 8; k++) { const bh = 6 + (k * 7) % 5; ctx.fillStyle = books[k % 7]; ctx.fillRect(x + 4, by, w - 10, bh); by += bh + 1; }
   } else if (f.kind === "counter") {
     ctx.fillStyle = "#cfd4d8"; ctx.fillRect(x, y, w, h);
     ctx.fillStyle = "#2b2b30"; ctx.fillRect(x + 6, y + 8, 20, 24);              // coffee machine
     ctx.fillStyle = "#d64545"; ctx.beginPath(); ctx.arc(x + 16, y + 14, 2.5, 0, Math.PI * 2); ctx.fill();
     [[x + 12, y + 46], [x + 20, y + 58]].forEach(([cx, cy]) => { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill(); });
   } else if (f.kind === "sofa") {
+    // the backrest on the far side from the table, two seat cushions facing it
+    const bx = f.face > 0 ? x : x + w - 10, cx = f.face > 0 ? x + 10 : x + 4;
     ctx.fillStyle = "#2f6b55"; ctx.beginPath(); ctx.roundRect(x, y, w, h, 8); ctx.fill();
-    ctx.fillStyle = "#3d8a6e"; ctx.beginPath(); ctx.roundRect(x + 10, y + 6, w - 14, h / 2 - 8, 5); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(x + 10, y + h / 2 + 2, w - 14, h / 2 - 8, 5); ctx.fill();
+    ctx.fillStyle = "#24533f"; ctx.fillRect(bx, y + 4, 10, h - 8);
+    ctx.fillStyle = "#3d8a6e"; ctx.beginPath(); ctx.roundRect(cx, y + 6, w - 14, h / 2 - 8, 5); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(cx, y + h / 2 + 2, w - 14, h / 2 - 8, 5); ctx.fill();
   } else if (f.kind === "table") {
     ctx.fillStyle = "#cfe8ef"; ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.fill();
     ctx.strokeStyle = "#8fb4bf"; ctx.lineWidth = 2; ctx.stroke();
@@ -1261,15 +1287,34 @@ function drawGuide(time) {
   ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(-5, -6); ctx.lineTo(-2, 0); ctx.lineTo(-5, 6); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.restore();
 }
+// after a crash: stars circling his head, and a red ring around the chair running down the
+// seconds until he can move again
+function drawDizzy(time) {
+  const { x, y } = C, k = C.stun / CRASH_TIME;
+  ctx.strokeStyle = "#e2483d"; ctx.lineWidth = 3; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.arc(x, y, CHAIR_R + 9, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); ctx.stroke();
+  ctx.font = `900 13px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  for (let i = 0; i < 3; i++) {
+    const a = time * 5 + i * Math.PI * 2 / 3;
+    ctx.fillStyle = "#ffd23d"; ctx.strokeStyle = "#7a5a1e"; ctx.lineWidth = 2.5;
+    ctx.strokeText("★", x + Math.cos(a) * 15, y + Math.sin(a) * 7 - 2);
+    ctx.fillText("★", x + Math.cos(a) * 15, y + Math.sin(a) * 7 - 2);
+  }
+  // the seconds left, above the chair
+  ctx.fillStyle = "#000a"; ctx.beginPath(); ctx.roundRect(x - 22, y - CHAIR_R - 34, 44, 18, 9); ctx.fill();
+  ctx.fillStyle = "#fff"; ctx.font = `800 11px ${getComputedStyle(document.body).fontFamily}`;
+  ctx.fillText(`${C.stun.toFixed(1)}秒`, x, y - CHAIR_R - 25);
+}
 function drawChairGame(time) {
   drawOfficeTop(time);
   drawGuide(time);
   drawChairTop();
+  if (C.stun > 0) drawDizzy(time);
   if (C.phase === "ready" && $("chairTut").hidden) {
     // before the first shove: a hint
-    ctx.fillStyle = "#000a"; ctx.beginPath(); ctx.roundRect(LW / 2 - 110, CSTART.y + 30, 220, 30, 15); ctx.fill();
+    ctx.fillStyle = "#000a"; ctx.beginPath(); ctx.roundRect(LW / 2 - 120, 330, 240, 30, 15); ctx.fill();
     ctx.fillStyle = "#fff"; ctx.font = `800 13px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("スワイプで椅子を押そう！", LW / 2, CSTART.y + 45);
+    ctx.fillText("スワイプで椅子を押して、マークで止まろう！", LW / 2, 345);
   }
 }
 
@@ -1298,3 +1343,4 @@ requestAnimationFrame(frame);
 </script>
 </body>
 </html>
+
