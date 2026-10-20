@@ -123,7 +123,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
       <h2>ゴミ箱シュート</h2>
       <div class="swipe-demo"><span>👆</span></div>
       <ol>
-        <li>社長の席から、画面を<b>上に向かってスワイプ</b>すると紙くずが<b>奥のゴミ箱</b>へ飛びます。速くはらうほど遠くへ、<b>ゴミ箱に向かってはらう</b>と、そのまっすぐ先に山なりで落ちてきます。弱いとデスクに落ちます。</li>
+        <li>社長の席から、画面を<b>上に向かってスワイプ</b>すると紙くずが<b>奥のゴミ箱</b>へ飛びます。速くはらうほど遠くへ、<b>社長の手からゴミ箱に向かう向き</b>にはらうと、そのまっすぐ先に山なりで落ちてきます（指はどこから始めてもOK）。弱いとデスクに落ちます。</li>
         <li>紙なのでフワフワ漂います。<b>エアコンの風</b>で左右に流されます（羽の向きと風の流れで風向きがわかります）。</li>
         <li><b>奥の壁に当てて</b>入れると<b>バンクショット</b>で＋1点。</li>
         <li>ゴミ箱は1球ごとに場所が変わります。10球で得点を競います。風がむずかしいときは「エアコン停止」。</li>
@@ -310,10 +310,11 @@ function endSwipe(e) {
   const dt = Math.max(16, b.t - a.t) / 1000;
   let vx = (b.x - a.x) / dt, vy = (b.y - a.y) / dt;
   if (vy > -150 || Math.hypot(vx, vy) < 220) { callout("上にスワイプ！"); return; }   // a tap or a downward flick isn't a throw
-  // the aim is the line of the whole stroke (the flick's last instant tends to hook), carried on
-  // up the screen to the bin's row: wherever that line crosses is where the paper comes down
+  // the aim: the whole stroke's direction (the flick's last instant tends to hook), drawn from
+  // the 社長's hand up the screen to the bin's row: where that line crosses, the paper comes down
   const [lx, ly] = s.y - b.y > 30 ? [b.x - s.x, b.y - s.y] : [vx, vy];
-  throwFromSwipe(vx, vy, b.x + lx / ly * (aimRow() - b.y));
+  const [hx, hy] = proj(START.x, START.y, START.z);
+  throwFromSwipe(vx, vy, hx + lx / ly * (aimRow() - hy));
 }
 // the screen row of the bin's rim, which the aim line is measured against
 function aimRow() { return proj(CAN.x, CAN.h, CAN.z)[1]; }
