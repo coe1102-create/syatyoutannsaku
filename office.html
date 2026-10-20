@@ -77,6 +77,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .card .big { font-size: 46px; font-weight: 900; line-height: 1; margin: 6px 0; font-variant-numeric: tabular-nums; }
 .card .rows { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; font-size: 14px; text-align: left; margin: 10px 0 14px; font-variant-numeric: tabular-nums; }
 .card .rows b { text-align: right; }
+.card .fx { font-size: 12.5px; line-height: 1.5; text-align: left; margin: -6px 0 14px; padding: 8px 10px; border-radius: 10px; background: #f3e7cf; }
 .primary { width: 100%; height: 54px; border-radius: 27px; background: var(--gold); font-size: 18px; box-shadow: 0 5px 0 #0007; }
 .primary:active { transform: translateY(4px); box-shadow: 0 1px 0 #0007; }
 .ghost { width: 100%; height: 44px; background: none; font-size: 14px; text-decoration: underline; margin-top: 6px; }
@@ -105,9 +106,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   <section id="trashHud" hidden>
     <div id="hud">
       <div class="score">
-        <span>得点</span><b id="sPts">0</b>
-        <span>入った</span><b id="sIn">0/10</b>
-        <span>連続</span><b id="sStreak">0</b>
+        <span>入った</span><b id="sIn">0個</b>
+        <span>残り</span><b id="sLeft">10球</b>
       </div>
       <div class="hud-right">
         <button type="button" class="pill on" id="acBtn">エアコン停止</button>
@@ -125,8 +125,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
       <ol>
         <li>社長の席から、画面を<b>上に向かってスワイプ</b>すると紙くずが<b>奥のゴミ箱</b>へ飛びます。速くはらうほど遠くへ、<b>社長の手からゴミ箱に向かう向き</b>にはらうと、そのまっすぐ先に山なりで落ちてきます（指はどこから始めてもOK）。弱いとデスクに落ちます。</li>
         <li>紙なのでフワフワ漂います。<b>エアコンの風</b>で左右に流されます（羽の向きと風の流れで風向きがわかります）。</li>
-        <li><b>奥の壁に当てて</b>入れると<b>バンクショット</b>で＋1点。</li>
-        <li>ゴミ箱は1球ごとに場所が変わります。10球で得点を競います。風がむずかしいときは「エアコン停止」。</li>
+        <li>奥の壁に当てて入れる<b>バンクショット</b>もアリ。</li>
+        <li>ゴミ箱は1球ごとに場所が変わります。<b>10球で何個入るか</b>を競います。入らなかった紙くずは、落ちたところにそのまま残ります。風がむずかしいときは「エアコン停止」。</li>
       </ol>
       <button type="button" class="primary" id="tutOk">はじめる</button>
     </div>
@@ -135,13 +135,12 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   <section class="sheet" id="result" hidden>
     <div class="card">
       <h2>結果</h2>
-      <div class="big" id="rPts">0点</div>
+      <div class="big" id="rPts">0個</div>
       <div class="rows">
         <span>入った数</span><b id="rIn">0 / 10</b>
-        <span>最高連続</span><b id="rStreak">0</b>
-        <span>バンクショット</span><b id="rBank">0</b>
         <span>ベスト</span><b id="rBest">-</b>
       </div>
+      <p class="fx" id="rFx" hidden></p>
       <button type="button" class="primary" id="again">もう一度</button>
       <button type="button" class="ghost" id="toOffice">社長室にもどる</button>
     </div>
@@ -237,11 +236,31 @@ const CAN = { x: 0, z: ROOM.d - 0.26, r: 0.23, h: 0.42 }; // against the back wa
 const PRES = { H: 0.7, aspect: 187 / 400, hand: [0.825, 0.348] };
 const START = { x: 0, y: 0.88, z: -0.4 };                 // the paper in his raised hand: bottom centre, below the bin on screen
 const AC = { y0: 2.02, y1: 2.34, hw: 0.52 };             // on the back wall, top centre
+// things the paper can run into (and, secretly, knock about)
+const ACBOX = { x0: -AC.hw, x1: AC.hw, y0: AC.y0, y1: AC.y1, z0: ROOM.d - 0.2, z1: ROOM.d };
+const SHELF = { x0: 1.08, x1: 1.5, y0: 0, y1: 0.86, z0: ROOM.d - 0.22, z1: ROOM.d };    // low bookshelf in the back-right corner, under the frame
+const WINDOW = { x0: -1.32, x1: -0.62, y0: 1.05, y1: 1.95 };                            // on the back wall
+const FRAME = { x0: 0.66, x1: 1.3, y0: 1.36, y1: 1.78 };                                // the framed 社長 calligraphy
+const CLOCK = { x: 1.02, y: 2.15, r: 0.15 };
+const MUG = { x: 0.52, z: 0.2, r: 0.045, h: 0.1 };                                      // on the desk
 const THROWS = 10;
 const T = {
-  on: false, phase: "aim", ball: null, t: 0, ac: true, louver: 0,
-  thrown: 0, made: 0, pts: 0, streak: 0, bestStreak: 0, banks: 0, wind: [], trail: []
+  on: false, phase: "aim", ball: null, now: 0, ac: true, louver: 0,
+  thrown: 0, made: 0, litter: [], fx: null, trail: []
 };
+// the room's mischief, reset every game: what the paper has knocked over, and when
+const freshFx = () => ({ frame: null, clock: null, clockTilt: 0, clockOff: 0, clockFrom: 0, offFrom: 0, books: [], mug: null, shake: PLANTS.map(() => -9), happened: [] });
+// the clock settles toward its knocked tilt with a wobble; its hands race ahead to clockOff minutes
+function clockState() {
+  const fx = T.fx;
+  if (!fx || fx.clock == null) return { tilt: 0, off: 0 };
+  const t = Math.max(0, T.now - fx.clock), k = Math.exp(-6 * t);
+  return { tilt: fx.clockTilt + (fx.clockFrom - fx.clockTilt) * k + 0.18 * Math.exp(-3 * t) * Math.sin(16 * t), off: fx.clockOff + (fx.offFrom - fx.clockOff) * Math.exp(-2.5 * t) };
+}
+function happen(name, text) {
+  if (!T.fx.happened.includes(name)) T.fx.happened.push(name);
+  callout(text);
+}
 
 // the louver swings left and right; its angle sets which way the draft pushes the paper
 function louverAngle(time) { return T.ac ? 0.75 * Math.sin(time * 0.85) + 0.12 * Math.sin(time * 2.3) : 0; }
@@ -252,27 +271,32 @@ function windAt() {
 }
 
 function startTrash() {
-  Object.assign(T, { on: true, phase: "aim", ball: null, thrown: 0, made: 0, pts: 0, streak: 0, bestStreak: 0, banks: 0, wind: [], trail: [] });
+  // the room is tidied for a new game; an A/C the paper knocked off is switched back on
+  if (T.fx && T.fx.happened.includes("エアコンが止まった")) setAC(true);
+  Object.assign(T, { on: true, phase: "aim", ball: null, thrown: 0, made: 0, litter: [], fx: freshFx(), trail: [] });
   $("home").hidden = true; $("trashHud").hidden = false; $("result").hidden = true;
   newBall(); updateHud();
   let seen = false; try { seen = localStorage.getItem("office-trash-tut") === "1"; } catch (e) {}
   if (!seen) showTutorial();
 }
 function newBall() {
-  // the bin moves along the back wall between throws
-  CAN.x = T.thrown === 0 ? 0 : rand(-0.85, 0.85);
+  // the bin moves along the back wall between throws, clear of paper left on the floor
+  for (let i = 0; i < 30; i++) {
+    CAN.x = T.thrown === 0 ? 0 : rand(-0.85, 0.85);
+    if (!T.litter.some(p => p.y < 0.3 && Math.hypot(p.x - CAN.x, p.z - CAN.z) < CAN.r + BR + 0.03)) break;
+  }
   T.ball = { x: START.x, y: START.y, z: START.z, vx: 0, vy: 0, vz: 0, spin: 0, rot: rand(0, 6), ph: rand(0, 6), ph2: rand(0, 6), held: true, hitWall: false, inCan: false, done: 0, age: 0 };
   T.phase = "aim"; T.trail = [];
 }
 function showTutorial() { $("tutorial").hidden = false; }
 $("tutOk").addEventListener("click", () => { $("tutorial").hidden = true; try { localStorage.setItem("office-trash-tut", "1"); } catch (e) {} });
 $("helpBtn").addEventListener("click", showTutorial);
-$("acBtn").addEventListener("click", () => {
-  T.ac = !T.ac;
+function setAC(on) {
+  T.ac = on;
   $("acBtn").textContent = T.ac ? "エアコン停止" : "エアコン運転";
   $("acBtn").className = "pill " + (T.ac ? "on" : "off");
-  callout(T.ac ? "エアコン運転！" : "風が止まった");
-});
+}
+$("acBtn").addEventListener("click", () => { setAC(!T.ac); callout(T.ac ? "エアコン運転！" : "風が止まった"); });
 $("quitBtn").addEventListener("click", toOffice);
 $("again").addEventListener("click", startTrash);
 $("toOffice").addEventListener("click", toOffice);
@@ -280,7 +304,7 @@ function toOffice() { T.on = false; $("trashHud").hidden = true; $("result").hid
 $("goTrash").addEventListener("click", startTrash);
 
 function updateHud() {
-  $("sPts").textContent = T.pts; $("sIn").textContent = `${T.made}/${T.thrown}`; $("sStreak").textContent = T.streak;
+  $("sIn").textContent = `${T.made}個`; $("sLeft").textContent = `${THROWS - T.thrown}球`;
 }
 let calloutTimer = 0;
 function callout(text) {
@@ -325,7 +349,7 @@ cv.addEventListener("pointercancel", endSwipe);
 // how far and high the paper goes (distance grows gently with speed, since people swipe at
 // very different speeds), and it heads across the floor for the spot along the back wall
 // under aimX, the screen x the swipe pointed at on the bin's row
-const SW = { z0: 1.95, fwd: 0.0015, y0: 1.35, up: 0.0009, max: 2400, reach: 0.8 };
+const SW = { z0: 1.95, fwd: 0.0015, y0: 1.35, up: 0.0009, max: 2400, reach: 0.9 };
 function swipeToVel(sx, sy, aimX) {
   const p = Math.min(SW.max, Math.hypot(sx, sy));
   const vz = SW.z0 + p * SW.fwd, vy = SW.y0 + p * SW.up;
@@ -357,6 +381,7 @@ function stepBall(dt) {
     if (b.done > 0.5) finishShot(true);
     return;
   }
+  if (b.caught != null) { b.done += dt; if (b.done > 0.6) finishShot(false); return; }   // stuck in a plant's leaves
   const [wx, wy, wz] = windAt();
   const speed = Math.hypot(b.vx, b.vy, b.vz);
   const flutter = 1 - Math.min(1, speed / 4);     // flutters more once it has slowed down
@@ -372,7 +397,14 @@ function stepBall(dt) {
   if (b.x < -ROOM.w + BR) { b.x = -ROOM.w + BR; b.vx = Math.abs(b.vx) * BOUNCE; }
   if (b.x > ROOM.w - BR) { b.x = ROOM.w - BR; b.vx = -Math.abs(b.vx) * BOUNCE; }
   if (b.y > ROOM.h - BR) { b.y = ROOM.h - BR; b.vy = -Math.abs(b.vy) * BOUNCE; }
-  if (b.z > ROOM.d - BR) { b.z = ROOM.d - BR; b.vz = -Math.abs(b.vz) * BACK_BOUNCE; b.hitWall = true; b.spin *= -0.5; }
+  if (b.z > ROOM.d - BR) {
+    const onGlass = b.x > WINDOW.x0 && b.x < WINDOW.x1 && b.y > WINDOW.y0 && b.y < WINDOW.y1;
+    if (b.vz > 0.3) wallHit(b, onGlass);
+    b.z = ROOM.d - BR; b.vz = -Math.abs(b.vz) * BACK_BOUNCE; b.vx *= 0.4; b.hitWall = true; b.spin *= -0.5;
+  }
+  // furniture: the bookshelf and the A/C (both can be landed on), plant pots, the mug, and
+  // paper already lying about
+  hitThings(b, dt);
 
   // the bin: in through the opening, off the rim, or off its side
   const dx = b.x - CAN.x, dz = b.z - CAN.z, dh = Math.hypot(dx, dz) || 1e-6;
@@ -398,6 +430,7 @@ function stepBall(dt) {
   if (b.y < DESK.y + BR && py >= DESK.y + BR - 0.02 && b.x > DESK.x0 && b.x < DESK.x1 && b.z > DESK.z0 && b.z < DESK.z1) {
     b.y = DESK.y + BR; b.vy = Math.abs(b.vy) * 0.2; b.vx *= 0.5; b.vz *= 0.5;
     if (b.vy < 0.3) { b.vy = 0; b.done += dt; }
+    b.restOn = "desk";
   }
   // the floor: a soft landing and a short skid
   if (b.y < BR) {
@@ -407,22 +440,111 @@ function stepBall(dt) {
   if (b.done > 0.45 || b.age > 7) finishShot(false);
 }
 
+// the paper hit the back wall at (b.x, b.y): the frame drops, the clock is knocked crooked,
+// the window clonks
+function wallHit(b, onGlass) {
+  const fx = T.fx;
+  if (!fx.frame && b.x > FRAME.x0 - BR && b.x < FRAME.x1 + BR && b.y > FRAME.y0 - BR && b.y < FRAME.y1 + BR) {
+    fx.frame = T.now; b.quiet = true; happen("額縁が落ちた", "ガシャン！額縁が落ちた！");
+  } else if (Math.hypot(b.x - CLOCK.x, b.y - CLOCK.y) < CLOCK.r + BR) {
+    const now = clockState();
+    fx.clockFrom = now.tilt; fx.offFrom = now.off; fx.clock = T.now;
+    fx.clockTilt = Math.max(-0.9, Math.min(0.9, fx.clockTilt + (b.x < CLOCK.x ? 1 : -1) * rand(0.25, 0.45)));
+    fx.clockOff += rand(90, 400);
+    b.quiet = true; happen("時計がずれた", "カチッ…時計がずれた");
+  } else if (onGlass) {
+    b.quiet = true; callout("ゴツン！窓ガラス");
+  }
+}
+
+// a sphere of radius BR against a box: push the paper out and bounce it; returns the face's
+// outward normal, or null when they don't touch
+function hitBox(b, q, e = BOUNCE) {
+  const cx = Math.max(q.x0, Math.min(q.x1, b.x)), cy = Math.max(q.y0, Math.min(q.y1, b.y)), cz = Math.max(q.z0, Math.min(q.z1, b.z));
+  let nx = b.x - cx, ny = b.y - cy, nz = b.z - cz;
+  const d = Math.hypot(nx, ny, nz);
+  if (d >= BR) return null;
+  if (d < 1e-6) {
+    // its centre got inside: out through the nearest face
+    const faces = [[b.x - q.x0, -1, 0, 0], [q.x1 - b.x, 1, 0, 0], [b.y - q.y0, 0, -1, 0], [q.y1 - b.y, 0, 1, 0], [b.z - q.z0, 0, 0, -1], [q.z1 - b.z, 0, 0, 1]];
+    const [pen, fx, fy, fz] = faces.sort((p, r) => p[0] - r[0])[0];
+    nx = fx; ny = fy; nz = fz;
+    b.x += nx * (pen + BR); b.y += ny * (pen + BR); b.z += nz * (pen + BR);
+  } else {
+    nx /= d; ny /= d; nz /= d;
+    b.x += nx * (BR - d); b.y += ny * (BR - d); b.z += nz * (BR - d);
+  }
+  const vn = b.vx * nx + b.vy * ny + b.vz * nz;
+  if (vn < 0) { b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny; b.vz -= (1 + e) * vn * nz; }
+  return { nx, ny, nz, speed: Math.max(0, -vn) };
+}
+// sitting on top of something: skid to a stop like on the floor
+function settle(b, dt, on) {
+  b.vx *= 0.6; b.vz *= 0.6; b.vy = Math.min(b.vy, 0.6);
+  if (b.vy < 0.3) { b.vy = Math.max(0, b.vy); b.done += dt; }
+  b.restOn = on;
+}
+const foliage = p => { const b0 = p.y0 || 0, k = p.k || 1; return p.kind === "tall" ? { y: b0 + p.h * 0.8, r: 0.26 * k } : { y: b0 + p.h * 0.72, r: 0.27 * k }; };
+const mugBox = () => ({ x0: MUG.x - MUG.r, x1: MUG.x + MUG.r, y0: DESK.y, y1: DESK.y + MUG.h, z0: MUG.z - MUG.r, z1: MUG.z + MUG.r });
+function hitThings(b, dt) {
+  const fx = T.fx;
+  let h = hitBox(b, SHELF);
+  if (h) {
+    if (h.ny > 0.7) settle(b, dt, "shelf");
+    else if (h.nz < -0.7 && h.speed > 0.8 && fx.books.length < 3) {
+      fx.books.push({ k: [5, 6, 4][fx.books.length], t: T.now });
+      b.quiet = true; happen("本が落ちた", "バサッ！本が落ちた");
+    }
+  }
+  h = hitBox(b, ACBOX);
+  if (h) {
+    if (h.ny > 0.7) settle(b, dt, "ac");
+    else if (T.ac && h.speed > 0.5) { setAC(false); b.quiet = true; happen("エアコンが止まった", "ピッ…エアコンが止まった！？"); }
+  }
+  PLANTS.forEach((p, i) => {
+    const b0 = p.y0 || 0;
+    h = hitBox(b, { x0: p.x - p.r, x1: p.x + p.r, y0: b0, y1: b0 + 0.32 * (p.k || 1), z0: p.z - p.r, z1: p.z + p.r });
+    if (h && h.ny > 0.7) settle(b, dt, "pot");
+    // the leaves catch the paper and hold it
+    const f = foliage(p);
+    if (Math.hypot(b.x - p.x, b.y - f.y, b.z - p.z) < f.r) {
+      b.caught = i; b.vx = b.vy = b.vz = 0; b.done = 0; b.restOn = "plant"; fx.shake[i] = T.now;
+    }
+  });
+  if (!fx.mug && hitBox(b, mugBox())) {
+    fx.mug = { t: T.now, dir: b.vx >= 0 ? 1 : -1 };
+    b.quiet = true; happen("コーヒーをこぼした", "あっ！コーヒーが…");
+  }
+  // paper already lying about: bump off it, or come to rest on top of it
+  for (const l of T.litter) {
+    const dx = b.x - l.x, dy = b.y - l.y, dz = b.z - l.z, d = Math.hypot(dx, dy, dz);
+    if (d >= BR * 2 || d < 1e-6) continue;
+    const nx = dx / d, ny = dy / d, nz = dz / d, push = BR * 2 - d;
+    b.x += nx * push; b.y += ny * push; b.z += nz * push;
+    const vn = b.vx * nx + b.vy * ny + b.vz * nz;
+    if (vn < 0) { b.vx -= 1.3 * vn * nx; b.vy -= 1.3 * vn * ny; b.vz -= 1.3 * vn * nz; }
+    if (ny > 0.7) settle(b, dt, "litter");
+  }
+}
+
 function finishShot(inside) {
   if (T.phase !== "flying") return;
   T.phase = "between";
   const b = T.ball;
   if (inside) {
-    T.made++; T.streak++; T.bestStreak = Math.max(T.bestStreak, T.streak);
-    // 1 point, +1 for a bank shot off the wall, +1 from the 3rd success in a row
-    let pts = 1, msg = "ナイスシュート！";
-    if (b.hitWall) { pts++; T.banks++; msg = "バンクショット！"; }
-    if (T.streak >= 3) { pts++; msg = `${T.streak}連続！ ${msg}`; }
-    T.pts += pts; callout(`${msg} +${pts}`);
+    T.made++;
+    callout(b.hitWall ? "バンクショット！" : "ナイスシュート！");
     if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
   } else {
-    T.streak = 0;
-    const lines = T.ac ? ["おしい！", "ドンマイ", "風が…", "もう一球！"] : ["おしい！", "ドンマイ", "もう一球！"];
-    callout(lines[Math.floor(Math.random() * lines.length)]);
+    // a miss stays where it came to rest for the rest of the game
+    T.litter.push({ x: b.x, y: b.y, z: b.z, rot: b.rot, plant: b.caught });
+    if (b.restOn === "shelf") happen("本棚の上に紙くず", "本棚に乗っちゃった…");
+    else if (b.restOn === "ac") happen("エアコンの上に紙くず", "エアコンの上に乗っちゃった…");
+    else if (b.restOn === "plant") happen("植木に紙くず", "植木に引っかかった…");
+    else if (!b.quiet) {
+      const lines = T.ac ? ["おしい！", "ドンマイ", "風が…", "もう一球！"] : ["おしい！", "ドンマイ", "もう一球！"];
+      callout(lines[Math.floor(Math.random() * lines.length)]);
+    }
   }
   updateHud();
   setTimeout(() => { if (!T.on) return; if (T.thrown >= THROWS) showResult(); else newBall(); }, 900);
@@ -430,14 +552,16 @@ function finishShot(inside) {
 
 function showResult() {
   T.phase = "over";
-  let best = 0; try { best = +localStorage.getItem("office-trash-best") || 0; } catch (e) {}
-  const isBest = T.pts > best;
-  if (isBest) try { localStorage.setItem("office-trash-best", String(T.pts)); } catch (e) {}
-  $("rPts").textContent = `${T.pts}点`;
+  let best = -1; try { const v = localStorage.getItem("office-trash-best-count"); if (v !== null) best = +v; } catch (e) {}
+  const isBest = T.made > best;
+  if (isBest) try { localStorage.setItem("office-trash-best-count", String(T.made)); } catch (e) {}
+  $("rPts").textContent = `${T.made}個`;
   $("rIn").textContent = `${T.made} / ${THROWS}`;
-  $("rStreak").textContent = T.bestStreak;
-  $("rBank").textContent = T.banks;
-  $("rBest").textContent = isBest ? `${T.pts}点（更新！）` : best ? `${best}点` : "-";
+  $("rBest").textContent = isBest ? `${T.made}個（更新！）` : `${best}個`;
+  // the mischief of this game, if any
+  const fx = T.fx.happened;
+  $("rFx").hidden = !fx.length;
+  $("rFx").textContent = fx.length ? `社長室の被害：${fx.join("、")}` : "";
   $("result").hidden = false;
 }
 
@@ -472,7 +596,7 @@ function drawRoom3D() {
   ctx.strokeStyle = "#0000001c"; ctx.lineWidth = 2;
   [[-w, 0, d, -w, h, d], [w, 0, d, w, h, d], [-w, h, d, w, h, d]].forEach(([a, b, c, e, f, g]) => { const p = proj(a, b, c), q = proj(e, f, g); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); });
   // on the back wall: a window on the left, the calligraphy on the right
-  const [wx0, wy0] = proj(-1.32, 1.95, d), [wx1, wy1] = proj(-0.62, 1.05, d);
+  const [wx0, wy0] = proj(WINDOW.x0, WINDOW.y1, d), [wx1, wy1] = proj(WINDOW.x1, WINDOW.y0, d);
   ctx.fillStyle = "#6b4a2b"; ctx.fillRect(wx0 - 4, wy0 - 4, wx1 - wx0 + 8, wy1 - wy0 + 8);
   let g = ctx.createLinearGradient(0, wy0, 0, wy1); g.addColorStop(0, "#4a6fb5"); g.addColorStop(1, "#f6b26b");
   ctx.fillStyle = g; ctx.fillRect(wx0, wy0, wx1 - wx0, wy1 - wy0);
@@ -480,11 +604,45 @@ function drawRoom3D() {
   const ww = wx1 - wx0, wh = wy1 - wy0;
   [[0, .55, .14, .45], [.16, .4, .16, .6], [.34, .62, .12, .38], [.48, .3, .2, .7], [.7, .5, .14, .5], [.86, .6, .14, .4]].forEach(([a, b, c, e]) => ctx.fillRect(wx0 + a * ww, wy0 + b * wh, c * ww, e * wh));
   ctx.fillStyle = "#6b4a2b"; ctx.fillRect(wx0 + ww / 2 - 1.5, wy0, 3, wh);
-  const [cx0, cy0] = proj(0.66, 1.78, d), [cx1, cy1] = proj(1.3, 1.36, d);
-  ctx.fillStyle = "#7a5230"; ctx.fillRect(cx0 - 3, cy0 - 3, cx1 - cx0 + 6, cy1 - cy0 + 6);
-  ctx.fillStyle = "#fffaf0"; ctx.fillRect(cx0, cy0, cx1 - cx0, cy1 - cy0);
-  ctx.fillStyle = "#2a2118"; ctx.font = `900 ${Math.round((cy1 - cy0) * 0.62)}px ${getComputedStyle(document.body).fontFamily}`;
-  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("社長", (cx0 + cx1) / 2, (cy0 + cy1) / 2 + 1);
+  drawFrame();
+}
+// the framed 社長 calligraphy: on its nail, falling, or fallen and leaning against the wall
+const FRAME_DROP = Math.sqrt(2 * FRAME.y0 / 9.8);   // seconds to fall to the floor
+function drawFrame() {
+  const d = ROOM.d, t = T.fx && T.fx.frame != null ? T.now - T.fx.frame : -1;
+  const label = (x, y, size) => {
+    ctx.fillStyle = "#2a2118"; ctx.font = `900 ${Math.round(size)}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("社長", x, y + 1);
+  };
+  if (t < 0) {
+    const [cx0, cy0] = proj(FRAME.x0, FRAME.y1, d), [cx1, cy1] = proj(FRAME.x1, FRAME.y0, d);
+    ctx.fillStyle = "#7a5230"; ctx.fillRect(cx0 - 3, cy0 - 3, cx1 - cx0 + 6, cy1 - cy0 + 6);
+    ctx.fillStyle = "#fffaf0"; ctx.fillRect(cx0, cy0, cx1 - cx0, cy1 - cy0);
+    label((cx0 + cx1) / 2, (cy0 + cy1) / 2, (cy1 - cy0) * 0.62);
+    return;
+  }
+  // where it hung: a paler patch of wall and the bare nail
+  const [px0, py0] = proj(FRAME.x0, FRAME.y1, d), [px1, py1] = proj(FRAME.x1, FRAME.y0, d);
+  ctx.fillStyle = "#fbf3e3"; ctx.fillRect(px0 - 3, py0 - 3, px1 - px0 + 6, py1 - py0 + 6);
+  const [nx, ny] = proj((FRAME.x0 + FRAME.x1) / 2, FRAME.y1 + 0.04, d);
+  ctx.fillStyle = "#6b6b6b"; ctx.beginPath(); ctx.arc(nx, ny, 2, 0, Math.PI * 2); ctx.fill();
+  if (t < FRAME_DROP) {
+    // dropping, tipping forward a little as it goes
+    const drop = 4.9 * t * t, [cx0, cy0] = proj(FRAME.x0, FRAME.y1 - drop, d - 0.02), [cx1, cy1] = proj(FRAME.x1, FRAME.y0 - drop, d - 0.02);
+    ctx.save(); ctx.translate((cx0 + cx1) / 2, (cy0 + cy1) / 2); ctx.rotate(t / FRAME_DROP * 0.25);
+    const w2 = (cx1 - cx0) / 2, h2 = (cy1 - cy0) / 2;
+    ctx.fillStyle = "#7a5230"; ctx.fillRect(-w2 - 3, -h2 - 3, w2 * 2 + 6, h2 * 2 + 6);
+    ctx.fillStyle = "#fffaf0"; ctx.fillRect(-w2, -h2, w2 * 2, h2 * 2);
+    label(0, 0, h2 * 1.24); ctx.restore();
+    return;
+  }
+  // on the floor, leaning back against the wall, slid left off the bookshelf
+  const x0 = FRAME.x0 - 0.25, x1 = FRAME.x1 - 0.25, hgt = FRAME.y1 - FRAME.y0 - 0.02;
+  const zb = d - 0.12, zt = d - 0.01, i = 0.035;
+  poly([[x0, 0, zb], [x1, 0, zb], [x1, hgt, zt], [x0, hgt, zt]], "#7a5230");
+  poly([[x0 + i, i, zb + 0.004], [x1 - i, i, zb + 0.004], [x1 - i, hgt - i, zt - 0.004], [x0 + i, hgt - i, zt - 0.004]], "#fffaf0");
+  const [lx, ly] = proj((x0 + x1) / 2, hgt / 2, (zb + zt) / 2), [, ty] = proj(0, hgt, zt), [, by] = proj(0, 0, zb);
+  label(lx, ly, (by - ty) * 0.55);
 }
 function drawAC() {
   const d = ROOM.d - 0.01, [x0, y0] = proj(-AC.hw, AC.y1, d), [x1, y1] = proj(AC.hw, AC.y0, d);
@@ -526,9 +684,8 @@ function drawWind(time) {
 
 // ---- furniture: potted plants on the floor, a bookshelf, a clock, a rug ----
 const PLANTS = [
-  { x: -1.28, z: 3.0, h: 1.25, r: 0.17, kind: "tall" },    // back left corner
-  { x: 1.3, z: 3.02, h: 0.75, r: 0.14, kind: "round" },    // back right corner
-  { x: 1.3, z: 1.55, h: 1.0, r: 0.16, kind: "tall" }       // nearer, by the right wall
+  { x: -1.3, z: 2.98, h: 1.25, r: 0.17, kind: "tall" },                    // back left corner
+  { x: 1.38, z: 2.89, y0: SHELF.y1, h: 0.5, r: 0.09, k: 0.6, kind: "round" }  // a small pot on the bookshelf
 ];
 function drawPlant(p) {
   // pot: a tapered terracotta tub
@@ -536,28 +693,34 @@ function drawPlant(p) {
     const [cx, f] = proj(p.x, y, p.z - r), [, bk] = proj(p.x, y, p.z + r), [, , s] = proj(p.x, y, p.z);
     return { cx, cy: (f + bk) / 2, rx: r * s, ry: Math.max(1, Math.abs(f - bk) / 2) };
   };
-  const top = ring(0.32, p.r), base = ring(0, p.r * 0.75);
+  const b0 = p.y0 || 0, k = p.k || 1;   // standing on the floor or on furniture; k scales a small pot
+  const top = ring(b0 + 0.32 * k, p.r), base = ring(b0, p.r * 0.75);
   ctx.fillStyle = "#0002"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.3, base.ry * 1.4, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = "#b8643a"; ctx.strokeStyle = "#7a3f22"; ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.moveTo(top.cx - top.rx, top.cy); ctx.lineTo(base.cx - base.rx, base.cy);
   ctx.ellipse(base.cx, base.cy, base.rx, base.ry, 0, Math.PI, 0, true); ctx.lineTo(top.cx + top.rx, top.cy);
   ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI, false); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI * 2); ctx.fill();
-  const [, , s] = proj(p.x, 0.5, p.z);
+  const [, , s] = proj(p.x, b0 + 0.5, p.z);
+  // leaves shake for a moment after paper flies into them
+  const st = T.fx ? Math.max(0, T.now - T.fx.shake[PLANTS.indexOf(p)]) : 9;
+  const sway = st < 3 ? 0.12 * Math.exp(-2.5 * st) * Math.sin(15 * st) * s : 0;
   if (p.kind === "tall") {
     // a tall leafy plant: a trunk with clusters of long leaves
-    const [tx, ty] = proj(p.x, 0.32, p.z), [ux, uy] = proj(p.x, p.h, p.z);
+    const [tx, ty] = proj(p.x, b0 + 0.32 * k, p.z), [ux, uy] = proj(p.x, b0 + p.h, p.z);
     ctx.strokeStyle = "#6b4a2b"; ctx.lineWidth = Math.max(1.5, s * 0.025);
-    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(ux, uy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(ux + sway, uy); ctx.stroke();
     const leaves = [[0, 1], [-0.9, 0.86], [0.9, 0.82], [-0.6, 0.7], [0.65, 0.64], [-1.1, 0.58], [1.05, 0.55], [0, 0.78]];
     for (const [dx, hy] of leaves) {
-      const [lx, ly] = proj(p.x, p.h * hy, p.z), len = s * 0.3, ang = -Math.PI / 2 + dx * 0.9;
+      let [lx, ly] = proj(p.x, b0 + p.h * hy, p.z), len = s * 0.3 * k, ang = -Math.PI / 2 + dx * 0.9;
+      lx += sway * hy;
       ctx.fillStyle = hy > 0.75 ? "#4fae5c" : "#3f9a52";
       ctx.beginPath(); ctx.ellipse(lx + Math.cos(ang) * len * 0.5, ly + Math.sin(ang) * len * 0.5, len * 0.5, len * 0.16, ang, 0, Math.PI * 2); ctx.fill();
     }
   } else {
     // a round bush
-    const [bx, by] = proj(p.x, p.h * 0.72, p.z), r = s * 0.24;
+    let [bx, by] = proj(p.x, b0 + p.h * 0.72, p.z), r = s * 0.24 * k;
+    bx += sway;
     [[0, 0, 1], [-0.55, 0.25, 0.7], [0.55, 0.25, 0.7], [0, -0.45, 0.65]].forEach(([dx, dy, k], i) => {
       ctx.fillStyle = i === 3 ? "#5cbb67" : "#3f9a52"; ctx.beginPath(); ctx.arc(bx + dx * r, by + dy * r, r * k, 0, Math.PI * 2); ctx.fill();
     });
@@ -569,27 +732,38 @@ function drawWallDecor() {
   // a rug in the middle of the floor
   poly([[-0.75, 0.001, 1.0], [0.75, 0.001, 1.0], [0.75, 0.001, 2.35], [-0.75, 0.001, 2.35]], "#9b2f35");
   poly([[-0.66, 0.002, 1.1], [0.66, 0.002, 1.1], [0.66, 0.002, 2.25], [-0.66, 0.002, 2.25]], null, "#e9c46a");
-  // a low bookshelf against the back wall, under the window
-  const fz = d - 0.22, x0 = -1.08, x1 = -0.38, top = 0.86;
+  // a low bookshelf in the back-right corner
+  const { x0, x1, z0: fz, y1: top } = SHELF;
   poly([[x0, top, fz], [x1, top, fz], [x1, top, d], [x0, top, d]], "#8a5d39");    // top board
   poly([[x0, 0, fz], [x1, 0, fz], [x1, top, fz], [x0, top, fz]], "#7a5230");      // front frame
   const books = ["#d64545", "#2f6db5", "#f2c230", "#2f9e5b", "#7a3fa0", "#e07b39", "#3a8f8f"];
+  const fallen = T.fx ? T.fx.books : [];
   for (let sh = 0; sh < 2; sh++) {
     const y0 = 0.06 + sh * 0.4, y1 = y0 + 0.34;
     poly([[x0 + 0.04, y0, fz], [x1 - 0.04, y0, fz], [x1 - 0.04, y1, fz], [x0 + 0.04, y1, fz]], "#4a3020");
     let x = x0 + 0.06, k = sh * 4;
     while (x < x1 - 0.1) {
       const bw = 0.045 + ((k * 37) % 5) * 0.01, bh = 0.24 + ((k * 13) % 4) * 0.025;
-      poly([[x, y0, fz], [x + bw, y0, fz], [x + bw, y0 + bh, fz], [x, y0 + bh, fz]], books[k % books.length]);
+      if (!fallen.some(f => f.k === k)) poly([[x, y0, fz], [x + bw, y0, fz], [x + bw, y0 + bh, fz], [x, y0 + bh, fz]], books[k % books.length]);
       x += bw + 0.008; k++;
     }
   }
-  // a round clock high on the back wall, right of the A/C
-  const [cx, cy, s] = proj(1.02, 2.15, d - 0.005), r = s * 0.15;
-  ctx.save(); ctx.translate(cx, cy);
+  // books knocked off the shelf: they drop and lie flat on the floor in front of it
+  fallen.forEach((f, i) => {
+    const t = Math.max(0, T.now - f.t), y = Math.max(0.012, 0.6 - 4.9 * t * t);
+    const bx = x1 - 0.12 - i * 0.2, bz = fz - 0.16 - (i % 2) * 0.09, a = 0.4 - i * 0.5, ca = Math.cos(a) * 0.1, sa = Math.sin(a) * 0.1;
+    const c = (u, v) => [bx + u * ca - v * sa * 0.7, y, bz + u * sa + v * ca * 0.7];
+    poly([c(-1, -1), c(1, -1), c(1, 1), c(-1, 1)], books[f.k % books.length], "#0004");
+  });
+  // a round clock high on the back wall, right of the A/C (knocked crooked, its hands sent spinning)
+  const cs = clockState();
+  const [cx, cy, s] = proj(CLOCK.x, CLOCK.y, d - 0.005), r = s * CLOCK.r;
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(cs.tilt);
   ctx.fillStyle = "#fffaf0"; ctx.strokeStyle = "#5a3a22"; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  const now = new Date(), hA = ((now.getHours() % 12) + now.getMinutes() / 60) / 12 * Math.PI * 2, mA = now.getMinutes() / 60 * Math.PI * 2;
+  ctx.fillStyle = "#5a3a22"; ctx.fillRect(-1, -r + 3, 2, 4);   // 12 o'clock mark, so the tilt shows
+  const now = new Date(), mins = now.getHours() * 60 + now.getMinutes() + cs.off;
+  const hA = (mins / 60 % 12) / 12 * Math.PI * 2, mA = (mins % 60) / 60 * Math.PI * 2;
   ctx.strokeStyle = "#2a2118"; ctx.lineCap = "round";
   ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(hA) * r * 0.5, -Math.cos(hA) * r * 0.5); ctx.stroke();
   ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(mA) * r * 0.78, -Math.cos(mA) * r * 0.78); ctx.stroke();
@@ -664,11 +838,23 @@ function drawDesk() {
   // a stack of papers and a coffee mug on the right
   poly([[0.12, y + 0.01, 0.06], [0.36, y + 0.01, 0.04], [0.38, y + 0.01, 0.24], [0.14, y + 0.01, 0.26]], "#fbfaf4", "#cfc9b8");
   poly([[0.14, y + 0.025, 0.08], [0.36, y + 0.025, 0.07], [0.37, y + 0.025, 0.22], [0.15, y + 0.025, 0.23]], "#ffffff", "#d8d2c2");
-  const [mx, my, ms] = proj(0.52, y, 0.2), mr = 0.045 * ms, mh = 0.1 * ms;
-  ctx.fillStyle = "#f4f1e8"; ctx.strokeStyle = "#a9a294"; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.roundRect(mx - mr, my - mh, mr * 2, mh, 2); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.ellipse(mx, my - mh, mr, mr * 0.35, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.arc(mx + mr, my - mh * 0.5, mr * 0.45, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+  const [mx, my, ms] = proj(MUG.x, y, MUG.z), mr = MUG.r * ms, mh = MUG.h * ms;
+  const mug = T.fx && T.fx.mug;
+  if (!mug) {
+    ctx.fillStyle = "#f4f1e8"; ctx.strokeStyle = "#a9a294"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.roundRect(mx - mr, my - mh, mr * 2, mh, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.ellipse(mx, my - mh, mr, mr * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(mx + mr, my - mh * 0.5, mr * 0.45, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+  } else {
+    // knocked over: a puddle of coffee spreading over the desk, the mug on its side
+    const t = Math.max(0, T.now - mug.t), k = Math.min(1, t / 1.2), ang = mug.dir * Math.min(1, t / 0.18) * Math.PI / 2;
+    const [px, py, ps] = proj(MUG.x + mug.dir * 0.09, y + 0.002, MUG.z + 0.02), pr = 0.13 * k * ps;
+    ctx.fillStyle = "#5a3418cc"; ctx.beginPath(); ctx.ellipse(px, py, pr, pr * 0.32, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.save(); ctx.translate(mx + mug.dir * mr, my); ctx.rotate(ang);
+    ctx.fillStyle = "#f4f1e8"; ctx.strokeStyle = "#a9a294"; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.roundRect(-mr - mug.dir * mr, -mh, mr * 2, mh, 2); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
   // a pen stand at the back of the desk
   const [px, py, ps] = proj(-0.14, y, 0.3), pr = 0.035 * ps;
   ctx.fillStyle = "#2b2b30"; ctx.fillRect(px - pr, py - pr * 2.4, pr * 2, pr * 2.4);
@@ -701,6 +887,13 @@ function drawShoot(time) {
   const ballInBin = b && (b.inCan || b.z > CAN.z);
   items.push({ z: CAN.z, draw: () => { drawCanInside(); if (ballInBin) drawPaper(b); drawCanBody(); } });
   items.push({ z: deskKey, draw: drawDesk });
+  // paper that missed, left where it came to rest (on the desk it shows in front of it,
+  // in a plant just in front of the leaves)
+  for (const l of T.litter) {
+    const onDesk = overDesk(l) && l.y > DESK.y;
+    const key = onDesk ? deskKey - 0.01 : l.plant != null ? PLANTS[l.plant].z - 0.3 : l.z;
+    items.push({ z: key, draw: () => { if (onDesk || l.y < 0.15) drawShadow(l); drawPaper(l); } });
+  }
   if (b && !ballInBin && !b.held) {
     // above the desk top the paper always shows in front of it
     const key = b.z < DESK.z1 + 0.05 && b.y > DESK.y ? Math.min(b.z, deskKey - 0.01) : b.z;
@@ -717,6 +910,7 @@ function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000); last = now; clock += dt;
   ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
   if (T.on) {
+    T.now = clock;
     T.louver = louverAngle(clock);
     // a few small physics steps per frame keep fast throws from tunnelling through the rim
     for (let i = 0; i < 4; i++) stepBall(dt / 4);
