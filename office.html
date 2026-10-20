@@ -226,7 +226,7 @@ function drawRoom(withDesk) {
 // =====================================================================
 // The room seen from where the 社長 stands, throwing away from you toward the back wall.
 // World units are metres: x left(−)/right(+), y up from the floor, z away from you.
-const ROOM = { w: 1.5, h: 2.6, d: 4.2 };                 // half-width, height, depth
+const ROOM = { w: 1.55, h: 2.6, d: 3.3 };                // half-width, height, depth
 const EYE = { y: 1.35, z: -0.6 }, FOC = 420, HZ = 268;   // camera height and position, focal length (px), horizon
 function proj(x, y, z) { const d = Math.max(0.05, z - EYE.z); return [LW / 2 + FOC * x / d, HZ - FOC * (y - EYE.y) / d, FOC / d]; }
 const BR = 0.055;                                        // paper ball radius
@@ -315,7 +315,7 @@ cv.addEventListener("pointercancel", endSwipe);
 // and up, the sideways part aims it left or right
 // distance grows gently with speed (people swipe at very different speeds), and the swipe's
 // angle — not its sideways speed — aims left or right
-const SW = { z0: 2.0, fwd: 0.0019, y0: 0.9, up: 0.0009, aim: 0.3, max: 2400 };
+const SW = { z0: 1.55, fwd: 0.0015, y0: 0.9, up: 0.0009, aim: 0.44, max: 2400 };
 function swipeToVel(sx, sy) {
   const up = Math.min(SW.max, -sy), vz = SW.z0 + up * SW.fwd;
   return [vz * (sx / -sy) * SW.aim, SW.y0 + up * SW.up, vz];
@@ -491,24 +491,100 @@ function drawAC() {
     ctx.moveTo(cx + dx, cy + 8); ctx.lineTo(cx + dx - 7 * Math.cos(ang + 0.5), cy + 8 - 7 * Math.sin(ang + 0.5)); ctx.stroke();
   }
 }
-// wind streaks drift out of the A/C into the room, sideways with the louver and toward you
-function stepWind(dt) {
-  if (T.ac) {
-    for (let i = 0; i < 2; i++) {
-      const s = Math.sin(T.louver + rand(-0.2, 0.2));
-      T.wind.push({ x: rand(-AC.hw + 0.08, AC.hw - 0.08), y: AC.y0, z: ROOM.d - 0.06, vx: s * rand(1.1, 1.6), vy: -rand(0.15, 0.4), vz: -rand(0.9, 1.4), life: 0, max: rand(1.4, 2.4) });
+// the draft, drawn as a few soft ribbons of air that leave the A/C and bend with the louver;
+// a dashed pattern slides along them so the air visibly flows
+function drawWind(time) {
+  if (!T.ac) return;
+  const s = Math.sin(T.louver);
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  for (let i = 0; i < 5; i++) {
+    const x0 = -AC.hw + 0.12 + (2 * AC.hw - 0.24) * i / 4;
+    ctx.beginPath();
+    for (let k = 0; k <= 24; k++) {
+      const t = k / 24 * 1.6;   // seconds of travel from the outlet
+      const x = x0 + s * 1.2 * t + 0.04 * Math.sin(time * 2 + i + t * 3), y = AC.y0 - 0.05 - 0.28 * t, z = ROOM.d - 0.05 - 1.05 * t;
+      const [sx, sy] = proj(x, y, z);
+      k ? ctx.lineTo(sx, sy) : ctx.moveTo(sx, sy);
+    }
+    const [, , sc] = proj(x0, AC.y0, ROOM.d - 0.8);
+    // a wide pale glow under a thin flowing line
+    ctx.setLineDash([]); ctx.strokeStyle = "rgba(150,205,245,0.13)"; ctx.lineWidth = sc * 0.04; ctx.stroke();
+    ctx.setLineDash([sc * 0.12, sc * 0.1]); ctx.lineDashOffset = -time * sc * 0.6;
+    ctx.strokeStyle = "rgba(90,165,230,0.45)"; ctx.lineWidth = Math.max(1.2, sc * 0.012); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+
+// ---- furniture: potted plants on the floor, a bookshelf, a clock, a rug ----
+const PLANTS = [
+  { x: -1.28, z: 3.0, h: 1.25, r: 0.17, kind: "tall" },    // back left corner
+  { x: 1.3, z: 3.02, h: 0.75, r: 0.14, kind: "round" },    // back right corner
+  { x: 1.32, z: 1.15, h: 1.0, r: 0.16, kind: "tall" }      // nearer, by the right wall
+];
+function drawPlant(p) {
+  // pot: a tapered terracotta tub
+  const ring = (y, r) => {
+    const [cx, f] = proj(p.x, y, p.z - r), [, bk] = proj(p.x, y, p.z + r), [, , s] = proj(p.x, y, p.z);
+    return { cx, cy: (f + bk) / 2, rx: r * s, ry: Math.max(1, Math.abs(f - bk) / 2) };
+  };
+  const top = ring(0.32, p.r), base = ring(0, p.r * 0.75);
+  ctx.fillStyle = "#0002"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.3, base.ry * 1.4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#b8643a"; ctx.strokeStyle = "#7a3f22"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(top.cx - top.rx, top.cy); ctx.lineTo(base.cx - base.rx, base.cy);
+  ctx.ellipse(base.cx, base.cy, base.rx, base.ry, 0, Math.PI, 0, true); ctx.lineTo(top.cx + top.rx, top.cy);
+  ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI, false); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI * 2); ctx.fill();
+  const [, , s] = proj(p.x, 0.5, p.z);
+  if (p.kind === "tall") {
+    // a tall leafy plant: a trunk with clusters of long leaves
+    const [tx, ty] = proj(p.x, 0.32, p.z), [ux, uy] = proj(p.x, p.h, p.z);
+    ctx.strokeStyle = "#6b4a2b"; ctx.lineWidth = Math.max(1.5, s * 0.025);
+    ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(ux, uy); ctx.stroke();
+    const leaves = [[0, 1], [-0.9, 0.86], [0.9, 0.82], [-0.6, 0.7], [0.65, 0.64], [-1.1, 0.58], [1.05, 0.55], [0, 0.78]];
+    for (const [dx, hy] of leaves) {
+      const [lx, ly] = proj(p.x, p.h * hy, p.z), len = s * 0.3, ang = -Math.PI / 2 + dx * 0.9;
+      ctx.fillStyle = hy > 0.75 ? "#4fae5c" : "#3f9a52";
+      ctx.beginPath(); ctx.ellipse(lx + Math.cos(ang) * len * 0.5, ly + Math.sin(ang) * len * 0.5, len * 0.5, len * 0.16, ang, 0, Math.PI * 2); ctx.fill();
+    }
+  } else {
+    // a round bush
+    const [bx, by] = proj(p.x, p.h * 0.72, p.z), r = s * 0.24;
+    [[0, 0, 1], [-0.55, 0.25, 0.7], [0.55, 0.25, 0.7], [0, -0.45, 0.65]].forEach(([dx, dy, k], i) => {
+      ctx.fillStyle = i === 3 ? "#5cbb67" : "#3f9a52"; ctx.beginPath(); ctx.arc(bx + dx * r, by + dy * r, r * k, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.fillStyle = "#f6d35a"; [[-0.3, -0.2], [0.35, 0.05], [0.05, 0.35]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(bx + dx * r, by + dy * r, r * 0.09, 0, Math.PI * 2); ctx.fill(); });
+  }
+}
+function drawWallDecor() {
+  const { w, d } = ROOM;
+  // a rug in the middle of the floor
+  poly([[-0.75, 0.001, 0.9], [0.75, 0.001, 0.9], [0.75, 0.001, 2.5], [-0.75, 0.001, 2.5]], "#9b2f35");
+  poly([[-0.66, 0.002, 1.0], [0.66, 0.002, 1.0], [0.66, 0.002, 2.4], [-0.66, 0.002, 2.4]], null, "#e9c46a");
+  // a low bookshelf against the back wall, under the window
+  const fz = d - 0.22, x0 = -1.08, x1 = -0.38, top = 0.86;
+  poly([[x0, top, fz], [x1, top, fz], [x1, top, d], [x0, top, d]], "#8a5d39");    // top board
+  poly([[x0, 0, fz], [x1, 0, fz], [x1, top, fz], [x0, top, fz]], "#7a5230");      // front frame
+  const books = ["#d64545", "#2f6db5", "#f2c230", "#2f9e5b", "#7a3fa0", "#e07b39", "#3a8f8f"];
+  for (let sh = 0; sh < 2; sh++) {
+    const y0 = 0.06 + sh * 0.4, y1 = y0 + 0.34;
+    poly([[x0 + 0.04, y0, fz], [x1 - 0.04, y0, fz], [x1 - 0.04, y1, fz], [x0 + 0.04, y1, fz]], "#4a3020");
+    let x = x0 + 0.06, k = sh * 4;
+    while (x < x1 - 0.1) {
+      const bw = 0.045 + ((k * 37) % 5) * 0.01, bh = 0.24 + ((k * 13) % 4) * 0.025;
+      poly([[x, y0, fz], [x + bw, y0, fz], [x + bw, y0 + bh, fz], [x, y0 + bh, fz]], books[k % books.length]);
+      x += bw + 0.008; k++;
     }
   }
-  for (const w of T.wind) { w.life += dt; w.x += w.vx * dt; w.y += w.vy * dt; w.z += w.vz * dt; }
-  T.wind = T.wind.filter(w => w.life < w.max && w.z > 0.6 && Math.abs(w.x) < ROOM.w);
-}
-function drawWind() {
-  ctx.lineCap = "round";
-  for (const w of T.wind) {
-    const k = 1 - w.life / w.max, [ax, ay, s] = proj(w.x, w.y, w.z), [bx, by] = proj(w.x - w.vx * 0.18, w.y - w.vy * 0.18, w.z - w.vz * 0.18);
-    ctx.strokeStyle = `rgba(70,150,220,${0.7 * k})`; ctx.lineWidth = Math.max(1.6, s * 0.02);
-    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ax, ay); ctx.stroke();
-  }
+  // a round clock high on the back wall, right of the A/C
+  const [cx, cy, s] = proj(1.02, 2.15, d - 0.005), r = s * 0.15;
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.fillStyle = "#fffaf0"; ctx.strokeStyle = "#5a3a22"; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  const now = new Date(), hA = ((now.getHours() % 12) + now.getMinutes() / 60) / 12 * Math.PI * 2, mA = now.getMinutes() / 60 * Math.PI * 2;
+  ctx.strokeStyle = "#2a2118"; ctx.lineCap = "round";
+  ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(hA) * r * 0.5, -Math.cos(hA) * r * 0.5); ctx.stroke();
+  ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.sin(mA) * r * 0.78, -Math.cos(mA) * r * 0.78); ctx.stroke();
+  ctx.restore();
 }
 // the bin, drawn from a ring at the rim and a smaller ring at the base
 function canRings() {
@@ -565,27 +641,18 @@ function drawThrower() {
 }
 function drawShoot(time) {
   drawRoom3D();
+  drawWallDecor();
   drawAC();
-  drawWind();
+  drawWind(time);
   const b = T.ball;
-  if (b) {
-    drawShadow(b);
-    if (!b.held) {
-      ctx.fillStyle = "rgba(255,255,255,0.45)";
-      T.trail.forEach(([x, y, z], i) => { const [sx, sy, s] = proj(x, y, z); ctx.beginPath(); ctx.arc(sx, sy, Math.max(1, BR * s * 0.18 * (i / T.trail.length)), 0, Math.PI * 2); ctx.fill(); });
-    }
-    // nearer things are drawn last
-    if (b.inCan) { drawCanInside(); drawPaper(b); drawCanBody(); }
-    else if (b.z > CAN.z) { drawCanInside(); drawPaper(b); drawCanBody(); }
-    else { drawCanInside(); drawCanBody(); drawPaper(b); }
-  } else { drawCanInside(); drawCanBody(); }
+  if (b) drawShadow(b);
+  // the bin (with the paper inside it), the paper in flight and the furniture, far to near
+  const items = PLANTS.map(p => ({ z: p.z, draw: () => drawPlant(p) }));
+  const ballInBin = b && (b.inCan || b.z > CAN.z);
+  items.push({ z: CAN.z, draw: () => { drawCanInside(); if (ballInBin) drawPaper(b); drawCanBody(); } });
+  if (b && !ballInBin) items.push({ z: b.z, draw: () => drawPaper(b) });
+  items.sort((p, q) => q.z - p.z).forEach(it => it.draw());
   drawThrower();
-  // the aim guide while a finger is down
-  if (swipe && swipe.pts.length > 1) {
-    const a = swipe.pts[0], z = swipe.pts[swipe.pts.length - 1];
-    ctx.strokeStyle = "rgba(255,197,61,0.8)"; ctx.lineWidth = 4; ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(z.x, z.y); ctx.stroke();
-  }
 }
 
 // ---- loop ----
@@ -595,7 +662,6 @@ function frame(now) {
   ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
   if (T.on) {
     T.louver = louverAngle(clock);
-    stepWind(dt);
     // a few small physics steps per frame keep fast throws from tunnelling through the rim
     for (let i = 0; i < 4; i++) stepBall(dt / 4);
     drawShoot(clock);
