@@ -384,8 +384,9 @@ function addSprite(key, img, nom, url) {
 function loadImage(src) {
   return new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
 }
-async function loadSprite(id, dir = "chars/") {
-  const im = await loadImage(dir + id + ".webp");
+// `v` busts the browser cache when a set of sprites has been redrawn under the same names
+async function loadSprite(id, dir = "chars/", v = "") {
+  const im = await loadImage(dir + id + ".webp" + (v ? "?v=" + v : ""));
   if (im) addSprite(id, im, im.naturalHeight, im.src);
 }
 async function loadCostumes() {
@@ -1597,7 +1598,7 @@ Promise.all([
   loadCostumes(),
   loadDecor(),
   ...FREE_IDS.map(id => loadSprite(id).then(bump)),
-  ...JAPAN_IDS.map(id => loadSprite(id, "chars/japan/").then(bump))
+  ...JAPAN_IDS.map(id => loadSprite(id, "chars/japan/", "20261022").then(bump))
 ]).then(() => {
   prepPlates();
   objects = populate().list;
