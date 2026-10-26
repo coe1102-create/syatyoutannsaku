@@ -144,6 +144,8 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 .card .nm { font-weight: 800; font-size: 18px; }
 .card .loc { font-size: 12px; opacity: .7; font-variant-numeric: tabular-nums; }
 .card .pts { font-family: var(--display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.card .eyebrow-ready { font-family: var(--display); font-size: 26px; line-height: 1.1; color: var(--miss); }
+.card .rule { font-size: 12px; line-height: 1.5; margin-top: 4px; padding: 6px 10px; border-radius: 8px; background: #0000000d; }
 .primary {
   background: var(--gold); border-radius: 30px; height: 56px; font-size: 18px; box-shadow: 0 5px 0 #0007; width: 100%;
 }
@@ -202,7 +204,7 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
       <div class="loading" id="loading">社長を集めています…</div>
       <div class="start-wrap" id="levels" hidden>
         <button class="primary" id="startJapan" type="button">ノーマル（日本列島）</button>
-        <button class="secondary" id="startGlobe" type="button">地球儀版</button>
+        <button class="secondary" id="startGlobe" type="button">ハード（全世界版）</button>
       </div>
       <div class="best" id="best"></div>
     </div>
@@ -218,6 +220,21 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
         <div class="pts" id="fPts"></div>
       </div>
       <button class="primary" id="nextBtn" type="button">つぎの社長へ</button>
+    </div>
+  </div>
+
+  <!-- before the first 社長: who to look for, and a start button (the clock waits for it) -->
+  <div class="overlay" id="readyScreen" hidden>
+    <div class="panel">
+      <div class="card">
+        <div class="eyebrow-ready">この社長を探せ！</div>
+        <img id="rdImg" alt="">
+        <div class="nm" id="rdName"></div>
+        <div class="loc" id="rdSub"></div>
+        <div class="rule" id="rdRule"></div>
+      </div>
+      <button class="primary" id="readyBtn" type="button">スタート！</button>
+      <button class="ghost" id="readyBack" type="button">タイトルへ</button>
     </div>
   </div>
 
@@ -342,7 +359,7 @@ let land = null, landPoints = [];
 let objects = [];      // everything standing on the globe: 社長 and decorations
 let decorFixed = [];   // landmarks (same every round)
 const view = { lon: 135, lat: 20, zoom: 1 };
-let mode = "title";  // title | play | found | result
+let mode = "title";  // title | ready (first 社長 shown, clock not started) | play | found | result
 let round = 0, elapsed = 0, splitStart = 0, misses = 0, targetId = null, targetP = null;
 let targets = [], targetPos = {}, history = [];
 let hintUsed = false;
@@ -840,7 +857,7 @@ const bestKey = m => m === "japan" ? "syatyou-best-time-japan" : "syatyou-best-t
 function readBest(m = gameMode) { try { return +localStorage.getItem(bestKey(m)) || 0; } catch (e) { return 0; } }
 function writeBest(v) { try { localStorage.setItem(bestKey(gameMode), String(v)); } catch (e) {} }
 function showBest() {
-  const parts = [["日本列島", readBest("japan")], ["地球儀", readBest("globe")]].filter(([, b]) => b).map(([n, b]) => `${n} ${fmtTime(b)}`);
+  const parts = [["ノーマル", readBest("japan")], ["ハード", readBest("globe")]].filter(([, b]) => b).map(([n, b]) => `${n} ${fmtTime(b)}`);
   $("best").textContent = parts.length ? "ベストタイム：" + parts.join(" / ") : "";
 }
 function fmtTime(s, tenths = true) {
@@ -926,9 +943,27 @@ function nextRound() {
     if (round > 1) flyTo(view.lon, view.lat, 1, 700);  // same world, just zoom back out
   }
   $("foundScreen").hidden = true;
-  $("hud").hidden = false; $("tools").hidden = false;
-  mode = "play"; dirty = true; updateTimer();
+  $("hud").hidden = false;
+  dirty = true; updateTimer();
+  if (round === 1) {
+    // the first 社長 is introduced first; the clock starts with the start button
+    mode = "ready";
+    $("rdImg").src = sprites[targetId].url;
+    $("rdName").textContent = $("tName").textContent;
+    $("rdSub").textContent = $("tSub").textContent;
+    $("rdRule").textContent = `${ROUNDS}人見つけるまでのタイムを競います。まちがえると +${MISS_PENALTY}秒、ヒントは +${Math.round(HINT_COST / 60)}分。`;
+    $("tools").hidden = true; $("readyScreen").hidden = false;
+    return;
+  }
+  $("tools").hidden = false;
+  mode = "play";
 }
+$("readyBtn").addEventListener("click", () => {
+  if (mode !== "ready") return;
+  $("readyScreen").hidden = true; $("tools").hidden = false;
+  mode = "play"; dirty = true;
+});
+$("readyBack").addEventListener("click", () => { $("readyScreen").hidden = true; goTitle(); });
 
 function updateTimer() {
   $("timer").textContent = fmtTime(elapsed, false);
@@ -1017,7 +1052,7 @@ function goTitle() {
   mode = "title";
   gameMode = "globe";  // the title screen always shows the spinning globe
   jtween = null;
-  $("resultScreen").hidden = true; $("foundScreen").hidden = true; $("hud").hidden = true; $("tools").hidden = true;
+  $("resultScreen").hidden = true; $("foundScreen").hidden = true; $("readyScreen").hidden = true; $("hud").hidden = true; $("tools").hidden = true;
   resetGeo();
   objects = populate().list; targetP = null; flash = null;
   flyTo(view.lon, 18, 1, 800);
@@ -1598,7 +1633,7 @@ Promise.all([
   loadCostumes(),
   loadDecor(),
   ...FREE_IDS.map(id => loadSprite(id).then(bump)),
-  ...JAPAN_IDS.map(id => loadSprite(id, "chars/japan/", "20261022").then(bump))
+  ...JAPAN_IDS.map(id => loadSprite(id, "chars/japan/", "20261026").then(bump))
 ]).then(() => {
   prepPlates();
   objects = populate().list;

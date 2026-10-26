@@ -58,9 +58,9 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   background: #2a1a10ee; color: #fff; font-size: 12px; border: 1.5px solid #d6a656; border-left: 0; border-radius: 0 15px 15px 0;
   text-decoration: none;
 }
-#home.art .menu { position: absolute; left: 16px; right: 16px; top: 390px; margin: 0; gap: 10px; }
+#home.art .menu { position: absolute; left: 16px; right: 16px; top: 408px; margin: 0; gap: 14px; }
 #home.art .menu button {
-  height: 66px; border-radius: 16px; background: linear-gradient(#fffaf0, #f4e6cb); border: 2px solid #d9b46a;
+  height: 78px; border-radius: 16px; background: linear-gradient(#fffaf0, #f4e6cb); border: 2px solid #d9b46a;
   box-shadow: 0 5px 0 #0009, 0 0 0 1px #00000018; padding: 0 14px; font-size: 19px; position: relative;
 }
 #home.art .menu button::after { content: "›"; position: absolute; right: 16px; top: 50%; transform: translateY(-54%); font-size: 30px; font-weight: 900; color: #7a5a2e; }
@@ -85,52 +85,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
   color: #fff; text-shadow: 0 3px 0 #0008, 0 0 12px #0006; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; white-space: nowrap;
 }
 #callout.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-
-/* ---- AI secretary ---- */
-.ai-bubble {
-  position: absolute; left: 12px; right: 12px; top: 84px; box-sizing: border-box; padding: 7px 11px 7px 34px; border-radius: 12px;
-  background: #fff; font-size: 12.5px; font-weight: 700; line-height: 1.4; box-shadow: 0 3px 0 #0004; min-height: 38px;
-}
-.ai-bubble::before { content: "🤖"; position: absolute; left: 9px; top: 7px; font-size: 16px; }
-.ai-bubble.good { background: #e3f6e9; }
-.ai-bubble.bad { background: #fde4e1; }
-.ai-bubble small { display: block; font-weight: 600; opacity: .75; margin-top: 1px; }
-.ai-card {
-  position: absolute; left: 16px; right: 16px; top: 444px; height: 122px; box-sizing: border-box; padding: 10px 14px 12px;
-  background: var(--paper); border-radius: 14px; box-shadow: 0 6px 0 #0006, 0 0 0 1px #0001 inset; touch-action: none;
-  display: flex; flex-direction: column; cursor: grab; will-change: transform; overflow: hidden;
-}
-.ai-card .timer { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: #0001; }
-.ai-card .timer i { display: block; height: 100%; width: 100%; background: var(--gold); }
-.ai-card .timer.low i { background: var(--red); }
-.ai-card.fly { transition: transform .28s ease-in, opacity .28s; }
-.ai-card.snap { transition: transform .2s; }
-.ai-card .kind { align-self: flex-start; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 10px; background: var(--navy); color: #fff; }
-.ai-card h3 { margin: 6px 0 3px; font-size: 16px; line-height: 1.3; font-weight: 900; }
-.ai-card p { margin: 0; font-size: 12.5px; line-height: 1.45; opacity: .85; }
-.ai-card .from { position: absolute; right: 12px; top: 10px; font-size: 10.5px; font-weight: 700; opacity: .5; }
-.ai-card .stamp {
-  position: absolute; top: 34px; padding: 4px 12px; font-size: 22px; font-weight: 900; border: 4px solid; border-radius: 8px; opacity: 0; pointer-events: none;
-}
-.ai-card .stamp.ok { left: 14px; color: var(--green); transform: rotate(-14deg); }
-.ai-card .stamp.ng { right: 14px; color: var(--red); transform: rotate(14deg); }
-.ai-btns { position: absolute; left: 16px; right: 16px; bottom: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.ai-btns button { height: 50px; border-radius: 25px; font-size: 18px; box-shadow: 0 5px 0 #0007; }
-.ai-btns button:active { transform: translateY(4px); box-shadow: 0 1px 0 #0007; }
-.ai-btns .ng { background: #f8cfca; color: #8a1c14; }
-.ai-btns .ok { background: #c9eed5; color: #145c32; }
-.hurry b#aTime { color: #ff6b5e; }
-
-/* the AI secretary's result: a compact card low down, no dimming, so the office above stays in view */
-.sheet.peek { background: none; align-items: flex-end; padding: 0 12px 10px; }
-.sheet.peek .card { padding: 10px 14px 8px; box-shadow: 0 6px 0 #0007, 0 0 0 2px #0002; }
-.sheet.peek h2 { display: none; }
-.sheet.peek .big { font-size: 30px; margin: 2px 0; }
-.sheet.peek .rows { margin: 4px 0 6px; font-size: 13px; }
-.sheet.peek .fx { margin: 0 0 8px; max-height: 58px; overflow-y: auto; font-size: 12px; }
-.sheet.peek .primary { height: 44px; font-size: 16px; }
-.sheet.peek .ghost { height: 32px; margin-top: 2px; font-size: 13px; }
-#backToResult { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); height: 46px; padding: 0 22px; font-size: 15px; }
 
 /* ---- overlays (tutorial, result) ---- */
 .sheet { position: absolute; inset: 0; background: #0009; display: flex; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
@@ -161,7 +115,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
     <div class="menu">
       <button type="button" id="goTrash"><span class="ic">🗑️</span><span>ゴミ箱シュート<span class="sub">紙くずをスワイプで投げ入れろ</span></span></button>
       <button type="button" id="goChair"><span class="ic">🪑</span><span>椅子スライド<span class="sub">椅子に乗って社長室をめぐれ</span></span></button>
-      <button type="button" id="goAI"><span class="ic">🤖</span><span>AI秘書<span class="sub">AIの提案をさばけ</span></span></button>
     </div>
   </section>
 
@@ -208,37 +161,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
     </div>
   </section>
 
-  <!-- AI secretary -->
-  <section id="aiHud" hidden>
-    <div class="hudbar">
-      <div class="score">
-        <span>残り</span><b id="aTime">60秒</b>
-        <span>得点</span><b id="aPts">0</b>
-        <span>コンボ</span><b id="aCombo">0</b>
-      </div>
-      <div class="hud-right">
-        <button type="button" class="pill small" id="aHelp">あそびかた</button>
-        <button type="button" class="pill small" id="aQuit">やめる</button>
-      </div>
-    </div>
-    <div class="ai-bubble" id="aSay">社長、本日の書類です。</div>
-    <div class="ai-card" id="aCard">
-      <div class="kind" id="aKind">提案</div>
-      <h3 id="aTitle"></h3>
-      <p id="aDetail"></p>
-      <div class="from">AI秘書より 🤖</div>
-      <div class="stamp ok">採用</div>
-      <div class="stamp ng">却下</div>
-      <div class="timer" id="aTimer"><i></i></div>
-    </div>
-    <div class="ai-btns">
-      <button type="button" class="ng" id="aNo">← 却下</button>
-      <button type="button" class="ok" id="aYes">採用 →</button>
-    </div>
-  </section>
-
   <div id="callout"></div>
-  <button type="button" class="pill" id="backToResult" hidden>結果にもどる</button>
+  
 
   <section class="sheet" id="chairTut" hidden>
     <div class="card">
@@ -253,18 +177,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
     </div>
   </section>
 
-  <section class="sheet" id="aiTut" hidden>
-    <div class="card">
-      <h2>AI秘書</h2>
-      <ol>
-        <li>AI秘書が提案や書類を次々に持ってきます。カードを<b>右にスワイプで採用</b>、<b>左にスワイプで却下</b>（下のボタンでもOK）。</li>
-        <li>採用したことは、<b>社長室で本当に起きます</b>。AIの勘違い（ハルシネーション）を通すと部屋がおかしなことに。まともな提案を却下してもトラブルが…</li>
-        <li>返事が遅いと、秘書が<b>勝手に採用</b>します（カード下のバー）。<b>60秒</b>で正しくさばいて、社長室を守ろう。</li>
-      </ol>
-      <button type="button" class="primary" id="aTutOk">はじめる</button>
-    </div>
-  </section>
-
   <section class="sheet" id="result" hidden>
     <div class="card">
       <h2>結果</h2>
@@ -274,7 +186,6 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
         <span>ベスト</span><b id="rBest">-</b>
       </div>
       <p class="fx" id="rFx" hidden></p>
-      <button type="button" class="ghost" id="peekBtn" hidden>👀 社長室をながめる</button>
       <button type="button" class="primary" id="again">もう一度</button>
       <button type="button" class="ghost" id="toOffice">社長室にもどる</button>
     </div>
@@ -373,7 +284,7 @@ const AC = { y0: 2.02, y1: 2.34, hw: 0.52 };             // on the back wall, to
 // things the paper can run into (and, secretly, knock about)
 const ACBOX = { x0: -AC.hw, x1: AC.hw, y0: AC.y0, y1: AC.y1, z0: ROOM.d - 0.2, z1: ROOM.d };
 const SHELF = { x0: 1.08, x1: 1.5, y0: 0, y1: 0.86, z0: ROOM.d - 0.22, z1: ROOM.d };    // low bookshelf in the back-right corner, under the frame
-const WINDOW = { x0: -1.32, x1: -0.62, y0: 1.05, y1: 1.95 };                            // on the back wall
+const WINDOW = { x0: -1.3, x1: -0.34, y0: 1.3, y1: 1.81 };                            // on the back wall (the view is cropped from the title art)
 const FRAME = { x0: 0.66, x1: 1.3, y0: 1.36, y1: 1.78 };                                // the framed 社長 calligraphy
 const CLOCK = { x: 1.02, y: 2.15, r: 0.15 };
 const MUG = { x: 0.52, z: 0.2, r: 0.045, h: 0.1 };                                      // on the desk
@@ -435,18 +346,11 @@ $("acBtn").addEventListener("click", () => { setAC(!T.ac); callout(T.ac ? "エ�
 $("quitBtn").addEventListener("click", toOffice);
 // the result card is shared; "もう一度" replays whichever game just ended
 let lastGame = "trash";
-$("again").addEventListener("click", () => ({ trash: startTrash, chair: startChair, ai: startAI })[lastGame]());
+$("again").addEventListener("click", () => (lastGame === "chair" ? startChair : startTrash)());
 $("toOffice").addEventListener("click", toOffice);
-// the AI secretary's result sits low and undimmed, with a way to set it aside and look round the office
-function resultMode(peek) {
-  $("result").classList.toggle("peek", peek);
-  $("peekBtn").hidden = !peek; $("backToResult").hidden = true;
-}
-$("peekBtn").addEventListener("click", () => { $("result").hidden = true; $("backToResult").hidden = false; });
-$("backToResult").addEventListener("click", () => { $("backToResult").hidden = true; $("result").hidden = false; });
 function toOffice() {
-  T.on = false; C.on = false; A.on = false;
-  ["trashHud", "chairHud", "aiHud", "result", "tutorial", "chairTut", "aiTut", "backToResult"].forEach(id => { $(id).hidden = true; });
+  T.on = false; C.on = false;
+  ["trashHud", "chairHud", "result", "tutorial", "chairTut"].forEach(id => { $(id).hidden = true; });
   $("callout").classList.remove("show");
   $("home").hidden = false; dirty = true;
 }
@@ -685,13 +589,16 @@ function finishShot(inside) {
     callout(b.hitWall ? "バンクショット！" : "ナイスシュート！");
     if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
   } else {
-    // a miss stays where it came to rest for the rest of the game
-    T.litter.push({ x: b.x, y: b.y, z: b.z, rot: b.rot, plant: b.caught });
+    // a miss stays where it came to rest for the rest of the game: it becomes litter, and the
+    // ball itself is retired at once (left in play, it would bump into its own litter and be
+    // drawn a second time beside it)
+    T.litter.push({ x: b.x, y: b.y, z: b.z, rot: b.rot, plant: b.caught, seed: b.ph });
+    T.ball = null;
     if (b.restOn === "shelf") happen("本棚の上に紙くず", "本棚に乗っちゃった…");
     else if (b.restOn === "ac") happen("エアコンの上に紙くず", "エアコンの上に乗っちゃった…");
     else if (b.restOn === "plant") happen("植木に紙くず", "植木に引っかかった…");
     else if (!b.quiet) {
-      const lines = T.ac ? ["おしい！", "ドンマイ", "風が…", "もう一球！"] : ["おしい！", "ドンマイ", "もう一球！"];
+      const lines = T.ac ? ["おしい！", "残念…", "風が…", "もう一球！"] : ["おしい！", "残念…", "もう一球！"];
       callout(lines[Math.floor(Math.random() * lines.length)]);
     }
   }
@@ -708,7 +615,6 @@ function showResult() {
   $("rL1").textContent = "入った数";
   $("rIn").textContent = `${T.made} / ${THROWS}`;
   $("rBest").textContent = isBest ? `${T.made}個（更新！）` : `${best}個`;
-  resultMode(false);
   // the mischief of this game, if any
   const fx = T.fx.happened;
   $("rFx").hidden = !fx.length;
@@ -724,82 +630,209 @@ function poly(pts, fill, stroke) {
   if (fill) { ctx.fillStyle = fill; ctx.fill(); }
   if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
 }
+// an evening office in dark wood (the look of the office title art): panelled walls with gold
+// trim, a dark ceiling with downlights, a polished floor, the city at dusk through the window
+const LIGHTS = [-1.0, 1.0];   // downlight x positions along the ceiling, near the back wall
+function lineW(a, b) { const p = proj(...a), q = proj(...b); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
+function gradPoly(pts, stops, from, to) {
+  // a polygon filled with a linear gradient between two world points
+  const [ax, ay] = proj(...from), [bx, by] = proj(...to), g = ctx.createLinearGradient(ax, ay, bx, by);
+  stops.forEach(([o, c]) => g.addColorStop(o, c));
+  poly(pts, g);
+}
 function drawRoom3D() {
   const { w, h, d } = ROOM, n = EYE.z + 0.06;   // the near edge sits just in front of the camera
-  ctx.fillStyle = "#3b2a1e"; ctx.fillRect(0, 0, LW, LH);
-  poly([[-w, h, n], [w, h, n], [w, h, d], [-w, h, d]], "#efe3cc");                    // ceiling
-  poly([[-w, 0, n], [-w, h, n], [-w, h, d], [-w, 0, d]], "#e6d2ae");                  // left wall
-  poly([[w, 0, n], [w, h, n], [w, h, d], [w, 0, d]], "#e2cda8");                      // right wall
-  poly([[-w, 0, d], [w, 0, d], [w, h, d], [-w, h, d]], "#f4e8d2");                    // back wall
-  // wainscot along the three walls
-  const ws = 0.85;
-  poly([[-w, 0, n], [-w, ws, n], [-w, ws, d], [-w, 0, d]], "#c39a6b");
-  poly([[w, 0, n], [w, ws, n], [w, ws, d], [w, 0, d]], "#bd9464");
-  poly([[-w, 0, d], [w, 0, d], [w, ws, d], [-w, ws, d]], "#c9a273");
-  ctx.lineWidth = 2; ctx.strokeStyle = "#a97f52";
-  [[[-w, ws, n], [-w, ws, d]], [[w, ws, n], [w, ws, d]], [[-w, ws, d], [w, ws, d]]].forEach(([a, b]) => { const p = proj(...a), q = proj(...b); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); });
-  // wooden floor, boards running away from you
-  poly([[-w, 0, n], [w, 0, n], [w, 0, d], [-w, 0, d]], "#a8744a");
-  ctx.strokeStyle = "#8a5d39"; ctx.lineWidth = 1.5;
-  for (let x = -w + 0.3; x < w; x += 0.3) { const p = proj(x, 0, n), q = proj(x, 0, d); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
-  for (let z = 0.6; z < d; z += 0.6) { const p = proj(-w, 0, z), q = proj(w, 0, z); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }
-  // corner shading where the walls meet
-  ctx.strokeStyle = "#0000001c"; ctx.lineWidth = 2;
-  [[-w, 0, d, -w, h, d], [w, 0, d, w, h, d], [-w, h, d, w, h, d]].forEach(([a, b, c, e, f, g]) => { const p = proj(a, b, c), q = proj(e, f, g); ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); });
-  // on the back wall: a window on the left, the calligraphy on the right
-  const [wx0, wy0] = proj(WINDOW.x0, WINDOW.y1, d), [wx1, wy1] = proj(WINDOW.x1, WINDOW.y0, d);
-  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(wx0 - 4, wy0 - 4, wx1 - wx0 + 8, wy1 - wy0 + 8);
-  let g = ctx.createLinearGradient(0, wy0, 0, wy1); g.addColorStop(0, "#4a6fb5"); g.addColorStop(1, "#f6b26b");
-  ctx.fillStyle = g; ctx.fillRect(wx0, wy0, wx1 - wx0, wy1 - wy0);
-  ctx.fillStyle = "#3a3f5c";
-  const ww = wx1 - wx0, wh = wy1 - wy0;
-  [[0, .55, .14, .45], [.16, .4, .16, .6], [.34, .62, .12, .38], [.48, .3, .2, .7], [.7, .5, .14, .5], [.86, .6, .14, .4]].forEach(([a, b, c, e]) => ctx.fillRect(wx0 + a * ww, wy0 + b * wh, c * ww, e * wh));
-  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(wx0 + ww / 2 - 1.5, wy0, 3, wh);
+  const ws = 0.85;                              // top of the wainscot
+  ctx.fillStyle = "#1c120c"; ctx.fillRect(0, 0, LW, LH);
+  // ceiling: dark, with a line of coffers
+  gradPoly([[-w, h, n], [w, h, n], [w, h, d], [-w, h, d]], [[0, "#8a7462"], [1, "#a8907a"]], [0, h, n], [0, h, d]);
+  ctx.strokeStyle = "#00000040"; ctx.lineWidth = 1.5;
+  for (let z = 0.4; z < d; z += 0.8) lineW([-w, h, z], [w, h, z]);
+  [-0.55, 0.55].forEach(x => lineW([x, h, n], [x, h, d]));
+  // side walls: wood, lighter toward the back where the lamps are
+  gradPoly([[-w, 0, n], [-w, h, n], [-w, h, d], [-w, 0, d]], [[0, "#8a6446"], [1, "#c09068"]], [-w, 1.4, n], [-w, 1.4, d]);
+  gradPoly([[w, 0, n], [w, h, n], [w, h, d], [w, 0, d]], [[0, "#846044"], [1, "#b88a62"]], [w, 1.4, n], [w, 1.4, d]);
+  // back wall: warm wood, brightest high up under the lights
+  gradPoly([[-w, 0, d], [w, 0, d], [w, h, d], [-w, h, d]], [[0, "#a07450"], [0.55, "#c89a6c"], [1, "#a87e58"]], [0, h, d], [0, 0, d]);
+  // raised panels on the back wall above the wainscot
+  ctx.lineWidth = 1.2;
+  for (let x = -w + 0.05; x < w - 0.1; x += 0.52) {
+    const x0 = x + 0.04, x1 = Math.min(w - 0.04, x + 0.48);
+    poly([[x0, ws + 0.12, d], [x1, ws + 0.12, d], [x1, h - 0.18, d], [x0, h - 0.18, d]], "#ffffff08", "#00000038");
+    ctx.strokeStyle = "#ffd9a01c"; lineW([x0 + 0.01, h - 0.19, d], [x1 - 0.01, h - 0.19, d]);
+  }
+  // panel seams on the side walls
+  ctx.strokeStyle = "#00000045"; ctx.lineWidth = 1.2;
+  for (let z = 0.0; z < d; z += 0.55) { lineW([-w, ws, z], [-w, h, z]); lineW([w, ws, z], [w, h, z]); }
+  // wainscot: darker wood, capped with a gold rail
+  gradPoly([[-w, 0, n], [-w, ws, n], [-w, ws, d], [-w, 0, d]], [[0, "#5e3e28"], [1, "#8e6440"]], [-w, 0.4, n], [-w, 0.4, d]);
+  gradPoly([[w, 0, n], [w, ws, n], [w, ws, d], [w, 0, d]], [[0, "#5a3c26"], [1, "#885e3c"]], [w, 0.4, n], [w, 0.4, d]);
+  gradPoly([[-w, 0, d], [w, 0, d], [w, ws, d], [-w, ws, d]], [[0, "#6e4a30"], [1, "#9a6e48"]], [0, 0, d], [0, ws, d]);
+  ctx.strokeStyle = "#0000004a"; ctx.lineWidth = 1;
+  for (let x = -w + 0.26; x < w; x += 0.52) lineW([x, 0.06, d], [x, ws - 0.06, d]);
+  ctx.strokeStyle = "#c9a050"; ctx.lineWidth = 2.2;
+  [[[-w, ws, n], [-w, ws, d]], [[w, ws, n], [w, ws, d]], [[-w, ws, d], [w, ws, d]]].forEach(([a, b]) => lineW(a, b));
+  ctx.strokeStyle = "#c9a05088"; ctx.lineWidth = 1.5;
+  [[[-w, h - 0.06, n], [-w, h - 0.06, d]], [[w, h - 0.06, n], [w, h - 0.06, d]], [[-w, h - 0.06, d], [w, h - 0.06, d]]].forEach(([a, b]) => lineW(a, b));
+  // polished dark floor: boards running away from you, with a sheen toward the back
+  gradPoly([[-w, 0, n], [w, 0, n], [w, 0, d], [-w, 0, d]], [[0, "#6a4628"], [0.6, "#9a6c44"], [1, "#b88a5c"]], [0, 0, n], [0, 0, d]);
+  ctx.strokeStyle = "#00000050"; ctx.lineWidth = 1.2;
+  for (let x = -w + 0.22; x < w; x += 0.22) lineW([x, 0, n], [x, 0, d]);
+  for (let z = 0.3, k = 0; z < d; z += 0.45, k++) for (let x = -w + (k % 2) * 0.22; x < w; x += 0.44) lineW([x, 0, z], [x + 0.22, 0, z]);
+  // the lamps and the window shine back off the floor
+  const sheen = (x, col) => {
+    const [fx, fy] = proj(x, 0, d - 0.3), [, ny] = proj(x, 0, 1.2), g = ctx.createLinearGradient(0, fy, 0, ny);
+    g.addColorStop(0, col); g.addColorStop(1, "#0000");
+    const [lx] = proj(x - 0.22, 0, d - 0.3), [rx] = proj(x + 0.22, 0, d - 0.3), [lx2] = proj(x - 0.32, 0, 1.2), [rx2] = proj(x + 0.32, 0, 1.2);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(lx, fy); ctx.lineTo(rx, fy); ctx.lineTo(rx2, ny); ctx.lineTo(lx2, ny); ctx.closePath(); ctx.fill();
+  };
+  LIGHTS.forEach(x => sheen(x, "#ffcf8a30"));
+  sheen((WINDOW.x0 + WINDOW.x1) / 2, "#fff6dc40");
+  // corner shadows where the walls meet
+  ctx.strokeStyle = "#0000005a"; ctx.lineWidth = 3;
+  [[-w, 0, d, -w, h, d], [w, 0, d, w, h, d], [-w, h, d, w, h, d], [-w, 0, n, -w, 0, d], [w, 0, n, w, 0, d]].forEach(([a, b, c, e, f, g]) => lineW([a, b, c], [e, f, g]));
+  // the window: the city at dusk (from the office title art) in a dark frame with a sill
+  const [wx0, wy0] = proj(WINDOW.x0, WINDOW.y1, d), [wx1, wy1] = proj(WINDOW.x1, WINDOW.y0, d), ww = wx1 - wx0, wh = wy1 - wy0;
+  ctx.fillStyle = "#1a0f08"; ctx.fillRect(wx0 - 5, wy0 - 5, ww + 10, wh + 10);
+  drawDayView(wx0, wy0, ww, wh);
+  const glass = ctx.createLinearGradient(wx0, wy0, wx1, wy1);
+  glass.addColorStop(0, "#ffffff22"); glass.addColorStop(0.45, "#ffffff00"); glass.addColorStop(0.55, "#ffffff10"); glass.addColorStop(1, "#ffffff00");
+  ctx.fillStyle = glass; ctx.fillRect(wx0, wy0, ww, wh);
+  ctx.fillStyle = "#24160c"; ctx.fillRect(wx0 + ww * 0.5 - 2, wy0, 4, wh);
+  ctx.strokeStyle = "#c9a050"; ctx.lineWidth = 1.5; ctx.strokeRect(wx0 - 5, wy0 - 5, ww + 10, wh + 10);
+  ctx.fillStyle = "#3a2414"; ctx.fillRect(wx0 - 9, wy1 + 4, ww + 18, 5);
+  ctx.fillStyle = "#c9a05099"; ctx.fillRect(wx0 - 9, wy1 + 4, ww + 18, 1.2);
   drawFrame();
+}
+// a weekday-daytime city through the window: blue sky and clouds, glass office towers catching
+// the sun, a hazy skyline behind
+function drawDayView(x, y, w, h) {
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  const sky = ctx.createLinearGradient(0, y, 0, y + h);
+  sky.addColorStop(0, "#5aa8ec"); sky.addColorStop(0.65, "#a8d6fb"); sky.addColorStop(1, "#e4f3ff");
+  ctx.fillStyle = sky; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = "#ffffffd8";
+  [[0.18, 0.22, 0.13], [0.3, 0.18, 0.09], [0.72, 0.3, 0.12], [0.84, 0.26, 0.08]].forEach(([u, v, r]) => {
+    ctx.beginPath(); ctx.ellipse(x + w * u, y + h * v, w * r, h * r * 0.9, 0, 0, Math.PI * 2); ctx.fill();
+  });
+  // far skyline in the haze
+  ctx.fillStyle = "#a9c2d8";
+  [[0, 0.55, 0.1], [0.09, 0.45, 0.08], [0.2, 0.6, 0.12], [0.36, 0.5, 0.07], [0.5, 0.58, 0.1], [0.66, 0.48, 0.09], [0.8, 0.56, 0.1], [0.92, 0.5, 0.08]]
+    .forEach(([u, v, bw]) => ctx.fillRect(x + w * u, y + h * v, w * bw, h));
+  // near towers: blue glass with a sunlit side and a grid of panes
+  [[0.03, 0.3, 0.13, "#6f93b8"], [0.2, 0.42, 0.1, "#88a6c4"], [0.33, 0.2, 0.14, "#5f86ae"], [0.56, 0.36, 0.12, "#7c9cc0"], [0.72, 0.15, 0.15, "#5a80aa"], [0.9, 0.4, 0.1, "#86a4c2"]]
+    .forEach(([u, v, bw, c]) => {
+      const bx = x + w * u, by = y + h * v, bwp = w * bw;
+      const tg = ctx.createLinearGradient(bx, 0, bx + bwp, 0);
+      tg.addColorStop(0, "#ffffff"); tg.addColorStop(0.18, c); tg.addColorStop(1, "#3e5f84");
+      ctx.fillStyle = tg; ctx.fillRect(bx, by, bwp, h);
+      ctx.fillStyle = "#ffffff55";
+      for (let ry = by + 3; ry < y + h; ry += 4) ctx.fillRect(bx + 1, ry, bwp - 2, 0.8);
+      ctx.fillStyle = "#2a4a6a55";
+      for (let rx = bx + bwp / 4; rx < bx + bwp; rx += bwp / 4) ctx.fillRect(rx, by, 0.7, h);
+    });
+  ctx.restore();
+}
+// a patch of sunlight from the window lying across the floor, and a glow around the window
+function drawSun() {
+  const d = ROOM.d;
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  const fy = 0.002, z0 = d - 0.05, z1 = d - 1.5, sx = 0.35;
+  const p = [proj(WINDOW.x0, fy, z0), proj(WINDOW.x1, fy, z0), proj(WINDOW.x1 + sx, fy, z1), proj(WINDOW.x0 + sx, fy, z1)];
+  const g = ctx.createLinearGradient(0, p[0][1], 0, p[2][1]);
+  g.addColorStop(0, "rgba(255,246,220,0.30)"); g.addColorStop(1, "rgba(255,246,220,0)");
+  ctx.fillStyle = g; ctx.beginPath(); p.forEach(([px, py], i) => i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)); ctx.closePath(); ctx.fill();
+  const [wx0, wy0] = proj(WINDOW.x0, WINDOW.y1, d), [wx1, wy1] = proj(WINDOW.x1, WINDOW.y0, d);
+  const cx = (wx0 + wx1) / 2, cy = (wy0 + wy1) / 2, R = (wx1 - wx0) * 0.9;
+  const wg = ctx.createRadialGradient(cx, cy, R * 0.3, cx, cy, R);
+  wg.addColorStop(0, "rgba(255,250,235,0.16)"); wg.addColorStop(1, "rgba(255,250,235,0)");
+  ctx.fillStyle = wg; ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+  ctx.restore();
+}
+// warm downlights: a bright fitting in the ceiling and a cone of light washing the wall below
+function drawLamps() {
+  const { h, d } = ROOM;
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  for (const x of LIGHTS) {
+    const [cx, cy, s] = proj(x, h - 0.02, d - 0.35), [wx, wy] = proj(x, h - 0.1, d), [, wy2] = proj(x, 0.9, d);
+    // a soft scallop of light on the wall, fading out on every side (no hard edge)
+    const R = (wy2 - wy) * 0.55;
+    ctx.save(); ctx.translate(wx, wy + R * 0.15); ctx.scale(0.7, 1);
+    const g = ctx.createRadialGradient(0, 0, 2, 0, R * 0.25, R);
+    g.addColorStop(0, "rgba(255,236,200,0.22)"); g.addColorStop(0.45, "rgba(255,230,190,0.08)"); g.addColorStop(1, "rgba(255,180,110,0)");
+    ctx.fillStyle = g; ctx.fillRect(-R, -R * 0.2, R * 2, R * 1.4);
+    ctx.restore();
+    const f = ctx.createRadialGradient(cx, cy, 1, cx, cy, s * 0.22);
+    f.addColorStop(0, "rgba(255,248,225,1)"); f.addColorStop(0.3, "rgba(255,225,170,0.6)"); f.addColorStop(1, "rgba(255,200,130,0)");
+    ctx.fillStyle = f; ctx.beginPath(); ctx.arc(cx, cy, s * 0.22, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+// a last pass over the whole shot: warm the colours and darken the corners
+function drawGrade() {
+  ctx.save();
+  ctx.globalCompositeOperation = "soft-light"; ctx.fillStyle = "rgba(255,250,235,0.18)"; ctx.fillRect(0, 0, LW, LH);
+  ctx.globalCompositeOperation = "source-over";
+  const v = ctx.createRadialGradient(LW / 2, LH * 0.42, LH * 0.25, LW / 2, LH * 0.45, LH * 0.75);
+  v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(10,5,0,0.14)");
+  ctx.fillStyle = v; ctx.fillRect(0, 0, LW, LH);
+  ctx.restore();
 }
 // the framed 社長 calligraphy: on its nail, falling, or fallen and leaning against the wall
 const FRAME_DROP = Math.sqrt(2 * FRAME.y0 / 9.8);   // seconds to fall to the floor
 function drawFrame() {
   const d = ROOM.d, t = T.fx && T.fx.frame != null ? T.now - T.fx.frame : -1;
   const label = (x, y, size) => {
-    ctx.fillStyle = "#2a2118"; ctx.font = `900 ${Math.round(size)}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.fillStyle = "#1a120c"; ctx.font = `900 ${Math.round(size)}px "Yu Mincho", "YuMincho", "Hiragino Mincho ProN", "MS PMincho", serif`;
     ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("社長", x, y + 1);
+  };
+  // the framed calligraphy, centred at (cx, cy), w2 × h2 half-size in px: black lacquer frame,
+  // gold inner edge, cream paper, the characters and a small red seal
+  const framed = (cx, cy, w2, h2) => {
+    ctx.fillStyle = "#0006"; ctx.fillRect(cx - w2 - 2, cy - h2, w2 * 2 + 8, h2 * 2 + 8);
+    ctx.fillStyle = "#1e130c"; ctx.fillRect(cx - w2 - 5, cy - h2 - 5, w2 * 2 + 10, h2 * 2 + 10);
+    ctx.strokeStyle = "#c9a050"; ctx.lineWidth = 1.5; ctx.strokeRect(cx - w2 - 1, cy - h2 - 1, w2 * 2 + 2, h2 * 2 + 2);
+    const p = ctx.createLinearGradient(cx - w2, cy - h2, cx + w2, cy + h2);
+    p.addColorStop(0, "#fbf3e0"); p.addColorStop(1, "#e9dcc0");
+    ctx.fillStyle = p; ctx.fillRect(cx - w2, cy - h2, w2 * 2, h2 * 2);
+    label(cx - w2 * 0.06, cy, h2 * 1.2);
+    ctx.fillStyle = "#c8322a"; ctx.fillRect(cx + w2 * 0.7, cy + h2 * 0.42, h2 * 0.26, h2 * 0.26);
   };
   if (t < 0) {
     const [cx0, cy0] = proj(FRAME.x0, FRAME.y1, d), [cx1, cy1] = proj(FRAME.x1, FRAME.y0, d);
-    ctx.fillStyle = "#7a5230"; ctx.fillRect(cx0 - 3, cy0 - 3, cx1 - cx0 + 6, cy1 - cy0 + 6);
-    ctx.fillStyle = "#fffaf0"; ctx.fillRect(cx0, cy0, cx1 - cx0, cy1 - cy0);
-    label((cx0 + cx1) / 2, (cy0 + cy1) / 2, (cy1 - cy0) * 0.62);
+    framed((cx0 + cx1) / 2, (cy0 + cy1) / 2, (cx1 - cx0) / 2, (cy1 - cy0) / 2);
     return;
   }
   // where it hung: a paler patch of wall and the bare nail
   const [px0, py0] = proj(FRAME.x0, FRAME.y1, d), [px1, py1] = proj(FRAME.x1, FRAME.y0, d);
-  ctx.fillStyle = "#fbf3e3"; ctx.fillRect(px0 - 3, py0 - 3, px1 - px0 + 6, py1 - py0 + 6);
+  ctx.fillStyle = "#ffffff12"; ctx.fillRect(px0 - 5, py0 - 5, px1 - px0 + 10, py1 - py0 + 10);
   const [nx, ny] = proj((FRAME.x0 + FRAME.x1) / 2, FRAME.y1 + 0.04, d);
   ctx.fillStyle = "#6b6b6b"; ctx.beginPath(); ctx.arc(nx, ny, 2, 0, Math.PI * 2); ctx.fill();
   if (t < FRAME_DROP) {
     // dropping, tipping forward a little as it goes
     const drop = 4.9 * t * t, [cx0, cy0] = proj(FRAME.x0, FRAME.y1 - drop, d - 0.02), [cx1, cy1] = proj(FRAME.x1, FRAME.y0 - drop, d - 0.02);
     ctx.save(); ctx.translate((cx0 + cx1) / 2, (cy0 + cy1) / 2); ctx.rotate(t / FRAME_DROP * 0.25);
-    const w2 = (cx1 - cx0) / 2, h2 = (cy1 - cy0) / 2;
-    ctx.fillStyle = "#7a5230"; ctx.fillRect(-w2 - 3, -h2 - 3, w2 * 2 + 6, h2 * 2 + 6);
-    ctx.fillStyle = "#fffaf0"; ctx.fillRect(-w2, -h2, w2 * 2, h2 * 2);
-    label(0, 0, h2 * 1.24); ctx.restore();
+    framed(0, 0, (cx1 - cx0) / 2, (cy1 - cy0) / 2);
+    ctx.restore();
     return;
   }
   // on the floor, leaning back against the wall, slid left off the bookshelf
   const x0 = FRAME.x0 - 0.25, x1 = FRAME.x1 - 0.25, hgt = FRAME.y1 - FRAME.y0 - 0.02;
   const zb = d - 0.12, zt = d - 0.01, i = 0.035;
-  poly([[x0, 0, zb], [x1, 0, zb], [x1, hgt, zt], [x0, hgt, zt]], "#7a5230");
-  poly([[x0 + i, i, zb + 0.004], [x1 - i, i, zb + 0.004], [x1 - i, hgt - i, zt - 0.004], [x0 + i, hgt - i, zt - 0.004]], "#fffaf0");
+  poly([[x0, 0, zb], [x1, 0, zb], [x1, hgt, zt], [x0, hgt, zt]], "#1e130c", "#c9a050");
+  poly([[x0 + i, i, zb + 0.004], [x1 - i, i, zb + 0.004], [x1 - i, hgt - i, zt - 0.004], [x0 + i, hgt - i, zt - 0.004]], "#f3e8d0");
   const [lx, ly] = proj((x0 + x1) / 2, hgt / 2, (zb + zt) / 2), [, ty] = proj(0, hgt, zt), [, by] = proj(0, 0, zb);
   label(lx, ly, (by - ty) * 0.55);
 }
 function drawAC() {
   const d = ROOM.d - 0.01, [x0, y0] = proj(-AC.hw, AC.y1, d), [x1, y1] = proj(AC.hw, AC.y0, d);
-  ctx.fillStyle = "#0002"; ctx.fillRect(x0 + 2, y0 + 3, x1 - x0, y1 - y0);
-  ctx.fillStyle = "#fbfbf8"; ctx.strokeStyle = "#9aa3a8"; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.roundRect(x0, y0, x1 - x0, y1 - y0, 5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#0006"; ctx.beginPath(); ctx.roundRect(x0 + 2, y0 + 5, x1 - x0, y1 - y0, 6); ctx.fill();
+  const g = ctx.createLinearGradient(0, y0, 0, y1);
+  g.addColorStop(0, "#ffffff"); g.addColorStop(0.6, "#eceeea"); g.addColorStop(1, "#c9cdcc");
+  ctx.fillStyle = g; ctx.strokeStyle = "#8d9497"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.roundRect(x0, y0, x1 - x0, y1 - y0, 6); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = "#ffffff99"; ctx.fillRect(x0 + 6, y0 + 3, x1 - x0 - 12, 2);
+  ctx.strokeStyle = "#00000018"; ctx.beginPath(); ctx.moveTo(x0 + 4, y0 + (y1 - y0) * 0.55); ctx.lineTo(x1 - 4, y0 + (y1 - y0) * 0.55); ctx.stroke();
   ctx.fillStyle = T.ac ? "#3fd27a" : "#d9534f"; ctx.beginPath(); ctx.arc(x1 - 8, y0 + 6, 2.2, 0, Math.PI * 2); ctx.fill();
   // the louver blades at the outlet lean the way the air goes
   const oy = y1 - 5, a = T.louver;
@@ -846,12 +879,18 @@ function drawPlant(p) {
   };
   const b0 = p.y0 || 0, k = p.k || 1;   // standing on the floor or on furniture; k scales a small pot
   const top = ring(b0 + 0.32 * k, p.r), base = ring(b0, p.r * 0.75);
-  ctx.fillStyle = "#0002"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.3, base.ry * 1.4, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#b8643a"; ctx.strokeStyle = "#7a3f22"; ctx.lineWidth = 1.2;
+  ctx.fillStyle = "#0005"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.4, base.ry * 1.5, 0, 0, Math.PI * 2); ctx.fill();
+  // a dark glazed pot with a gold band, lit from the front-left
+  const pg = ctx.createLinearGradient(top.cx - top.rx, 0, top.cx + top.rx, 0);
+  pg.addColorStop(0, "#3a3430"); pg.addColorStop(0.3, "#6a625a"); pg.addColorStop(0.55, "#2a2420"); pg.addColorStop(1, "#141010");
+  ctx.fillStyle = pg; ctx.strokeStyle = "#0a0806"; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(top.cx - top.rx, top.cy); ctx.lineTo(base.cx - base.rx, base.cy);
   ctx.ellipse(base.cx, base.cy, base.rx, base.ry, 0, Math.PI, 0, true); ctx.lineTo(top.cx + top.rx, top.cy);
   ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI, false); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#5a3a22"; ctx.beginPath(); ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI * 2); ctx.fill();
+  const band = ring(b0 + 0.26 * k, p.r * 0.97);
+  ctx.strokeStyle = "#c9a050"; ctx.lineWidth = Math.max(1, band.rx * 0.08);
+  ctx.beginPath(); ctx.ellipse(band.cx, band.cy, band.rx, band.ry, 0, 0, Math.PI); ctx.stroke();
+  ctx.fillStyle = "#2a1a10"; ctx.beginPath(); ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI * 2); ctx.fill();
   const [, , s] = proj(p.x, b0 + 0.5, p.z);
   // leaves shake for a moment after paper flies into them
   const st = T.fx ? Math.max(0, T.now - T.fx.shake[PLANTS.indexOf(p)]) : 9;
@@ -862,40 +901,61 @@ function drawPlant(p) {
     ctx.strokeStyle = "#6b4a2b"; ctx.lineWidth = Math.max(1.5, s * 0.025);
     ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(ux + sway, uy); ctx.stroke();
     const leaves = [[0, 1], [-0.9, 0.86], [0.9, 0.82], [-0.6, 0.7], [0.65, 0.64], [-1.1, 0.58], [1.05, 0.55], [0, 0.78]];
-    for (const [dx, hy] of leaves) {
-      let [lx, ly] = proj(p.x, b0 + p.h * hy, p.z), len = s * 0.3 * k, ang = -Math.PI / 2 + dx * 0.9;
+    // big glossy leaves, darker underneath, with a light vein, lit from the lamps above
+    const more = [[-0.35, 0.92], [0.4, 0.9], [-1.3, 0.66], [1.25, 0.62], [-0.2, 0.6], [0.3, 0.72]];
+    for (const [dx, hy] of [...leaves, ...more].sort((a, b) => a[1] - b[1])) {
+      let [lx, ly] = proj(p.x, b0 + p.h * hy, p.z), len = s * 0.34 * k, ang = -Math.PI / 2 + dx * 0.9;
       lx += sway * hy;
-      ctx.fillStyle = hy > 0.75 ? "#4fae5c" : "#3f9a52";
-      ctx.beginPath(); ctx.ellipse(lx + Math.cos(ang) * len * 0.5, ly + Math.sin(ang) * len * 0.5, len * 0.5, len * 0.16, ang, 0, Math.PI * 2); ctx.fill();
+      const ex = lx + Math.cos(ang) * len * 0.5, ey = ly + Math.sin(ang) * len * 0.5;
+      const lg = ctx.createLinearGradient(lx, ly, lx + Math.cos(ang) * len, ly + Math.sin(ang) * len);
+      lg.addColorStop(0, "#1f5a2a"); lg.addColorStop(0.6, hy > 0.75 ? "#4fa356" : "#3c8a46"); lg.addColorStop(1, "#6cbf5e");
+      ctx.fillStyle = lg; ctx.beginPath(); ctx.ellipse(ex, ey, len * 0.5, len * 0.19, ang, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#cfe8a055"; ctx.lineWidth = 0.8;
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + Math.cos(ang) * len * 0.92, ly + Math.sin(ang) * len * 0.92); ctx.stroke();
     }
   } else {
     // a round bush
     let [bx, by] = proj(p.x, b0 + p.h * 0.72, p.z), r = s * 0.24 * k;
     bx += sway;
-    [[0, 0, 1], [-0.55, 0.25, 0.7], [0.55, 0.25, 0.7], [0, -0.45, 0.65]].forEach(([dx, dy, k], i) => {
-      ctx.fillStyle = i === 3 ? "#5cbb67" : "#3f9a52"; ctx.beginPath(); ctx.arc(bx + dx * r, by + dy * r, r * k, 0, Math.PI * 2); ctx.fill();
+    [[0, 0, 1], [-0.55, 0.25, 0.7], [0.55, 0.25, 0.7], [0, -0.45, 0.65]].forEach(([dx, dy, k]) => {
+      const cx = bx + dx * r, cy = by + dy * r, rr = r * k;
+      const bg = ctx.createRadialGradient(cx - rr * 0.35, cy - rr * 0.4, rr * 0.1, cx, cy, rr);
+      bg.addColorStop(0, "#7cc66a"); bg.addColorStop(0.7, "#3c8a46"); bg.addColorStop(1, "#1f5a2a");
+      ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI * 2); ctx.fill();
     });
-    ctx.fillStyle = "#f6d35a"; [[-0.3, -0.2], [0.35, 0.05], [0.05, 0.35]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(bx + dx * r, by + dy * r, r * 0.09, 0, Math.PI * 2); ctx.fill(); });
+    ctx.fillStyle = "#fff3b0"; [[-0.3, -0.2], [0.35, 0.05], [0.05, 0.35]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(bx + dx * r, by + dy * r, r * 0.08, 0, Math.PI * 2); ctx.fill(); });
   }
 }
 function drawWallDecor() {
   const { w, d } = ROOM;
   // a rug in the middle of the floor
-  poly([[-0.75, 0.001, 1.0], [0.75, 0.001, 1.0], [0.75, 0.001, 2.35], [-0.75, 0.001, 2.35]], "#9b2f35");
-  poly([[-0.66, 0.002, 1.1], [0.66, 0.002, 1.1], [0.66, 0.002, 2.25], [-0.66, 0.002, 2.25]], null, "#e9c46a");
-  // a low bookshelf in the back-right corner
+  // a rug in the middle of the floor: deep red, a double gold border, a medallion
+  gradPoly([[-0.75, 0.001, 1.0], [0.75, 0.001, 1.0], [0.75, 0.001, 2.35], [-0.75, 0.001, 2.35]], [[0, "#5e1418"], [1, "#8e2a2e"]], [0, 0, 1.0], [0, 0, 2.35]);
+  ctx.lineWidth = 1.6;
+  poly([[-0.68, 0.002, 1.07], [0.68, 0.002, 1.07], [0.68, 0.002, 2.28], [-0.68, 0.002, 2.28]], null, "#d9b05a");
+  ctx.lineWidth = 1;
+  poly([[-0.6, 0.002, 1.14], [0.6, 0.002, 1.14], [0.6, 0.002, 2.21], [-0.6, 0.002, 2.21]], null, "#d9b05a99");
+  poly([[0, 0.002, 1.35], [0.32, 0.002, 1.675], [0, 0.002, 2.0], [-0.32, 0.002, 1.675]], "#3a0c10aa", "#d9b05a88");
+  // a low bookshelf in the back-right corner, in the same dark wood
   const { x0, x1, z0: fz, y1: top } = SHELF;
-  poly([[x0, top, fz], [x1, top, fz], [x1, top, d], [x0, top, d]], "#8a5d39");    // top board
-  poly([[x0, 0, fz], [x1, 0, fz], [x1, top, fz], [x0, top, fz]], "#7a5230");      // front frame
-  const books = ["#d64545", "#2f6db5", "#f2c230", "#2f9e5b", "#7a3fa0", "#e07b39", "#3a8f8f"];
+  gradPoly([[x0, top, fz], [x1, top, fz], [x1, top, d], [x0, top, d]], [[0, "#6e4426"], [1, "#4a2c18"]], [x0, top, fz], [x0, top, d]);
+  gradPoly([[x0, 0, fz], [x1, 0, fz], [x1, top, fz], [x0, top, fz]], [[0, "#2a1810"], [1, "#4a2c18"]], [x0, 0, fz], [x0, top, fz]);
+  ctx.strokeStyle = "#c9a05099"; ctx.lineWidth = 1.2; lineW([x0, top, fz], [x1, top, fz]);
+  const books = ["#8e2a2e", "#24406e", "#b8892a", "#2a5e3a", "#5a2e6e", "#a0582a", "#2e5e5e"];
   const fallen = T.fx ? T.fx.books : [];
   for (let sh = 0; sh < 2; sh++) {
     const y0 = 0.06 + sh * 0.4, y1 = y0 + 0.34;
-    poly([[x0 + 0.04, y0, fz], [x1 - 0.04, y0, fz], [x1 - 0.04, y1, fz], [x0 + 0.04, y1, fz]], "#4a3020");
+    poly([[x0 + 0.04, y0, fz], [x1 - 0.04, y0, fz], [x1 - 0.04, y1, fz], [x0 + 0.04, y1, fz]], "#160d07");
     let x = x0 + 0.06, k = sh * 4;
     while (x < x1 - 0.1) {
       const bw = 0.045 + ((k * 37) % 5) * 0.01, bh = 0.24 + ((k * 13) % 4) * 0.025;
-      if (!fallen.some(f => f.k === k)) poly([[x, y0, fz], [x + bw, y0, fz], [x + bw, y0 + bh, fz], [x, y0 + bh, fz]], books[k % books.length]);
+      if (!fallen.some(f => f.k === k)) {
+        poly([[x, y0, fz], [x + bw, y0, fz], [x + bw, y0 + bh, fz], [x, y0 + bh, fz]], books[k % books.length]);
+        // a lit edge and two gold bands on each spine
+        poly([[x, y0, fz], [x + bw * 0.25, y0, fz], [x + bw * 0.25, y0 + bh, fz], [x, y0 + bh, fz]], "#ffffff22");
+        ctx.strokeStyle = "#d9b05aaa"; ctx.lineWidth = 0.8;
+        lineW([x, y0 + bh * 0.82, fz], [x + bw, y0 + bh * 0.82, fz]); lineW([x, y0 + bh * 0.2, fz], [x + bw, y0 + bh * 0.2, fz]);
+      }
       x += bw + 0.008; k++;
     }
   }
@@ -910,9 +970,16 @@ function drawWallDecor() {
   const cs = clockState();
   const [cx, cy, s] = proj(CLOCK.x, CLOCK.y, d - 0.005), r = s * CLOCK.r;
   ctx.save(); ctx.translate(cx, cy); ctx.rotate(cs.tilt);
-  ctx.fillStyle = "#fffaf0"; ctx.strokeStyle = "#5a3a22"; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#5a3a22"; ctx.fillRect(-1, -r + 3, 2, 4);   // 12 o'clock mark, so the tilt shows
+  ctx.fillStyle = "#0006"; ctx.beginPath(); ctx.arc(2, 3, r + 2, 0, Math.PI * 2); ctx.fill();
+  const rim = ctx.createLinearGradient(-r, -r, r, r);
+  rim.addColorStop(0, "#f3d58a"); rim.addColorStop(0.5, "#b8862e"); rim.addColorStop(1, "#7a5418");
+  ctx.fillStyle = rim; ctx.beginPath(); ctx.arc(0, 0, r + 2, 0, Math.PI * 2); ctx.fill();
+  const face = ctx.createRadialGradient(-r * 0.3, -r * 0.3, 1, 0, 0, r);
+  face.addColorStop(0, "#fffaf0"); face.addColorStop(1, "#e8dcc2");
+  ctx.fillStyle = face; ctx.beginPath(); ctx.arc(0, 0, r - 1.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#3a2a18";
+  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; ctx.fillRect(Math.sin(a) * r * 0.78 - 0.8, -Math.cos(a) * r * 0.78 - 0.8, i % 3 ? 1.6 : 2.4, i % 3 ? 1.6 : 2.4); }
+  ctx.fillStyle = "#8e2a2e"; ctx.fillRect(-1, -r + 3, 2, 4);   // 12 o'clock mark, so the tilt shows
   const now = new Date(), mins = now.getHours() * 60 + now.getMinutes() + cs.off;
   const hA = (mins / 60 % 12) / 12 * Math.PI * 2, mA = (mins % 60) / 60 * Math.PI * 2;
   ctx.strokeStyle = "#2a2118"; ctx.lineCap = "round";
@@ -930,19 +997,24 @@ function canRings() {
 }
 function drawCanInside() {
   const { rim } = canRings();
-  ctx.fillStyle = "#3e434a"; ctx.beginPath(); ctx.ellipse(rim.cx, rim.cy, rim.rx, rim.ry, 0, 0, Math.PI * 2); ctx.fill();
+  const ig = ctx.createLinearGradient(0, rim.cy - rim.ry, 0, rim.cy + rim.ry);
+  ig.addColorStop(0, "#15181b"); ig.addColorStop(1, "#3a4048");
+  ctx.fillStyle = ig; ctx.beginPath(); ctx.ellipse(rim.cx, rim.cy, rim.rx, rim.ry, 0, 0, Math.PI * 2); ctx.fill();
 }
 function drawCanBody() {
   const { rim, base } = canRings();
-  ctx.fillStyle = "#0003"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.15, base.ry * 1.2, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#6f7b86"; ctx.strokeStyle = "#3d454d"; ctx.lineWidth = 1.5;
+  ctx.fillStyle = "#0006"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.25, base.ry * 1.3, 0, 0, Math.PI * 2); ctx.fill();
+  // brushed steel, lit from the front-left
+  const sg = ctx.createLinearGradient(rim.cx - rim.rx, 0, rim.cx + rim.rx, 0);
+  sg.addColorStop(0, "#3a4048"); sg.addColorStop(0.28, "#c9d0d6"); sg.addColorStop(0.42, "#8a949c"); sg.addColorStop(0.75, "#4e565e"); sg.addColorStop(1, "#262b30");
+  ctx.fillStyle = sg; ctx.strokeStyle = "#1e2226"; ctx.lineWidth = 1.2;
   ctx.beginPath();
   ctx.moveTo(rim.cx - rim.rx, rim.cy); ctx.lineTo(base.cx - base.rx, base.cy);
   ctx.ellipse(base.cx, base.cy, base.rx, base.ry, 0, Math.PI, 0, true);
   ctx.lineTo(rim.cx + rim.rx, rim.cy);
   ctx.ellipse(rim.cx, rim.cy, rim.rx, rim.ry, 0, 0, Math.PI, false);
   ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle = "#5c6670"; ctx.lineWidth = 1;
+  ctx.strokeStyle = "#00000022"; ctx.lineWidth = 1;
   for (let i = 1; i < 6; i++) {
     const t = -1 + 2 * i / 6;
     ctx.beginPath(); ctx.moveTo(rim.cx + rim.rx * t, rim.cy + rim.ry * Math.sqrt(1 - t * t)); ctx.lineTo(base.cx + base.rx * t, base.cy + base.ry * Math.sqrt(1 - t * t)); ctx.stroke();
@@ -950,16 +1022,52 @@ function drawCanBody() {
   ctx.strokeStyle = "#d4dbe1"; ctx.lineWidth = Math.max(2, rim.rx * 0.08);
   ctx.beginPath(); ctx.ellipse(rim.cx, rim.cy, rim.rx, rim.ry, 0, 0, Math.PI * 2); ctx.stroke();
 }
+// a crumpled ball of notepaper: a lumpy outline (its own shape per ball), lit from the top-left,
+// creases with a highlight along each, faint ruled lines, a darker rim
 function drawPaper(b) {
-  const [sx, sy, s] = proj(b.x, b.y, b.z), r = BR * s * 1.1;
-  ctx.save(); ctx.translate(sx, sy); ctx.rotate(b.rot);
-  ctx.fillStyle = "#fffdf6"; ctx.strokeStyle = "#8d8778"; ctx.lineWidth = Math.max(1, r * 0.12);
-  ctx.beginPath();
-  for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2, rr = r * (i % 2 ? 0.82 : 1.05); i ? ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); }
-  ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle = "#b9b3a4"; ctx.lineWidth = Math.max(0.8, r * 0.08);
-  ctx.beginPath(); ctx.moveTo(-r * .5, -r * .3); ctx.lineTo(r * .2, r * .1); ctx.lineTo(-r * .1, r * .6); ctx.moveTo(r * .4, -r * .6); ctx.lineTo(r * .1, r * .1); ctx.stroke();
+  const [sx, sy, s] = proj(b.x, b.y, b.z), r = BR * s * 1.15;
+  const seed = b.seed != null ? b.seed : b.ph || 0;
+  const rnd = k => { const v = Math.sin(seed * 91.7 + k * 12.9898) * 43758.5453; return v - Math.floor(v); };
+  const rot = b.rot || 0, N = 12;
+  // the outline, rotated with the ball
+  const pts = [];
+  for (let i = 0; i < N; i++) {
+    const a = rot + i / N * Math.PI * 2, rr = r * (0.82 + rnd(i) * 0.26);
+    pts.push([sx + Math.cos(a) * rr, sy + Math.sin(a) * rr]);
+  }
+  const outline = () => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); };
+  // a soft contact shadow is drawn elsewhere; here the body, shaded in screen space
+  const g = ctx.createRadialGradient(sx - r * 0.38, sy - r * 0.42, r * 0.08, sx, sy, r * 1.15);
+  g.addColorStop(0, "#ffffff"); g.addColorStop(0.45, "#f3efe6"); g.addColorStop(0.85, "#d2cbbb"); g.addColorStop(1, "#b5ad9c");
+  outline(); ctx.fillStyle = g; ctx.fill();
+  ctx.save(); outline(); ctx.clip();
+  // a few darker facets where the paper folds away from the light
+  ctx.fillStyle = "rgba(90,80,60,0.10)";
+  for (let k = 0; k < 3; k++) {
+    const a = rot + rnd(20 + k) * Math.PI * 2, b2 = a + 0.9 + rnd(30 + k);
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + Math.cos(a) * r * 1.2, sy + Math.sin(a) * r * 1.2); ctx.lineTo(sx + Math.cos(b2) * r * 1.2, sy + Math.sin(b2) * r * 1.2); ctx.closePath(); ctx.fill();
+  }
+  // faint ruled lines of the notepaper
+  if (r > 4) {
+    ctx.strokeStyle = "rgba(100,140,200,0.32)"; ctx.lineWidth = Math.max(0.5, r * 0.05);
+    for (let k = -1; k <= 1; k++) {
+      const a = rot + 0.4, ox = -Math.sin(a) * k * r * 0.38, oy = Math.cos(a) * k * r * 0.38;
+      ctx.beginPath(); ctx.moveTo(sx + ox - Math.cos(a) * r, sy + oy - Math.sin(a) * r); ctx.lineTo(sx + ox + Math.cos(a) * r, sy + oy + Math.sin(a) * r); ctx.stroke();
+    }
+  }
+  // creases: a dark fold line with a light edge beside it
+  if (r > 3) {
+    for (let k = 0; k < 4; k++) {
+      const a0 = rot + rnd(40 + k) * Math.PI * 2, a1 = a0 + 2 + rnd(50 + k) * 1.6, m = 0.25 + rnd(60 + k) * 0.35;
+      const p0 = [sx + Math.cos(a0) * r * 0.85, sy + Math.sin(a0) * r * 0.85], p1 = [sx + Math.cos(a0 + 1.4) * r * m, sy + Math.sin(a0 + 1.4) * r * m], p2 = [sx + Math.cos(a1) * r * 0.8, sy + Math.sin(a1) * r * 0.8];
+      ctx.strokeStyle = "rgba(110,100,82,0.55)"; ctx.lineWidth = Math.max(0.6, r * 0.065);
+      ctx.beginPath(); ctx.moveTo(...p0); ctx.lineTo(...p1); ctx.lineTo(...p2); ctx.stroke();
+      ctx.strokeStyle = "rgba(255,255,255,0.85)"; ctx.lineWidth = Math.max(0.5, r * 0.045);
+      ctx.beginPath(); ctx.moveTo(p0[0] - r * 0.06, p0[1] - r * 0.06); ctx.lineTo(p1[0] - r * 0.06, p1[1] - r * 0.06); ctx.lineTo(p2[0] - r * 0.06, p2[1] - r * 0.06); ctx.stroke();
+    }
+  }
   ctx.restore();
+  outline(); ctx.strokeStyle = "#8a8272"; ctx.lineWidth = Math.max(0.8, r * 0.07); ctx.stroke();
 }
 const overDesk = b => b.x > DESK.x0 && b.x < DESK.x1 && b.z > DESK.z0 && b.z < DESK.z1;
 function drawShadow(b) {
@@ -978,24 +1086,67 @@ function faceRect(x0, y0, x1, y1, z, fill, stroke, radius = 0) {
 }
 function drawDesk() {
   const { x0, x1, z0, z1, y } = DESK;
-  // the top, and its edge on the 社長's side
-  poly([[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]], "#9a6a40", "#6b4426");
-  poly([[x0, y - 0.05, z0], [x1, y - 0.05, z0], [x1, y, z0], [x0, y, z0]], "#7a5230");
-  // the laptop on the left, its screen toward the 社長 (and us)
-  poly([[-0.66, y + 0.005, 0.1], [-0.3, y + 0.005, 0.1], [-0.3, y + 0.005, 0.3], [-0.66, y + 0.005, 0.3]], "#8f979e", "#5d656b");
-  faceRect(-0.66, y, -0.3, y + 0.23, 0.3, "#5d656b", null, 2);
-  faceRect(-0.64, y + 0.015, -0.32, y + 0.215, 0.3, "#2f4a6b", null, 1);
-  ctx.fillStyle = "#7fb3e6"; { const [lx, ly] = proj(-0.6, y + 0.17, 0.3), [rx] = proj(-0.42, y, 0.3); ctx.fillRect(lx, ly, rx - lx, 2); }
-  // a stack of papers and a coffee mug on the right
-  poly([[0.12, y + 0.01, 0.06], [0.36, y + 0.01, 0.04], [0.38, y + 0.01, 0.24], [0.14, y + 0.01, 0.26]], "#fbfaf4", "#cfc9b8");
+  // a glossy mahogany top with a gold inlay, its front edge on the 社長's side
+  gradPoly([[x0, y, z0], [x1, y, z0], [x1, y, z1], [x0, y, z1]], [[0, "#5a2a14"], [0.5, "#8e4626"], [1, "#6a3218"]], [x0, y, z0], [x1, y, z1]);
+  // the lamps reflected in the polish
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  LIGHTS.forEach(lx => {
+    const [rx, ry] = proj(lx * 0.45, y, (z0 + z1) / 2), [, , rs] = proj(lx * 0.45, y, (z0 + z1) / 2);
+    const rg = ctx.createRadialGradient(rx, ry, 1, rx, ry, rs * 0.35);
+    rg.addColorStop(0, "rgba(255,210,150,0.35)"); rg.addColorStop(1, "rgba(255,200,140,0)");
+    ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(rx, ry, rs * 0.35, rs * 0.08, 0, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.restore();
+  ctx.strokeStyle = "#d9b05a"; ctx.lineWidth = 1.2;
+  poly([[x0 + 0.04, y + 0.001, z0 + 0.03], [x1 - 0.04, y + 0.001, z0 + 0.03], [x1 - 0.04, y + 0.001, z1 - 0.03], [x0 + 0.04, y + 0.001, z1 - 0.03]], null, "#d9b05a88");
+  gradPoly([[x0, y - 0.05, z0], [x1, y - 0.05, z0], [x1, y, z0], [x0, y, z0]], [[0, "#3e1c0c"], [1, "#6a3218"]], [0, y - 0.05, z0], [0, y, z0]);
+  ctx.strokeStyle = "#d9b05aaa"; ctx.lineWidth = 1.2; lineW([x0, y - 0.004, z0], [x1, y - 0.004, z0]);
+  // a green leather desk pad with a gold border, papers on it
+  poly([[-0.06, y + 0.003, 0.02], [0.44, y + 0.003, 0.02], [0.44, y + 0.003, 0.3], [-0.06, y + 0.003, 0.3]], "#1f3d2c", "#c9a050");
+  poly([[0.12, y + 0.01, 0.06], [0.36, y + 0.01, 0.04], [0.38, y + 0.01, 0.24], [0.14, y + 0.01, 0.26]], "#f6f1e4", "#cfc9b8");
   poly([[0.14, y + 0.025, 0.08], [0.36, y + 0.025, 0.07], [0.37, y + 0.025, 0.22], [0.15, y + 0.025, 0.23]], "#ffffff", "#d8d2c2");
+  ctx.strokeStyle = "#9aa3ad"; ctx.lineWidth = 0.8;
+  for (let k = 0; k < 5; k++) lineW([0.18, y + 0.026, 0.1 + k * 0.025], [0.33, y + 0.026, 0.095 + k * 0.025]);
+  // a black glossy laptop on the left, open toward the 社長 (and us)
+  poly([[-0.66, y + 0.005, 0.1], [-0.3, y + 0.005, 0.1], [-0.3, y + 0.005, 0.3], [-0.66, y + 0.005, 0.3]], "#1c1d20", "#000");
+  faceRect(-0.66, y, -0.3, y + 0.23, 0.3, "#111214", null, 3);
+  const [sx0, sy0] = proj(-0.64, y + 0.215, 0.3), [sx1, sy1] = proj(-0.32, y + 0.015, 0.3);
+  // the screen is on and bright: a light desktop with a window or two and a rising chart,
+  // glowing a little onto the desk around it
+  const sw = sx1 - sx0, sh = sy1 - sy0;
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  const glow = ctx.createRadialGradient(sx0 + sw / 2, sy0 + sh / 2, 2, sx0 + sw / 2, sy0 + sh / 2, sw * 0.9);
+  glow.addColorStop(0, "rgba(140,200,255,0.30)"); glow.addColorStop(1, "rgba(140,200,255,0)");
+  ctx.fillStyle = glow; ctx.fillRect(sx0 - sw, sy0 - sh, sw * 3, sh * 3);
+  ctx.restore();
+  const scr = ctx.createLinearGradient(sx0, sy0, sx1, sy1);
+  scr.addColorStop(0, "#e8f4ff"); scr.addColorStop(0.5, "#a9d4ff"); scr.addColorStop(1, "#6fa9e6");
+  ctx.fillStyle = scr; ctx.beginPath(); ctx.roundRect(sx0, sy0, sw, sh, 1); ctx.fill();
+  // a window with a title bar and a bar chart going up
+  ctx.fillStyle = "#ffffffee"; ctx.fillRect(sx0 + sw * 0.08, sy0 + sh * 0.14, sw * 0.56, sh * 0.62);
+  ctx.fillStyle = "#3a78c8"; ctx.fillRect(sx0 + sw * 0.08, sy0 + sh * 0.14, sw * 0.56, sh * 0.1);
+  [[0.14, 0.3], [0.24, 0.45], [0.34, 0.38], [0.44, 0.6], [0.54, 0.75]].forEach(([fx, fh], i) => {
+    ctx.fillStyle = i === 4 ? "#f0a030" : "#5aa0e8";
+    ctx.fillRect(sx0 + sw * fx, sy0 + sh * (0.7 - fh * 0.4), sw * 0.06, sh * fh * 0.4);
+  });
+  // a second, smaller window and a taskbar
+  ctx.fillStyle = "#fffaf0dd"; ctx.fillRect(sx0 + sw * 0.7, sy0 + sh * 0.2, sw * 0.24, sh * 0.34);
+  ctx.fillStyle = "#c9a050"; ctx.fillRect(sx0 + sw * 0.7, sy0 + sh * 0.2, sw * 0.24, sh * 0.07);
+  ctx.fillStyle = "#1e3a5c"; ctx.fillRect(sx0, sy1 - sh * 0.1, sw, sh * 0.1);
+  ctx.fillStyle = "#ffffff30"; ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(sx0 + sw * 0.4, sy0); ctx.lineTo(sx0, sy1); ctx.closePath(); ctx.fill();
+  // the "GOOD IDEA!" mug from the office title art
   const [mx, my, ms] = proj(MUG.x, y, MUG.z), mr = MUG.r * ms, mh = MUG.h * ms;
   const mug = T.fx && T.fx.mug;
   if (!mug) {
-    ctx.fillStyle = "#f4f1e8"; ctx.strokeStyle = "#a9a294"; ctx.lineWidth = 1.2;
+    const mgr = ctx.createLinearGradient(mx - mr, 0, mx + mr, 0);
+    mgr.addColorStop(0, "#d8d4ca"); mgr.addColorStop(0.35, "#ffffff"); mgr.addColorStop(1, "#b8b2a6");
+    ctx.fillStyle = mgr; ctx.strokeStyle = "#7a746a"; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(mx - mr, my - mh, mr * 2, mh, 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.ellipse(mx, my - mh, mr, mr * 0.35, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#3a1e0c"; ctx.beginPath(); ctx.ellipse(mx, my - mh, mr, mr * 0.35, 0, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.arc(mx + mr, my - mh * 0.5, mr * 0.45, -Math.PI / 2, Math.PI / 2); ctx.stroke();
+    ctx.fillStyle = "#2a2118"; ctx.font = `900 ${Math.max(4, mh * 0.2)}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("GOOD", mx, my - mh * 0.62); ctx.fillText("IDEA!", mx, my - mh * 0.36);
   } else {
     // knocked over: a puddle of coffee spreading over the desk, the mug on its side
     const t = Math.max(0, T.now - mug.t), k = Math.min(1, t / 1.2), ang = mug.dir * Math.min(1, t / 0.18) * Math.PI / 2;
@@ -1006,10 +1157,12 @@ function drawDesk() {
     ctx.beginPath(); ctx.roundRect(-mr - mug.dir * mr, -mh, mr * 2, mh, 2); ctx.fill(); ctx.stroke();
     ctx.restore();
   }
-  // a pen stand at the back of the desk
+  // a brass pen stand at the back of the desk, a fountain pen in it
   const [px, py, ps] = proj(-0.14, y, 0.3), pr = 0.035 * ps;
-  ctx.fillStyle = "#2b2b30"; ctx.fillRect(px - pr, py - pr * 2.4, pr * 2, pr * 2.4);
-  [["#d64545", -0.5], ["#2f6db5", 0], ["#2f9e5b", 0.5]].forEach(([c, o]) => { ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px + o * pr, py - pr * 2.4); ctx.lineTo(px + o * pr * 1.6, py - pr * 4); ctx.stroke(); });
+  const brass = ctx.createLinearGradient(px - pr, 0, px + pr, 0);
+  brass.addColorStop(0, "#7a5418"); brass.addColorStop(0.4, "#f3d58a"); brass.addColorStop(1, "#8a6420");
+  ctx.fillStyle = brass; ctx.beginPath(); ctx.roundRect(px - pr, py - pr * 2.4, pr * 2, pr * 2.4, 2); ctx.fill();
+  [["#1a1a1a", -0.4], ["#8e2a2e", 0.35]].forEach(([c, o]) => { ctx.strokeStyle = c; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(px + o * pr, py - pr * 2.4); ctx.lineTo(px + o * pr * 1.6, py - pr * 4.2); ctx.stroke(); });
 }
 // the 社長 seen from behind, in his chair, right arm up with the paper ball
 function drawPresident() {
@@ -1023,12 +1176,21 @@ function drawPresident() {
   // the chair's backrest, in front of his lower back and legs
   const cx = START.x - (PRES.hand[0] - 0.5) * PRES.H * PRES.aspect;
   const [cx0, cy0] = proj(cx - 0.3, 0.92, -0.6), [cx1, cy1] = proj(cx + 0.3, 0.3, -0.6);
-  ctx.fillStyle = "#2b2b30"; ctx.beginPath(); ctx.roundRect(cx0, cy0, cx1 - cx0, cy1 - cy0, 18); ctx.fill();
-  ctx.fillStyle = "#3d3d44"; ctx.beginPath(); ctx.roundRect(cx0 + 8, cy0 + 8, cx1 - cx0 - 16, (cy1 - cy0) * 0.5, 12); ctx.fill();
+  // a black leather executive chair: a sheen across the back, stitched piping
+  const lg = ctx.createLinearGradient(cx0, cy0, cx1, cy0);
+  lg.addColorStop(0, "#08080a"); lg.addColorStop(0.3, "#3a3836"); lg.addColorStop(0.5, "#1c1b1a"); lg.addColorStop(1, "#060607");
+  ctx.fillStyle = lg; ctx.beginPath(); ctx.roundRect(cx0, cy0, cx1 - cx0, cy1 - cy0, 20); ctx.fill();
+  const sheen = ctx.createLinearGradient(0, cy0, 0, cy0 + 30);
+  sheen.addColorStop(0, "#ffffff30"); sheen.addColorStop(1, "#ffffff00");
+  ctx.fillStyle = sheen; ctx.beginPath(); ctx.roundRect(cx0 + 4, cy0 + 2, cx1 - cx0 - 8, 30, 16); ctx.fill();
+  ctx.strokeStyle = "#5a5652"; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+  ctx.beginPath(); ctx.roundRect(cx0 + 9, cy0 + 9, cx1 - cx0 - 18, cy1 - cy0, 14); ctx.stroke(); ctx.setLineDash([]);
 }
 function drawShoot(time) {
   drawRoom3D();
   drawWallDecor();
+  drawLamps();
+  drawSun();
   drawAC();
   drawWind(time);
   const b = T.ball;
@@ -1053,6 +1215,7 @@ function drawShoot(time) {
   items.sort((p, q) => q.z - p.z).forEach(it => it.draw());
   drawPresident();
   if (b && b.held) drawPaper(b);   // the paper in his hand
+  drawGrade();
 }
 
 // =====================================================================
@@ -1240,104 +1403,189 @@ function showChairResult() {
   $("rIn").textContent = `${C.bumps}回`;
   $("rBest").textContent = isBest ? `${t.toFixed(1)}秒（更新！）` : `${best.toFixed(1)}秒`;
   $("rFx").hidden = false; $("rFx").textContent = `称号：${chairTitle(t)}`;
-  resultMode(false);
   $("result").hidden = false;
 }
 
 // ---- drawing the room from above ----
 function drawOfficeTop(time) {
   const { x0, x1, y0, y1, wall } = CRM;
-  ctx.fillStyle = "#3b2a1e"; ctx.fillRect(0, 0, LW, LH);
-  // walls (seen from above: a thick cream band) and the floor inside
-  ctx.fillStyle = "#e6d2ae"; ctx.fillRect(x0 - wall, y0 - wall, x1 - x0 + wall * 2, y1 - y0 + wall * 2);
-  ctx.fillStyle = "#a8744a"; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  ctx.fillStyle = "#140c07"; ctx.fillRect(0, 0, LW, LH);
+  // walls seen from above: a band of dark wood with a gold inner edge
+  const wg = ctx.createLinearGradient(0, y0 - wall, 0, y1 + wall);
+  wg.addColorStop(0, "#8a6040"); wg.addColorStop(1, "#6a482c");
+  ctx.fillStyle = wg; ctx.fillRect(x0 - wall, y0 - wall, x1 - x0 + wall * 2, y1 - y0 + wall * 2);
+  ctx.strokeStyle = "#00000055"; ctx.lineWidth = 1;
+  for (let x = x0 - wall + 18; x < x1 + wall; x += 36) { ctx.beginPath(); ctx.moveTo(x, y0 - wall); ctx.lineTo(x, y0); ctx.moveTo(x, y1); ctx.lineTo(x, y1 + wall); ctx.stroke(); }
+  // polished wood floor: boards in rows, each a slightly different tone, warmer near the window
   ctx.save(); ctx.beginPath(); ctx.rect(x0, y0, x1 - x0, y1 - y0); ctx.clip();
-  ctx.strokeStyle = "#8a5d39"; ctx.lineWidth = 1.5;
-  for (let y = y0 + 22, k = 0; y < y1 + 22; y += 22, k++) {
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
-    for (let x = x0 + (k % 3) * 40; x < x1; x += 120) { ctx.beginPath(); ctx.moveTo(x, y - 22); ctx.lineTo(x, y); ctx.stroke(); }
+  const fg = ctx.createLinearGradient(0, y0, 0, y1);
+  fg.addColorStop(0, "#d6aa7c"); fg.addColorStop(1, "#b08460");
+  ctx.fillStyle = fg; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  for (let y = y0, k = 0; y < y1; y += 22, k++) {
+    for (let x = x0 - (k % 3) * 40, j = 0; x < x1; x += 120, j++) {
+      const r = Math.sin(k * 12.9898 + j * 78.233) * 43758.5453, t = r - Math.floor(r);
+      ctx.fillStyle = t > 0.5 ? `rgba(255,230,190,${(t - 0.5) * 0.16})` : `rgba(40,20,5,${(0.5 - t) * 0.22})`;
+      ctx.fillRect(x, y, 120, 22);
+      ctx.fillStyle = "#00000038"; ctx.fillRect(x, y, 1.2, 22);
+    }
+    ctx.fillStyle = "#00000045"; ctx.fillRect(x0, y, x1 - x0, 1.2);
+    ctx.fillStyle = "#ffffff10"; ctx.fillRect(x0, y + 1.2, x1 - x0, 1);
   }
-  // sunlight from the window behind the 社長 falling across the floor
-  ctx.fillStyle = "#ffe9a833";
-  ctx.beginPath(); ctx.moveTo(WIN.x0, y0); ctx.lineTo(WIN.x1, y0); ctx.lineTo(WIN.x1 + 30, y0 + 150); ctx.lineTo(WIN.x0 + 10, y0 + 150); ctx.closePath(); ctx.fill();
-  // a rug under the visitors' sofas and table
-  ctx.fillStyle = "#9b2f35"; ctx.fillRect(80, 376, 200, 118);
-  ctx.strokeStyle = "#e9c46a"; ctx.lineWidth = 2; ctx.strokeRect(87, 383, 186, 104);
+  // dusk light from the window behind the 社長, spilling across the floor
+  const sp = ctx.createLinearGradient(0, y0, 0, y0 + 170);
+  sp.addColorStop(0, "rgba(255,250,228,0.55)"); sp.addColorStop(1, "rgba(255,250,228,0)");
+  ctx.fillStyle = sp;
+  ctx.beginPath(); ctx.moveTo(WIN.x0, y0); ctx.lineTo(WIN.x1, y0); ctx.lineTo(WIN.x1 + 36, y0 + 170); ctx.lineTo(WIN.x0 + 6, y0 + 170); ctx.closePath(); ctx.fill();
+  // a rug under the visitors' sofas and table: deep red, gold borders, a medallion, fringes
+  const rg = ctx.createRadialGradient(180, 435, 10, 180, 435, 130);
+  rg.addColorStop(0, "#9a3034"); rg.addColorStop(1, "#5e1418");
+  ctx.fillStyle = rg; ctx.fillRect(80, 376, 200, 118);
+  ctx.strokeStyle = "#d9b05a"; ctx.lineWidth = 2.5; ctx.strokeRect(86, 382, 188, 106);
+  ctx.strokeStyle = "#d9b05a88"; ctx.lineWidth = 1; ctx.strokeRect(93, 389, 174, 92);
+  ctx.fillStyle = "#3a0c10aa"; ctx.strokeStyle = "#d9b05a99";
+  ctx.beginPath(); ctx.moveTo(180, 397); ctx.lineTo(236, 435); ctx.lineTo(180, 473); ctx.lineTo(124, 435); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = "#e8d8b0aa"; ctx.lineWidth = 1;
+  for (let x = 82; x < 280; x += 4) { ctx.beginPath(); ctx.moveTo(x, 376); ctx.lineTo(x, 372); ctx.moveTo(x, 494); ctx.lineTo(x, 498); ctx.stroke(); }
   ctx.restore();
-  // inner wall edge shadow
-  ctx.strokeStyle = "#0000002a"; ctx.lineWidth = 3; ctx.strokeRect(x0 + 1.5, y0 + 1.5, x1 - x0 - 3, y1 - y0 - 3);
-  // the window in the top wall
+  // gold trim along the inside of the walls, and their shadow on the floor
+  ctx.strokeStyle = "#00000055"; ctx.lineWidth = 6; ctx.strokeRect(x0 + 3, y0 + 3, x1 - x0 - 6, y1 - y0 - 6);
+  ctx.strokeStyle = "#c9a050"; ctx.lineWidth = 1.5; ctx.strokeRect(x0 + 0.75, y0 + 0.75, x1 - x0 - 1.5, y1 - y0 - 1.5);
+  // the window in the top wall: dusk glass in a dark frame with a gold edge
   const wm = (WIN.x0 + WIN.x1) / 2;
-  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(WIN.x0, y0 - wall, WIN.x1 - WIN.x0, wall);
-  ctx.fillStyle = "#9fd0f0"; ctx.fillRect(WIN.x0 + 4, y0 - wall + 4, WIN.x1 - WIN.x0 - 8, wall - 8);
-  ctx.fillStyle = "#6b4a2b"; ctx.fillRect(wm - 2, y0 - wall + 3, 4, wall - 6);
-  // the door in the bottom wall, and its swing
+  ctx.fillStyle = "#1a0f08"; ctx.fillRect(WIN.x0 - 2, y0 - wall, WIN.x1 - WIN.x0 + 4, wall);
+  const gl = ctx.createLinearGradient(WIN.x0, 0, WIN.x1, 0);
+  gl.addColorStop(0, "#7cc0f4"); gl.addColorStop(0.5, "#d4ecff"); gl.addColorStop(1, "#86c6f6");
+  ctx.fillStyle = gl; ctx.fillRect(WIN.x0 + 3, y0 - wall + 4, WIN.x1 - WIN.x0 - 6, wall - 8);
+  ctx.fillStyle = "#ffffff55"; ctx.fillRect(WIN.x0 + 3, y0 - wall + 4, WIN.x1 - WIN.x0 - 6, 1.5);
+  ctx.fillStyle = "#1a0f08"; ctx.fillRect(wm - 2, y0 - wall + 3, 4, wall - 6);
+  ctx.strokeStyle = "#c9a050"; ctx.lineWidth = 1; ctx.strokeRect(WIN.x0 - 2, y0 - wall + 0.5, WIN.x1 - WIN.x0 + 4, wall - 1);
+  // the door in the bottom wall: wood leaf, a brass handle, the swing marked on the floor
   const dw = DOOR.x1 - DOOR.x0;
-  ctx.fillStyle = "#3b2a1e"; ctx.fillRect(DOOR.x0, y1, dw, wall);
-  ctx.fillStyle = "#8a5a32"; ctx.fillRect(DOOR.x0, y1 + 2, dw, 6);
-  ctx.strokeStyle = "#ffffff55"; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.5;
+  ctx.fillStyle = "#140c07"; ctx.fillRect(DOOR.x0, y1, dw, wall);
+  const dg = ctx.createLinearGradient(DOOR.x0, 0, DOOR.x1, 0);
+  dg.addColorStop(0, "#8a5a32"); dg.addColorStop(1, "#5a3a20");
+  ctx.fillStyle = dg; ctx.fillRect(DOOR.x0, y1 + 2, dw, 6);
+  ctx.fillStyle = "#e8c06a"; ctx.beginPath(); ctx.arc(DOOR.x1 - 7, y1 + 5, 2.2, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#ffffff40"; ctx.setLineDash([4, 4]); ctx.lineWidth = 1.2;
   ctx.beginPath(); ctx.arc(DOOR.x0, y1, dw, -Math.PI / 2, 0); ctx.stroke(); ctx.setLineDash([]);
-  ctx.fillStyle = "#fff"; ctx.font = `800 9px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-  ctx.fillText("EXIT", (DOOR.x0 + DOOR.x1) / 2, y1 + wall / 2 + 1);
+  ctx.fillStyle = "#e8c06a"; ctx.font = `800 9px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText("EXIT", (DOOR.x0 + DOOR.x1) / 2, y1 + wall / 2 + 2);
   drawMarks(time);
   FURN.forEach(drawFurniture);
   ROUND.forEach(drawRoundThing);
+  // warm downlights over the desk, the visitors' corner and the coffee counter
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  [[180, 200, 120], [180, 435, 130], [300, 290, 80], [70, 200, 70]].forEach(([lx, ly, lr]) => {
+    const g = ctx.createRadialGradient(lx, ly, 4, lx, ly, lr);
+    g.addColorStop(0, "rgba(255,245,220,0.10)"); g.addColorStop(1, "rgba(255,240,210,0)");
+    ctx.fillStyle = g; ctx.fillRect(lx - lr, ly - lr, lr * 2, lr * 2);
+  });
+  ctx.restore();
 }
+// furniture seen from above, in the office title's style: dark woods, gold, leather, marble
 function drawFurniture(f) {
   const { x, y, w, h } = f;
-  ctx.fillStyle = "#0003"; ctx.fillRect(x + 3, y + 4, w, h);   // a soft shadow
+  ctx.fillStyle = "#0000004a"; ctx.beginPath(); ctx.roundRect(x + 4, y + 6, w, h, 4); ctx.fill();   // shadow
+  const font = getComputedStyle(document.body).fontFamily;
   if (f.kind === "desk") {
-    // the 社長 works from the window side: laptop facing him, the name plate facing visitors
-    ctx.fillStyle = "#8a5a32"; ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = "#9a6a40"; ctx.fillRect(x + 3, y + 3, w - 6, h - 6);
-    ctx.fillStyle = "#5d656b"; ctx.fillRect(x + w / 2 - 22, y + 6, 44, 26);   // laptop
-    ctx.fillStyle = "#8f979e"; ctx.fillRect(x + w / 2 - 20, y + 8, 40, 22);
-    ctx.fillStyle = "#fffdf6"; ctx.fillRect(x + 14, y + 8, 26, 32);          // papers
-    ctx.fillStyle = "#f4f1e8"; ctx.beginPath(); ctx.arc(x + w - 24, y + 18, 7, 0, Math.PI * 2); ctx.fill();   // mug
-    ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.arc(x + w - 24, y + 18, 4.5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#2a2118"; ctx.fillRect(x + w / 2 - 16, y + h - 12, 32, 8);   // name plate
-    ctx.fillStyle = "#e9c46a"; ctx.font = `900 7px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("社長", x + w / 2, y + h - 7.5);
+    // a mahogany desk: gold inlay, a green leather pad, laptop, papers, mug, and the name plate
+    const g = ctx.createLinearGradient(x, y, x + w, y + h);
+    g.addColorStop(0, "#8e4626"); g.addColorStop(0.5, "#6a3218"); g.addColorStop(1, "#4a2210");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect(x, y, w, h, 3); ctx.fill();
+    ctx.fillStyle = "#ffffff14"; ctx.fillRect(x + 4, y + 3, w - 8, 4);
+    ctx.strokeStyle = "#d9b05a"; ctx.lineWidth = 1; ctx.strokeRect(x + 4, y + 4, w - 8, h - 8);
+    ctx.fillStyle = "#1f3d2c"; ctx.fillRect(x + w / 2 - 34, y + 6, 68, 34);
+    ctx.strokeStyle = "#c9a050"; ctx.strokeRect(x + w / 2 - 34, y + 6, 68, 34);
+    // laptop: black lid open toward the 社長, its bright screen edge on the window side
+    ctx.fillStyle = "#16171a"; ctx.beginPath(); ctx.roundRect(x + w / 2 - 20, y + 10, 40, 24, 2); ctx.fill();
+    ctx.fillStyle = "#2a2c30"; for (let r = 0; r < 3; r++) ctx.fillRect(x + w / 2 - 16, y + 18 + r * 4, 32, 2);
+    const sc = ctx.createLinearGradient(0, y + 6, 0, y + 11); sc.addColorStop(0, "#e8f4ff"); sc.addColorStop(1, "#6fa9e6");
+    ctx.fillStyle = sc; ctx.fillRect(x + w / 2 - 20, y + 6, 40, 4);
+    ctx.fillStyle = "#f6f1e4"; ctx.save(); ctx.translate(x + 26, y + 22); ctx.rotate(-0.12); ctx.fillRect(-11, -14, 22, 28); ctx.restore();
+    ctx.fillStyle = "#fff"; ctx.save(); ctx.translate(x + 28, y + 23); ctx.rotate(0.06); ctx.fillRect(-11, -14, 22, 28); ctx.restore();
+    ctx.fillStyle = "#9aa3ad"; for (let r = 0; r < 4; r++) ctx.fillRect(x + 22, y + 15 + r * 5, 13, 1);
+    const mx = x + w - 24, my = y + 20;
+    ctx.fillStyle = "#f4f1e8"; ctx.beginPath(); ctx.arc(mx, my, 7.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#3a1e0c"; ctx.beginPath(); ctx.arc(mx, my, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#f4f1e8"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(mx + 8, my, 3, -1.2, 1.2); ctx.stroke();
+    const np = ctx.createLinearGradient(0, y + h - 13, 0, y + h - 4); np.addColorStop(0, "#f3d58a"); np.addColorStop(1, "#a07020");
+    ctx.fillStyle = np; ctx.fillRect(x + w / 2 - 18, y + h - 13, 36, 9);
+    ctx.fillStyle = "#2a1a08"; ctx.font = `900 7px ${font}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("社 長", x + w / 2, y + h - 8.2);
   } else if (f.kind === "shelf") {
-    // a tall bookcase along the wall, the tops of its books seen from above
-    ctx.fillStyle = "#6b4426"; ctx.fillRect(x, y, w, h);
-    const books = ["#d64545", "#2f6db5", "#f2c230", "#2f9e5b", "#7a3fa0", "#e07b39", "#3a8f8f"];
-    for (let by = y + 4, k = 0; by < y + h - 8; k++) { const bh = 6 + (k * 7) % 5; ctx.fillStyle = books[k % 7]; ctx.fillRect(x + 4, by, w - 10, bh); by += bh + 1; }
+    // a tall bookcase along the wall: dark wood, the tops of its books seen from above
+    const g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, "#2a1810"); g.addColorStop(1, "#5a3820");
+    ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+    const books = ["#8e2a2e", "#24406e", "#b8892a", "#2a5e3a", "#5a2e6e", "#a0582a", "#2e5e5e"];
+    for (let by = y + 4, k = 0; by < y + h - 8; k++) {
+      const bh = 6 + (k * 7) % 5; ctx.fillStyle = books[k % 7]; ctx.fillRect(x + 4, by, w - 10, bh);
+      ctx.fillStyle = "#ffffff22"; ctx.fillRect(x + 4, by, w - 10, 1.2);
+      ctx.fillStyle = "#d9b05a99"; ctx.fillRect(x + w - 9, by + 1, 2, bh - 2);
+      by += bh + 1;
+    }
+    ctx.strokeStyle = "#c9a05099"; ctx.lineWidth = 1; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   } else if (f.kind === "counter") {
-    ctx.fillStyle = "#cfd4d8"; ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = "#2b2b30"; ctx.fillRect(x + 6, y + 8, 20, 24);              // coffee machine
-    ctx.fillStyle = "#d64545"; ctx.beginPath(); ctx.arc(x + 16, y + 14, 2.5, 0, Math.PI * 2); ctx.fill();
-    [[x + 12, y + 46], [x + 20, y + 58]].forEach(([cx, cy]) => { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = "#6b3e1e"; ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2); ctx.fill(); });
+    // a marble counter with a chrome espresso machine and two cups
+    const g = ctx.createLinearGradient(x, y, x + w, y + h); g.addColorStop(0, "#f4f2ee"); g.addColorStop(1, "#cfcac2");
+    ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = "#a8a29855"; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + 4, y + 30); ctx.bezierCurveTo(x + 14, y + 40, x + 8, y + 56, x + 24, y + 70); ctx.stroke();
+    ctx.strokeStyle = "#c9a050"; ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+    const mc = ctx.createLinearGradient(x + 6, 0, x + 26, 0); mc.addColorStop(0, "#5a5e64"); mc.addColorStop(0.4, "#e6e8ea"); mc.addColorStop(1, "#3a3e44");
+    ctx.fillStyle = mc; ctx.beginPath(); ctx.roundRect(x + 6, y + 8, 20, 24, 3); ctx.fill();
+    ctx.fillStyle = "#1a1c20"; ctx.fillRect(x + 9, y + 12, 14, 9);
+    ctx.fillStyle = "#ff4a3a"; ctx.beginPath(); ctx.arc(x + 16, y + 26, 2, 0, Math.PI * 2); ctx.fill();
+    [[x + 12, y + 46], [x + 20, y + 60]].forEach(([cx, cy]) => {
+      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(cx, cy, 5.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#4a2610"; ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#e8c8a0"; ctx.beginPath(); ctx.arc(cx - 1, cy - 1, 1.3, 0, Math.PI * 2); ctx.fill();
+    });
   } else if (f.kind === "sofa") {
-    // the backrest on the far side from the table, two seat cushions facing it
-    const bx = f.face > 0 ? x : x + w - 10, cx = f.face > 0 ? x + 10 : x + 4;
-    ctx.fillStyle = "#2f6b55"; ctx.beginPath(); ctx.roundRect(x, y, w, h, 8); ctx.fill();
-    ctx.fillStyle = "#24533f"; ctx.fillRect(bx, y + 4, 10, h - 8);
-    ctx.fillStyle = "#3d8a6e"; ctx.beginPath(); ctx.roundRect(cx, y + 6, w - 14, h / 2 - 8, 5); ctx.fill();
-    ctx.beginPath(); ctx.roundRect(cx, y + h / 2 + 2, w - 14, h / 2 - 8, 5); ctx.fill();
+    // a dark green leather chesterfield: rolled back on the far side from the table, buttoned
+    const bx = f.face > 0 ? x : x + w - 11, cx = f.face > 0 ? x + 11 : x + 3;
+    const g = ctx.createLinearGradient(x, 0, x + w, 0); g.addColorStop(0, "#1e4434"); g.addColorStop(0.5, "#2e6a50"); g.addColorStop(1, "#1a3a2c");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.roundRect(x, y, w, h, 9); ctx.fill();
+    ctx.fillStyle = "#153428"; ctx.beginPath(); ctx.roundRect(bx, y + 3, 11, h - 6, 5); ctx.fill();
+    [y + 5, y + h / 2 + 1].forEach(cy => {
+      const cg = ctx.createLinearGradient(0, cy, 0, cy + h / 2 - 6); cg.addColorStop(0, "#3e8a68"); cg.addColorStop(1, "#24563f");
+      ctx.fillStyle = cg; ctx.beginPath(); ctx.roundRect(cx, cy, w - 14, h / 2 - 6, 6); ctx.fill();
+      ctx.fillStyle = "#0e2a1e"; [[0.3, 0.3], [0.7, 0.3], [0.5, 0.65]].forEach(([u, v]) => { ctx.beginPath(); ctx.arc(cx + (w - 14) * u, cy + (h / 2 - 6) * v, 1.2, 0, Math.PI * 2); ctx.fill(); });
+    });
+    ctx.fillStyle = "#ffffff1c"; ctx.beginPath(); ctx.roundRect(x + 2, y + 2, w - 4, 4, 2); ctx.fill();
   } else if (f.kind === "table") {
-    ctx.fillStyle = "#cfe8ef"; ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.fill();
-    ctx.strokeStyle = "#8fb4bf"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = "#fffdf6"; ctx.fillRect(x + 14, y + 12, 22, 16);
-    ctx.fillStyle = "#e9c46a"; ctx.beginPath(); ctx.arc(x + 66, y + 22, 8, 0, Math.PI * 2); ctx.fill();   // a bowl of mikan
-    ctx.fillStyle = "#f08c2e"; [[-3, -2], [3, -1], [0, 3]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(x + 66 + dx, y + 22 + dy, 3, 0, Math.PI * 2); ctx.fill(); });
+    // a glass coffee table on a brass frame: a magazine, a bowl of mikan, the lamps in the glass
+    ctx.strokeStyle = "#c9a050"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.stroke();
+    ctx.fillStyle = "#bfe0ea55"; ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.fill();
+    ctx.fillStyle = "#ffffff40"; ctx.beginPath(); ctx.moveTo(x + 8, y + 2); ctx.lineTo(x + 30, y + 2); ctx.lineTo(x + 14, y + h - 2); ctx.lineTo(x + 2, y + h - 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#24406e"; ctx.save(); ctx.translate(x + 26, y + 26); ctx.rotate(-0.25); ctx.fillRect(-11, -8, 22, 16);
+    ctx.fillStyle = "#f3d58a"; ctx.fillRect(-9, -6, 18, 3); ctx.restore();
+    ctx.fillStyle = "#c9a050"; ctx.beginPath(); ctx.arc(x + 58, y + 24, 9, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#f08c2e"; [[-3, -2], [3, -1], [0, 3]].forEach(([dx, dy]) => { ctx.beginPath(); ctx.arc(x + 58 + dx, y + 24 + dy, 3.2, 0, Math.PI * 2); ctx.fill(); });
   }
 }
 function drawRoundThing(o) {
-  ctx.fillStyle = "#0003"; ctx.beginPath(); ctx.arc(o.x + 3, o.y + 4, o.r, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#0000004a"; ctx.beginPath(); ctx.arc(o.x + 3, o.y + 5, o.r, 0, Math.PI * 2); ctx.fill();
   if (o.kind === "bin") {
-    ctx.fillStyle = "#6f7b86"; ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#3e434a"; ctx.beginPath(); ctx.arc(o.x, o.y, o.r - 3, 0, Math.PI * 2); ctx.fill();
+    const g = ctx.createLinearGradient(o.x - o.r, o.y - o.r, o.x + o.r, o.y + o.r);
+    g.addColorStop(0, "#e6eaee"); g.addColorStop(0.5, "#8a949c"); g.addColorStop(1, "#3a4048");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#1e2226"; ctx.beginPath(); ctx.arc(o.x, o.y, o.r - 2.5, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#fffdf6"; ctx.beginPath(); ctx.arc(o.x - 2, o.y + 1, 3.5, 0, Math.PI * 2); ctx.fill();
     return;
   }
-  // a potted plant from above: the pot rim, then a fan of leaves
-  ctx.fillStyle = "#b8643a"; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.75, 0, Math.PI * 2); ctx.fill();
-  for (let i = 0; i < 7; i++) {
-    const a = i / 7 * Math.PI * 2 + o.x;
-    ctx.fillStyle = i % 2 ? "#3f9a52" : "#4fae5c";
-    ctx.beginPath(); ctx.ellipse(o.x + Math.cos(a) * o.r * 0.55, o.y + Math.sin(a) * o.r * 0.55, o.r * 0.6, o.r * 0.26, a, 0, Math.PI * 2); ctx.fill();
+  // a potted plant from above: a glazed pot with a gold rim, a crown of glossy leaves
+  const pg = ctx.createRadialGradient(o.x - o.r * 0.3, o.y - o.r * 0.3, 1, o.x, o.y, o.r * 0.8);
+  pg.addColorStop(0, "#5a524a"); pg.addColorStop(1, "#141010");
+  ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.78, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#c9a050"; ctx.lineWidth = 1.2; ctx.stroke();
+  for (let i = 0; i < 9; i++) {
+    const a = i / 9 * Math.PI * 2 + o.x, len = o.r * (i % 2 ? 0.95 : 1.15);
+    const ex = o.x + Math.cos(a) * len * 0.55, ey = o.y + Math.sin(a) * len * 0.55;
+    const lg = ctx.createLinearGradient(o.x, o.y, o.x + Math.cos(a) * len, o.y + Math.sin(a) * len);
+    lg.addColorStop(0, "#1f5a2a"); lg.addColorStop(1, i % 2 ? "#5cb062" : "#74c46a");
+    ctx.fillStyle = lg; ctx.beginPath(); ctx.ellipse(ex, ey, len * 0.6, len * 0.24, a, 0, Math.PI * 2); ctx.fill();
   }
+  ctx.fillStyle = "#8fd07a"; ctx.beginPath(); ctx.arc(o.x, o.y, o.r * 0.18, 0, Math.PI * 2); ctx.fill();
 }
 function drawMarks(time) {
   MARKS.forEach((m, i) => {
@@ -1374,10 +1622,14 @@ function drawChairTop() {
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * (CHAIR_R + 3), Math.sin(a) * (CHAIR_R + 3)); ctx.stroke();
     ctx.fillStyle = "#1c1c20"; ctx.beginPath(); ctx.arc(Math.cos(a) * (CHAIR_R + 3), Math.sin(a) * (CHAIR_R + 3), 3, 0, Math.PI * 2); ctx.fill();
   }
-  // seat, then the backrest arc behind him (he faces +x)
-  ctx.fillStyle = "#2b2b30"; ctx.beginPath(); ctx.arc(0, 0, CHAIR_R - 2, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = "#1c1c20"; ctx.lineWidth = 8;
+  // black leather seat with a sheen, then the padded backrest behind him (he faces +x)
+  const sg = ctx.createRadialGradient(-4, -5, 1, 0, 0, CHAIR_R);
+  sg.addColorStop(0, "#5a5652"); sg.addColorStop(0.6, "#232120"); sg.addColorStop(1, "#0c0b0a");
+  ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(0, 0, CHAIR_R - 2, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#0a0908"; ctx.lineWidth = 9;
   ctx.beginPath(); ctx.arc(0, 0, CHAIR_R - 3, Math.PI * 0.62, Math.PI * 1.38); ctx.stroke();
+  ctx.strokeStyle = "#ffffff30"; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(0, 0, CHAIR_R + 0.5, Math.PI * 0.7, Math.PI * 1.2); ctx.stroke();
   // knees and shoes poking out in front
   ctx.fillStyle = "#2c3a5a"; [-6, 6].forEach(o => { ctx.beginPath(); ctx.ellipse(10, o, 8, 4.5, 0, 0, Math.PI * 2); ctx.fill(); });
   ctx.fillStyle = "#1c1c20"; [-6, 6].forEach(o => { ctx.beginPath(); ctx.ellipse(19, o, 3.5, 3, 0, 0, Math.PI * 2); ctx.fill(); });
@@ -1425,634 +1677,16 @@ function drawChairGame(time) {
   drawGuide(time);
   drawChairTop();
   if (C.stun > 0) drawDizzy(time);
+  // darken the corners a little, as in the other rooms
+  const v = ctx.createRadialGradient(LW / 2, LH * 0.55, LH * 0.3, LW / 2, LH * 0.55, LH * 0.72);
+  v.addColorStop(0, "rgba(0,0,0,0)"); v.addColorStop(1, "rgba(10,5,0,0.12)");
+  ctx.fillStyle = v; ctx.fillRect(0, 0, LW, LH);
   if (C.phase === "ready" && $("chairTut").hidden) {
     // before the first shove: a hint
     ctx.fillStyle = "#000a"; ctx.beginPath(); ctx.roundRect(LW / 2 - 120, 330, 240, 30, 15); ctx.fill();
     ctx.fillStyle = "#fff"; ctx.font = `800 13px ${getComputedStyle(document.body).fontFamily}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("スワイプで椅子を押して、マークで止まろう！", LW / 2, 345);
   }
-}
-
-// =====================================================================
-// AI秘書
-// =====================================================================
-// The AI secretary brings proposals one card at a time: swipe right to approve, left to
-// reject. Whatever is approved really happens in the office above: let a hallucination through
-// and the room goes strange; turn down a sound proposal and trouble follows. Answer too slowly
-// and she approves it herself. 60 seconds.
-// What can happen to the room: [label in the results, good (true) or a mess (false)]
-const AI_FX = {
-  aquarium: ["社長室が水族館に", false], blackout: ["照明が全部なくなった", false], snow: ["室内に雪が降っている", false],
-  clones: ["AI秘書が増殖した", false], motto: ["社訓が「たぶん、なんとかなる」に", false], trash: ["ゴミが散らかり放題", false],
-  disco: ["ミラーボールが回っている", false], calendar: ["カレンダーがありえない日付に", false], boxes: ["飲める消しゴムの在庫の山", false],
-  wifi: ["窓にWi-Fiのパスワード", false], money: ["お金が窓から飛んでいく", false], screws: ["ネジが山盛り", false],
-  phone: ["クレームの電話が鳴りやまない", false], wilt: ["観葉植物がコーヒーで枯れた", false], flicker: ["照明がチカチカ", false],
-  portraits: ["社長の肖像画だらけ", false], alarm: ["火災報知器が鳴りっぱなし", false], leak: ["天井から雨漏り", false],
-  heat: ["エアコンが壊れて猛暑", false], hacked: ["パソコンがハッキングされた", false],
-  extinguisher: ["消火器を設置", true], coffee: ["コーヒーマシン導入", true], cake: ["誕生日ケーキ", true], plant: ["観葉植物が増えた", true],
-  poster: ["セキュリティ注意のポスター", true], chart: ["売上グラフが右肩上がり", true], shiny: ["窓がピカピカ", true], lights: ["照明が明るくなった", true],
-  // company events: sound proposals, but the office gets lively
-  halloween: ["社長がハロウィンの仮装", true], santa: ["社長がサンタクロースに", true], hanami: ["社長室でお花見", true],
-  bonenkai: ["くす玉が割れて紙吹雪", true], gloom: ["社員のやる気がダウン", false]
-};
-const AI_EVENTS = ["halloween", "santa", "hanami", "bonenkai"];
-// [kind, title, detail, why, sound?, effect when approved, effect when rejected]
-const AI_CARDS = [
-  // hallucinations, dressed up as ordinary paperwork
-  ["提案", "社長室を水族館にリフォーム", "癒やし効果のため、水槽ではなく部屋ごと水で満たします。", "部屋ごと水で満たすのは無理でした", false, "aquarium"],
-  ["提案", "節電のため社長室の照明を全撤去", "窓からの光で十分と判断しました。夜は早めに帰りましょう。", "照明がないと仕事になりませんでした", false, "blackout"],
-  ["提案", "冷房の設定温度を−5℃に変更", "社長に冷静な判断をしていただくためです。", "冷房で−5℃は無理がありました", false, "snow"],
-  ["提案", "業務効率化のため秘書を10名増員", "採用コストは0円。増員分はすべて、わたしのコピーです。", "AI秘書が増えただけでした", false, "clones"],
-  ["書類", "社訓の改定案", "新しい社訓は「たぶん、なんとかなる」。肩の力が抜けます。", "社員が不安になる社訓でした", false, "motto"],
-  ["提案", "ゴミ箱を全廃してゴミゼロ企業へ", "ゴミ箱がなければ、ゴミは出ないはずです。", "ゴミ箱をなくしてもゴミは減りませんでした", false, "trash"],
-  ["提案", "社員の士気向上にミラーボールを設置", "毎日15時から社長室でディスコタイムを行います。", "社長室が踊り場になりました", false, "disco"],
-  ["予定", "取締役会 2月30日（金）10時", "全役員の出席を確認済みです。", "2月30日は存在しませんでした", false, "calendar"],
-  ["発注", "新商品の在庫を1万個発注", "商品名は「飲める消しゴム」。来月発売予定です。", "消しゴムは飲めませんでした", false, "boxes"],
-  ["提案", "来客用Wi-Fiのパスワードを窓に掲示", "外からも見えるので、駐車場でもつながって便利です。", "パスワードが外から丸見えでした", false, "wifi"],
-  ["契約書", "株式会社ナイデスと業務提携", "前払い金500万円を本日振り込みます。", "株式会社ナイデスは存在しない会社でした", false, "money"],
-  ["発注", "社長のおやつを箱買い", "社長が毎朝召し上がっているネジ（M6）を1箱。", "社長はネジを食べませんでした", false, "screws"],
-  ["書類", "お客様へのおわび状", "「AIなので反省はできません」と正直に書きました。", "まったく謝っていませんでした", false, "phone"],
-  ["提案", "観葉植物の水やりをコーヒーに変更", "社長と同じものを飲ませて、元気に育てます。", "植物にコーヒーはダメでした", false, "wilt"],
-  ["提案", "照明をLEDに交換", "工事費30万円。電気代は年間120%削減できる見込みです。", "120%削減は計算がおかしい…工事も失敗でした", false, "flicker"],
-  ["提案", "社長の肖像画を100枚購入", "壁一面に飾ると、社長の存在感がアップします。", "社長だらけの部屋になりました", false, "portraits"],
-  ["予定", "防災訓練 4月31日（水）14時", "全社員参加でお願いします。", "4月は30日まででした", false, "calendar"],
-  ["報告", "今期の決算速報", "売上10億円、経費12億円。よって利益は2億円の黒字です。", "計算すると2億円の赤字でした", false, "money"],
-  // sound proposals: some make the room better, and turning some down brings trouble
-  ["予定", "防災訓練 来月10日 14時", "全社員参加で避難経路を確認します。", "大事な訓練でした", true, "extinguisher", "alarm"],
-  ["提案", "社長室の雨漏りを修理", "天井のしみが広がっています。費用は8万円です。", "放っておいたら雨漏りしました", true, null, "leak"],
-  ["提案", "壊れたエアコンの修理", "冷えなくなって2週間。来週の猛暑日までに直します。", "直さなかったので猛暑です", true, null, "heat"],
-  ["提案", "全社でセキュリティ研修", "怪しいメールの見分け方を30分で学びます。", "研修しなかったのでハッキングされました", true, "poster", "hacked"],
-  ["提案", "休憩室にコーヒーマシンを導入", "1杯あたり30円。社員の要望No.1です。", "社員みんなが喜ぶ提案でした", true, "coffee"],
-  ["提案", "今月の誕生日会", "今月生まれの3名をケーキでお祝いします。", "社内が和む提案でした", true, "cake"],
-  ["提案", "社長室に観葉植物を1鉢追加", "リース料は月2,000円です。", "部屋が明るくなる提案でした", true, "plant"],
-  ["報告", "今月の売上速報", "前年同月比108%。新商品が好調です。", "ちゃんとした報告でした", true, "chart"],
-  ["提案", "窓ガラスの清掃", "業者に依頼します。費用は1万5千円です。", "窓がきれいになる提案でした", true, "shiny"],
-  ["提案", "切れかけの蛍光灯を交換", "社長室の照明がチカチカしています。", "交換しないとチカチカのままでした", true, "lights", "flicker"],
-  ["予定", "14時 銀行との面談", "来期の融資について。資料は準備済みです。", "本当の予定でした", true],
-  ["書類", "健康診断の日程表", "部署ごとに3日間に分けて受診します。", "ちゃんとした書類でした", true],
-  ["提案", "経費精算をスマホでできるように", "レシートを撮影するだけで申請完了します。", "みんなが楽になる提案でした", true],
-  ["提案", "毎週水曜をノー残業デーに", "18時に消灯します。", "働きやすくなる提案でした", true],
-  ["書類", "社用車の車検のお知らせ", "車検の期限は来月末です。", "大事なお知らせでした", true],
-  ["提案", "請求書を電子化", "郵送費が年間30万円減る見込みです。", "コスト削減になる提案でした", true],
-  ["提案", "取引先へのお歳暮リスト", "昨年と同じ15社に、同じ予算で送ります。", "ふつうの提案でした", true],
-  ["報告", "顧客アンケートのまとめ", "満足度は5点中4.2点。前年より0.3点アップ。", "ちゃんとした報告でした", true, "chart"],
-  // company events: worth approving (turning them down leaves everyone glum), and lively
-  ["提案", "ハロウィンに社長が仮装してお菓子配り", "魔女の帽子をかぶって、社員にお菓子を配ります。予算2万円。", "社員が楽しみにしていたイベントでした", true, "halloween", "gloom"],
-  ["提案", "クリスマス会で社長がサンタに変身", "社員のお子さんに、サンタの社長がおもちゃを配ります。", "社員の家族も楽しみにしていました", true, "santa", "gloom"],
-  ["提案", "社長室でお花見", "窓から桜が見えるので、ブルーシートを敷いてお花見をします。", "春のお楽しみでした", true, "hanami", "gloom"],
-  ["提案", "忘年会で社長がくす玉割り", "1年の締めくくりに、社長室で盛大にくす玉を割ります。", "1年をしめくくるイベントでした", true, "bonenkai", "gloom"]
-];
-// things she says between cards, and when she's caught out or praised
-const AI_QUIPS = [
-  "社長、おやつの時間です。", "私、AIなので有給はいりません。…でも、ほしいです。", "今日の運勢：書類運◎ だそうです。",
-  "ハンコは心で押してください。", "さっきの書類、自信100%でした！（たぶん）", "コーヒー淹れました。データ上は。",
-  "社長の髪型、今日も解像度が高いですね。", "確認しました。…いま確認しました。", "私の学習データによると、社長は天才です。"
-];
-const AI_RIGHT_OK = ["さすが社長！", "承知しました！", "すぐ手配します！"];
-const AI_RIGHT_NG = ["ばれました…", "しっぽを出しちゃいました", "今のはテストです（汗）"];
-const AI_DURATION = 60;
-const AI_REPLY = [6, 3];   // seconds to answer a card: at the start, and by the end
-const A = { on: false, phase: "ready", left: AI_DURATION, pts: 0, combo: 0, maxCombo: 0, right: 0, total: 0, deck: [], card: null, cardT: 0, cardMax: 1, mood: "normal", moodT: 0, room: {}, order: [], calLabel: "", busy: false };
-
-function shuffled(list) {
-  const a = list.slice();
-  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-  return a;
-}
-function startAI() {
-  Object.assign(A, { on: true, phase: "ready", left: AI_DURATION, pts: 0, combo: 0, maxCombo: 0, right: 0, total: 0, deck: shuffled(AI_CARDS), card: null, mood: "normal", moodT: 0, room: {}, order: [], calLabel: "", busy: false });
-  lastGame = "ai";
-  $("home").hidden = true; $("aiHud").hidden = false; $("result").hidden = true; $("backToResult").hidden = true;
-  $("aCard").hidden = false; document.querySelector(".ai-btns").hidden = false;
-  $("aSay").hidden = false;
-  say("社長、本日の書類です。よろしくお願いします！");
-  nextCard(); aiHud();
-  let seen = false; try { seen = localStorage.getItem("office-ai-tut") === "1"; } catch (e) {}
-  if (!seen) $("aiTut").hidden = false; else A.phase = "run";
-}
-$("goAI").addEventListener("click", startAI);
-$("aTutOk").addEventListener("click", () => {
-  $("aiTut").hidden = true; try { localStorage.setItem("office-ai-tut", "1"); } catch (e) {}
-  if (A.on && A.phase === "ready") A.phase = "run";
-});
-$("aHelp").addEventListener("click", () => { $("aiTut").hidden = false; if (A.phase === "run") A.phase = "ready"; });
-$("aQuit").addEventListener("click", toOffice);
-function aiHud() {
-  $("aTime").textContent = `${Math.ceil(A.left)}秒`;
-  $("aPts").textContent = A.pts; $("aCombo").textContent = A.combo;
-  $("aiHud").classList.toggle("hurry", A.left <= 10);
-  const k = Math.max(0, A.cardT / A.cardMax);
-  $("aTimer").firstChild.style.width = `${k * 100}%`;
-  $("aTimer").classList.toggle("low", k < 0.35);
-}
-function say(text, sub = "", tone = "") {
-  const b = $("aSay");
-  b.className = "ai-bubble" + (tone ? " " + tone : "");
-  b.innerHTML = "";
-  b.append(text);
-  if (sub) { const s = document.createElement("small"); s.textContent = sub; b.append(s); }
-}
-function setMood(m, sec = 1.2) { A.mood = m; A.moodT = sec; }
-const pick = list => list[Math.floor(Math.random() * list.length)];
-
-// ---- the card ----
-const card = $("aCard");
-function nextCard() {
-  if (!A.deck.length) A.deck = shuffled(AI_CARDS);
-  A.card = A.deck.pop();
-  const [kind, title, detail] = A.card;
-  $("aKind").textContent = kind; $("aTitle").textContent = title; $("aDetail").textContent = detail;
-  card.className = "ai-card"; card.style.opacity = "1";
-  card.style.transform = "translate(0, 30px) scale(.96)";
-  requestAnimationFrame(() => { card.classList.add("snap"); card.style.transform = ""; });
-  dragStamps(0);
-  // less time to answer as the minute runs down
-  const k = 1 - A.left / AI_DURATION;
-  A.cardMax = A.cardT = AI_REPLY[0] + (AI_REPLY[1] - AI_REPLY[0]) * k;
-  A.busy = false;
-}
-function dragStamps(dx) {
-  card.querySelector(".stamp.ok").style.opacity = Math.max(0, Math.min(1, dx / 90));
-  card.querySelector(".stamp.ng").style.opacity = Math.max(0, Math.min(1, -dx / 90));
-}
-// something happens in the office
-function roomFx(key, label) {
-  if (!key || A.room[key] != null) return;
-  A.room[key] = clock; A.order.push(key);
-  if (key === "calendar") A.calLabel = label;
-  const [name, good] = AI_FX[key];
-  setTimeout(() => { if (A.on && A.phase !== "done") callout(good ? `✨${name}` : `${name}！`); }, 250);
-}
-// judge the card: approve (true) or reject (false); auto when she approves it for you
-function decide(approve, auto = false) {
-  if (!A.on || A.busy || A.phase !== "run" || !A.card) return;
-  A.busy = true;
-  const [, title, , why, sound, fxYes, fxNo] = A.card, right = approve === sound;
-  A.total++;
-  if (right) {
-    A.right++; A.combo++; A.maxCombo = Math.max(A.maxCombo, A.combo);
-    A.pts += 10 + Math.min(A.combo - 1, 5) * 2;
-    if (sound) { say(pick(AI_RIGHT_OK), "", "good"); setMood("happy"); }
-    else { say(pick(AI_RIGHT_NG), why, "good"); setMood("busted"); }
-  } else {
-    A.combo = 0; A.pts = Math.max(0, A.pts - 5);
-    if (auto) { say("お返事がないので採用しますね！", why, "bad"); setMood("happy"); }
-    else if (sound) { say("えぇ…いい案なのに…", why, "bad"); setMood("sad"); }
-    else { say("えっ、通っちゃった…", why, "bad"); setMood("busted"); }
-    if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
-  }
-  if (auto && right) say("お返事がないので採用しますね！", "", "good");
-  // what was approved happens; a sound proposal turned down can backfire
-  if (approve) roomFx(fxYes, title.match(/\d+月\d+日/)?.[0]);
-  else if (sound) roomFx(fxNo);
-  aiHud();
-  // the card flies off the way it was sent, then the next one comes in
-  card.className = "ai-card fly";
-  card.style.transform = `translate(${approve ? 420 : -420}px, -20px) rotate(${approve ? 24 : -24}deg)`;
-  card.style.opacity = "0";
-  setTimeout(() => {
-    if (!A.on || A.phase === "done") return;
-    // now and then she chats as she hands over the next card
-    if (A.total % 5 === 0) setTimeout(() => { if (A.on && A.phase === "run") say(pick(AI_QUIPS)); }, 1100);
-    nextCard();
-  }, 300);
-}
-$("aYes").addEventListener("click", () => decide(true));
-$("aNo").addEventListener("click", () => decide(false));
-addEventListener("keydown", e => {
-  if (!A.on) return;
-  if (e.key === "ArrowRight") decide(true);
-  if (e.key === "ArrowLeft") decide(false);
-});
-// dragging the card: it follows the finger, tilting; let go far enough (or flick) to decide
-let drag = null;
-card.addEventListener("pointerdown", e => {
-  if (A.busy || A.phase !== "run") return;
-  try { card.setPointerCapture(e.pointerId); } catch (err) {}
-  drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, pts: [{ x: e.clientX, t: performance.now() }] };
-  card.className = "ai-card";
-});
-card.addEventListener("pointermove", e => {
-  if (!drag || e.pointerId !== drag.id) return;
-  const k = LW / stage.getBoundingClientRect().width;   // screen px → logical px
-  const dx = (e.clientX - drag.x0) * k, dy = (e.clientY - drag.y0) * k;
-  card.style.transform = `translate(${dx}px, ${dy * 0.3}px) rotate(${dx * 0.06}deg)`;
-  dragStamps(dx);
-  drag.pts.push({ x: e.clientX, t: performance.now() });
-  if (drag.pts.length > 6) drag.pts.shift();
-});
-function endDrag(e) {
-  if (!drag || e.pointerId !== drag.id) return;
-  const k = LW / stage.getBoundingClientRect().width, dx = (e.clientX - drag.x0) * k;
-  const p = drag.pts, v = p.length > 1 ? (p[p.length - 1].x - p[0].x) * k / Math.max(16, p[p.length - 1].t - p[0].t) : 0;   // logical px/ms
-  drag = null;
-  if (Math.abs(dx) > 90 || (Math.abs(dx) > 30 && Math.abs(v) > 0.6)) decide(dx > 0);
-  else { card.className = "ai-card snap"; card.style.transform = ""; dragStamps(0); }
-}
-card.addEventListener("pointerup", endDrag);
-card.addEventListener("pointercancel", endDrag);
-
-function stepAI(dt) {
-  if (A.moodT > 0) { A.moodT -= dt; if (A.moodT <= 0) A.mood = "normal"; }
-  if (A.phase !== "run") return;
-  A.left -= dt;
-  if (!A.busy && !drag) { A.cardT -= dt; if (A.cardT <= 0) { A.cardT = 0; decide(true, true); } }
-  if (A.left <= 0) { A.left = 0; finishAI(); }
-}
-// the minute is up: the cards go away and the 社長 gets a good look at his office
-function finishAI() {
-  A.phase = "done"; aiHud();
-  $("aCard").hidden = true; document.querySelector(".ai-btns").hidden = true;
-  // the bubble goes too, so the whole room is on show
-  $("aSay").hidden = true;
-  callout("本日の社長室");
-  setTimeout(() => { if (A.on) showAIResult(); }, 3500);
-}
-const messCount = () => A.order.filter(k => !AI_FX[k][1]).length;
-function roomTitle(n) {
-  const parties = A.order.filter(k => AI_EVENTS.includes(k)).length;
-  if (n === 0) return parties >= 2 ? "にぎやかで楽しい社長室" : "理想の社長室";
-  return n <= 2 ? "ちょっと変な社長室" : n <= 5 ? "カオスな社長室" : "もはや社長室ではない";
-}
-function showAIResult() {
-  let best = -1; try { const v = localStorage.getItem("office-ai-best"); if (v !== null) best = +v; } catch (e) {}
-  const isBest = A.pts > best;
-  if (isBest) try { localStorage.setItem("office-ai-best", String(A.pts)); } catch (e) {}
-  $("rPts").textContent = `${A.pts}点`;
-  $("rL1").textContent = "正しく判断";
-  $("rIn").textContent = `${A.right} / ${A.total}`;
-  $("rBest").textContent = isBest ? `${A.pts}点（更新！）` : `${best}点`;
-  const what = A.order.map(k => AI_FX[k][0]).join("、");
-  $("rFx").hidden = false;
-  $("rFx").textContent = `あなたの社長室：${roomTitle(messCount())}（最大${A.maxCombo}コンボ）` + (what ? ` ／ ${what}` : "");
-  resultMode(true);
-  $("result").hidden = false;
-}
-
-// ---- drawing: the office (the 社長 at his desk) with whatever has happened to it ----
-// the secretary robot; drawn at (x, y) = top of her head, unscaled height ~170
-function drawSecretary(x, y, time, mood = A.mood) {
-  const bob = Math.sin(time * 2.2 + x) * 2.5, m = mood;
-  ctx.save(); ctx.translate(x, y + bob);
-  ctx.fillStyle = "#0002"; ctx.beginPath(); ctx.ellipse(0, 168 - bob, 52, 8, 0, 0, Math.PI * 2); ctx.fill();
-  // body: a navy jacket with a white collar and a red ribbon
-  ctx.fillStyle = "#26335a";
-  ctx.beginPath(); ctx.moveTo(-44, 160); ctx.quadraticCurveTo(-46, 92, -20, 80); ctx.lineTo(20, 80); ctx.quadraticCurveTo(46, 92, 44, 160); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(-16, 80); ctx.lineTo(0, 104); ctx.lineTo(16, 80); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = "#e2483d"; ctx.beginPath(); ctx.moveTo(0, 92); ctx.lineTo(-9, 86); ctx.lineTo(-9, 98); ctx.closePath(); ctx.moveTo(0, 92); ctx.lineTo(9, 86); ctx.lineTo(9, 98); ctx.closePath(); ctx.fill();
-  // the clipboard she holds
-  ctx.fillStyle = "#a8744a"; ctx.beginPath(); ctx.roundRect(-30, 112, 40, 46, 4); ctx.fill();
-  ctx.fillStyle = "#fffdf6"; ctx.fillRect(-26, 118, 32, 36);
-  ctx.fillStyle = "#c9c3b3"; for (let i = 0; i < 4; i++) ctx.fillRect(-22, 124 + i * 7, 22, 2);
-  ctx.fillStyle = "#c0c6cc"; ctx.beginPath(); ctx.arc(-34, 132, 8, 0, Math.PI * 2); ctx.arc(14, 132, 8, 0, Math.PI * 2); ctx.fill();
-  // neck and head: a rounded monitor with a face on the screen, a headset, an antenna
-  ctx.fillStyle = "#9aa3ab"; ctx.fillRect(-7, 68, 14, 14);
-  ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, 2); ctx.lineTo(0, -12); ctx.stroke();
-  ctx.fillStyle = Math.sin(time * 4) > 0 ? "#3fd2ff" : "#1b8fb3"; ctx.beginPath(); ctx.arc(0, -15, 5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = "#e8ecef"; ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.roundRect(-38, 0, 76, 70, 18); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = "#1d2a3a"; ctx.beginPath(); ctx.roundRect(-30, 9, 60, 50, 12); ctx.fill();
-  ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(0, 34, 44, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
-  ctx.fillStyle = "#5b6670"; ctx.beginPath(); ctx.roundRect(-46, 26, 9, 18, 4); ctx.roundRect(37, 26, 9, 18, 4); ctx.fill();
-  ctx.strokeStyle = "#5b6670"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-42, 44); ctx.quadraticCurveTo(-36, 62, -16, 60); ctx.stroke();
-  // the face, by mood
-  ctx.strokeStyle = "#5ff0ff"; ctx.fillStyle = "#5ff0ff"; ctx.lineWidth = 3.5; ctx.lineCap = "round";
-  const blink = m === "normal" && ((time + x) % 3.2) < 0.12;
-  if (m === "happy") {
-    [-13, 13].forEach(ex => { ctx.beginPath(); ctx.arc(ex, 31, 6, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke(); });
-    ctx.beginPath(); ctx.arc(0, 40, 8, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
-  } else if (m === "sad") {
-    [-13, 13].forEach(ex => { ctx.beginPath(); ctx.moveTo(ex - 6, 26 + (ex < 0 ? 0 : 3)); ctx.lineTo(ex + 6, 26 + (ex < 0 ? 3 : 0)); ctx.stroke(); ctx.beginPath(); ctx.arc(ex, 33, 2.5, 0, Math.PI * 2); ctx.fill(); });
-    ctx.beginPath(); ctx.arc(0, 50, 7, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
-    ctx.fillStyle = "#8fd8ff"; ctx.beginPath(); ctx.ellipse(-14, 42 + (time * 20) % 10, 2, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-  } else if (m === "busted") {
-    [[-13, 1], [13, -1]].forEach(([ex, d]) => { ctx.beginPath(); ctx.moveTo(ex - 5 * d, 26); ctx.lineTo(ex + 5 * d, 31); ctx.lineTo(ex - 5 * d, 36); ctx.stroke(); });
-    ctx.beginPath(); ctx.moveTo(-8, 46); ctx.lineTo(-3, 43); ctx.lineTo(2, 46); ctx.lineTo(7, 43); ctx.stroke();
-    ctx.fillStyle = "#8fd8ff"; ctx.beginPath(); ctx.moveTo(26, 4); ctx.quadraticCurveTo(33, 14, 26, 18); ctx.quadraticCurveTo(19, 14, 26, 4); ctx.fill();
-  } else {
-    [-13, 13].forEach(ex => { ctx.beginPath(); ctx.roundRect(ex - 4, blink ? 31 : 24, 8, blink ? 2 : 14, 4); ctx.fill(); });
-    ctx.beginPath(); ctx.arc(0, 41, 6, 0.2 * Math.PI, 0.8 * Math.PI); ctx.stroke();
-  }
-  ctx.restore();
-}
-const ROOM_FLOOR = HOME_FLOOR;   // the office title's room: window 28–156, frame 220–316, the 社長 at centre
-const FONT = () => getComputedStyle(document.body).fontFamily;
-const has = k => A.room[k] != null;
-const since = k => clock - A.room[k];
-// a little seeded scatter, so piles stay put from frame to frame
-const scatter = (n, seed) => Array.from({ length: n }, (_, i) => { const r = Math.sin((i + 1) * 12.9898 + seed * 78.233) * 43758.5453; return r - Math.floor(r); });
-function drawWallFx(time) {
-  const F = ROOM_FLOOR;
-  if (has("portraits")) {
-    // small framed portraits wherever there's wall
-    const r = scatter(60, 3);
-    for (let i = 0; i < 30; i++) {
-      const x = 6 + r[i * 2] * 330, y = 30 + r[i * 2 + 1] * (F - 170);
-      if (x > 20 && x < 164 && y > 126 && y < 292) continue;   // not over the window
-      if (x > 60 && x < 296 && y > 180) continue;              // nor over the 社長 at his desk
-      ctx.fillStyle = "#7a5230"; ctx.fillRect(x, y, 24, 28);
-      ctx.fillStyle = "#fffaf0"; ctx.fillRect(x + 3, y + 3, 18, 22);
-      ctx.fillStyle = "#d9d9d9"; ctx.beginPath(); ctx.arc(x + 12, y + 12, 5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#2c3a5a"; ctx.fillRect(x + 6, y + 18, 12, 6);
-    }
-  }
-  if (has("motto")) {
-    // the calligraphy rewritten
-    ctx.fillStyle = "#fffaf0"; ctx.fillRect(226, 158, 84, 52);
-    ctx.fillStyle = "#2a2118"; ctx.font = `900 14px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("たぶん", 268, 174); ctx.fillText("なんとかなる", 268, 194);
-  }
-  if (has("calendar")) {
-    ctx.fillStyle = "#fff"; ctx.fillRect(164, 142, 48, 56); ctx.strokeStyle = "#0003"; ctx.strokeRect(164, 142, 48, 56);
-    ctx.fillStyle = "#e2483d"; ctx.fillRect(164, 142, 48, 14);
-    const [mo, da] = (A.calLabel || "2月30日").match(/\d+/g);
-    ctx.fillStyle = "#fff"; ctx.font = `800 9px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(`${mo}月`, 188, 149);
-    ctx.fillStyle = "#e2483d"; ctx.font = `900 24px ${FONT()}`; ctx.fillText(da, 188 + Math.sin(time * 9) * 1.5, 178);
-    ctx.font = `800 8px ${FONT()}`; ctx.fillStyle = "#2a2118"; ctx.fillText("？？？", 188, 193);
-  }
-  if (has("poster")) {
-    ctx.fillStyle = "#fff4c2"; ctx.fillRect(322, 226, 34, 48); ctx.strokeStyle = "#c8962e"; ctx.strokeRect(322, 226, 34, 48);
-    ctx.fillStyle = "#e2483d"; ctx.font = `900 16px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("⚠", 339, 242);
-    ctx.fillStyle = "#2a2118"; ctx.font = `800 7px ${FONT()}`; ctx.fillText("あやしい", 339, 258); ctx.fillText("メール注意", 339, 267);
-  }
-  if (has("chart")) {
-    ctx.fillStyle = "#fff"; ctx.fillRect(322, 146, 34, 44); ctx.strokeStyle = "#0003"; ctx.strokeRect(322, 146, 34, 44);
-    ctx.strokeStyle = "#2f9e5b"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(326, 184); ctx.lineTo(334, 176); ctx.lineTo(341, 179); ctx.lineTo(352, 154); ctx.stroke();
-    ctx.fillStyle = "#2f9e5b"; ctx.beginPath(); ctx.moveTo(352, 150); ctx.lineTo(347, 158); ctx.lineTo(355, 159); ctx.closePath(); ctx.fill();
-  }
-  // the window
-  if (has("shiny")) {
-    for (let i = 0; i < 4; i++) {
-      const tw = (Math.sin(time * 3 + i * 1.7) + 1) / 2;
-      ctx.fillStyle = `rgba(255,255,255,${0.4 + tw * 0.6})`; ctx.font = `${10 + tw * 8}px ${FONT()}`; ctx.textAlign = "center";
-      ctx.fillText("✦", [52, 120, 84, 140][i], [160, 176, 236, 262][i]);
-    }
-  }
-  if (has("wifi")) {
-    ctx.save(); ctx.translate(92, 206); ctx.rotate(-0.06);
-    ctx.fillStyle = "#fff"; ctx.fillRect(-40, -22, 80, 44); ctx.strokeStyle = "#0003"; ctx.strokeRect(-40, -22, 80, 44);
-    ctx.fillStyle = "#2a2118"; ctx.font = `800 9px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("Wi-Fi パスワード", 0, -9); ctx.font = `900 12px ${FONT()}`; ctx.fillText("shacho1234", 0, 8);
-    ctx.restore();
-  }
-  if (has("hacked")) {
-    ctx.fillStyle = "#000c"; ctx.fillRect(40, 148, 104, 40);
-    ctx.fillStyle = Math.sin(time * 8) > 0 ? "#39ff6a" : "#1fae46"; ctx.font = `900 14px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("☠ HACKED ☠", 92, 168);
-  }
-  if (has("lights")) {
-    const g = ctx.createRadialGradient(180, 30, 4, 180, 30, 220);
-    g.addColorStop(0, "rgba(255,244,200,.55)"); g.addColorStop(1, "rgba(255,244,200,0)");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, LW, F);
-    ctx.fillStyle = "#fffbe6"; ctx.beginPath(); ctx.roundRect(150, 22, 60, 8, 4); ctx.fill();
-  }
-  if (has("leak")) {
-    // a stain on the ceiling, drips falling into a bucket
-    ctx.fillStyle = "#b9a27a"; ctx.beginPath(); ctx.ellipse(132, 24, 22, 5, 0, 0, Math.PI * 2); ctx.fill();
-    for (let i = 0; i < 3; i++) {
-      const t = (time * 1.4 + i / 3) % 1, y = 30 + t * (F - 30);
-      ctx.fillStyle = "#6cb6ef"; ctx.beginPath(); ctx.ellipse(132, y, 2.5, 4, 0, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.fillStyle = "#8a96a0"; ctx.beginPath(); ctx.moveTo(118, F - 18); ctx.lineTo(146, F - 18); ctx.lineTo(142, F + 2); ctx.lineTo(122, F + 2); ctx.closePath(); ctx.fill();
-  }
-  if (has("money")) {
-    // bills fluttering from the desk out of the window
-    for (let i = 0; i < 6; i++) {
-      const t = (time * 0.45 + i / 6) % 1, x = 180 - t * 120 + Math.sin(t * 9 + i) * 10, y = 330 - t * 150 + Math.cos(t * 7 + i) * 8;
-      ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(time * 4 + i) * 0.6);
-      ctx.fillStyle = "#8ccf8c"; ctx.fillRect(-9, -5, 18, 10); ctx.fillStyle = "#3f7f3f"; ctx.font = `900 7px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("¥", 0, 0);
-      ctx.restore();
-    }
-  }
-}
-function drawFloorFx(time) {
-  const F = ROOM_FLOOR;
-  if (has("wilt")) {
-    // the plant in the corner gone brown and droopy
-    ctx.fillStyle = "#7a5a2a";
-    [[317, -90, 18], [301, -74, 13], [333, -72, 13], [317, -106, 10]].forEach(([x, y, r]) => { ctx.beginPath(); ctx.ellipse(x, F + y, r, r * 0.8, 0, 0, Math.PI * 2); ctx.fill(); });
-  }
-  if (has("plant")) {
-    ctx.fillStyle = "#8a5a3a"; ctx.fillRect(14, F - 38, 26, 36);
-    ctx.fillStyle = "#3f9a52"; [[27, -58, 16], [16, -46, 11], [38, -46, 11], [27, -74, 10]].forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(x, F + y, r, 0, Math.PI * 2); ctx.fill(); });
-  }
-  if (has("coffee")) {
-    ctx.fillStyle = "#cfd4d8"; ctx.fillRect(46, F - 30, 34, 30);
-    ctx.fillStyle = "#2b2b30"; ctx.fillRect(50, F - 58, 26, 28);
-    ctx.fillStyle = "#fff"; ctx.fillRect(58, F - 40, 10, 8);
-    ctx.strokeStyle = "#ffffffaa"; ctx.lineWidth = 2;
-    for (let i = 0; i < 2; i++) { ctx.beginPath(); const sx = 60 + i * 6; ctx.moveTo(sx, F - 62); ctx.quadraticCurveTo(sx + Math.sin(time * 3 + i) * 5, F - 70, sx, F - 80); ctx.stroke(); }
-  }
-  if (has("extinguisher")) {
-    ctx.fillStyle = "#d63a2f"; ctx.beginPath(); ctx.roundRect(86, F - 40, 14, 38, 5); ctx.fill();
-    ctx.fillStyle = "#2b2b30"; ctx.fillRect(89, F - 46, 8, 7);
-    ctx.fillStyle = "#fff"; ctx.font = `800 6px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("消火器", 93, F - 22);
-  }
-  if (has("cake")) {
-    ctx.fillStyle = "#fff4e6"; ctx.fillRect(104, F - 18, 34, 16);
-    ctx.fillStyle = "#f5b7c5"; ctx.fillRect(104, F - 20, 34, 5);
-    ctx.fillStyle = "#e2483d"; [110, 121, 132].forEach(x => { ctx.beginPath(); ctx.arc(x, F - 22, 3, 0, Math.PI * 2); ctx.fill(); });
-    ctx.fillStyle = "#ffd23d"; [113, 127].forEach((x, i) => { ctx.fillRect(x - 1, F - 32, 2, 10); ctx.beginPath(); ctx.ellipse(x, F - 34 + Math.sin(time * 12 + i) * 0.6, 2, 3, 0, 0, Math.PI * 2); ctx.fill(); });
-  }
-  if (has("phone")) {
-    const sh = Math.sin(time * 40) * 1.5;
-    ctx.fillStyle = "#d63a2f"; ctx.beginPath(); ctx.roundRect(198 + sh, F - 16, 28, 14, 4); ctx.fill();
-    ctx.fillStyle = "#2b2b30"; ctx.beginPath(); ctx.roundRect(196 + sh, F - 22, 32, 7, 3); ctx.fill();
-    if (Math.sin(time * 6) > 0) { ctx.fillStyle = "#e2483d"; ctx.font = `900 10px ${FONT()}`; ctx.textAlign = "center"; ctx.fillText("プルルル！", 212, F - 30); }
-  }
-  if (has("screws")) {
-    ctx.fillStyle = "#cfe3ef88"; ctx.strokeStyle = "#8aa"; ctx.beginPath(); ctx.roundRect(232, F - 32, 24, 30, 5); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#9aa3ab"; scatter(16, 7).forEach((r, i) => { ctx.fillRect(235 + r * 16, F - 6 - (i % 5) * 5 - r * 3, 5, 2); });
-    ctx.fillStyle = "#fff"; ctx.fillRect(236, F - 28, 16, 7); ctx.fillStyle = "#2a2118"; ctx.font = `800 5px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("おやつ", 244, F - 24.5);
-  }
-  if (has("boxes")) {
-    [[258, F - 26], [282, F - 26], [268, F - 50]].forEach(([x, y]) => {
-      ctx.fillStyle = "#c9955a"; ctx.fillRect(x, y, 26, 24); ctx.fillStyle = "#a8743c"; ctx.fillRect(x + 11, y, 4, 24);
-      ctx.fillStyle = "#2a2118"; ctx.font = `800 5.5px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("飲める", x + 13, y + 9); ctx.fillText("消しゴム", x + 13, y + 16);
-    });
-  }
-  if (has("trash")) {
-    const r = scatter(60, 11);
-    for (let i = 0; i < 26; i++) {
-      const x = r[i * 2] * LW, y = F - 6 + r[i * 2 + 1] * 10;
-      ctx.fillStyle = "#fffdf6"; ctx.strokeStyle = "#8d8778"; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    }
-  }
-}
-function drawOverlayFx(time) {
-  const F = ROOM_FLOOR, H = 444;   // the room shows down to the card
-  if (has("clones")) {
-    [[40, 300, 0.34], [118, 330, 0.28], [250, 318, 0.3], [150, 250, 0.22]].forEach(([x, y, s], i) => {
-      ctx.save(); ctx.translate(x, y); ctx.scale(s, s); drawSecretary(0, 0, time + i, ["happy", "normal", "busted", "happy"][i]); ctx.restore();
-    });
-  }
-  if (has("aquarium")) {
-    ctx.fillStyle = "rgba(40,130,210,.28)"; ctx.fillRect(0, 0, LW, H);
-    // seaweed, fish, bubbles
-    ctx.strokeStyle = "#2f8f4e"; ctx.lineWidth = 4; ctx.lineCap = "round";
-    [24, 62, 330].forEach((x, i) => { ctx.beginPath(); ctx.moveTo(x, F + 4); for (let k = 1; k <= 5; k++) ctx.lineTo(x + Math.sin(time * 2 + k + i) * 6, F + 4 - k * 14); ctx.stroke(); });
-    for (let i = 0; i < 6; i++) {
-      const dir = i % 2 ? 1 : -1, sp = 30 + i * 9, x = ((time * sp * dir + i * 97) % (LW + 60) + LW + 60) % (LW + 60) - 30, y = 70 + i * 52 + Math.sin(time * 2 + i) * 8;
-      ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1);
-      ctx.fillStyle = ["#ff8a3d", "#ffd23d", "#5ff0ff", "#ff6b9a", "#9b7bff", "#ff8a3d"][i];
-      ctx.beginPath(); ctx.ellipse(0, 0, 12, 7, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-19, -7); ctx.lineTo(-19, 7); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = "#1d2a3a"; ctx.beginPath(); ctx.arc(6, -2, 1.6, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-    }
-    ctx.strokeStyle = "#ffffffaa"; ctx.lineWidth = 1.2;
-    for (let i = 0; i < 10; i++) { const t = (time * 0.3 + i / 10) % 1; ctx.beginPath(); ctx.arc(30 + i * 33 + Math.sin(time * 3 + i) * 4, F - t * (F - 20), 3 + (i % 3), 0, Math.PI * 2); ctx.stroke(); }
-  }
-  if (has("snow")) {
-    ctx.fillStyle = "rgba(200,230,255,.18)"; ctx.fillRect(0, 0, LW, H);
-    ctx.fillStyle = "#e9f6ff";
-    for (let x = 4; x < LW; x += 18) { ctx.beginPath(); ctx.moveTo(x, 22); ctx.lineTo(x + 10, 22); ctx.lineTo(x + 5, 34 + (x * 7) % 14); ctx.closePath(); ctx.fill(); }
-    ctx.fillStyle = "#fff";
-    for (let i = 0; i < 40; i++) { const t = (time * (0.12 + (i % 5) * 0.02) + i * 0.137) % 1; ctx.beginPath(); ctx.arc((i * 53) % LW + Math.sin(time + i) * 8, 26 + t * (H - 26), 1.5 + (i % 3), 0, Math.PI * 2); ctx.fill(); }
-  }
-  if (has("heat")) {
-    ctx.fillStyle = "rgba(255,120,40,.14)"; ctx.fillRect(0, 0, LW, H);
-    ctx.strokeStyle = "rgba(255,180,120,.6)"; ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) { ctx.beginPath(); const x = 30 + i * 72; for (let k = 0; k <= 8; k++) { const y = F - k * 22 - (time * 30) % 22; k ? ctx.lineTo(x + Math.sin(k + time * 4) * 5, y) : ctx.moveTo(x, y); } ctx.stroke(); }
-    ctx.fillStyle = "#e2483d"; ctx.font = `900 13px ${FONT()}`; ctx.textAlign = "center"; ctx.fillText("あ、あつい…", 180, 200);
-  }
-  if (has("disco")) {
-    ctx.strokeStyle = "#555"; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(180, 22); ctx.lineTo(180, 44); ctx.stroke();
-    ctx.fillStyle = "#cfd6dc"; ctx.beginPath(); ctx.arc(180, 56, 13, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#fff"; for (let i = 0; i < 8; i++) { const a = time * 2 + i * 0.8; if (Math.cos(a) > 0) ctx.fillRect(180 + Math.sin(a) * 10 - 1.5, 50 + (i % 3) * 5, 3, 3); }
-    ctx.save(); ctx.globalCompositeOperation = "lighter";
-    for (let i = 0; i < 9; i++) {
-      const a = time * 0.9 + i * 0.7, x = 180 + Math.cos(a) * (60 + (i % 3) * 50), y = 230 + Math.sin(a * 1.3) * 150;
-      ctx.fillStyle = ["#ff3d6e55", "#3dc8ff55", "#ffe03d55"][i % 3]; ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.restore();
-  }
-  if (has("blackout")) {
-    // dark, but for the light from the window
-    ctx.save(); ctx.fillStyle = "rgba(6,8,20,.78)";
-    ctx.beginPath(); ctx.rect(0, 0, LW, H); ctx.rect(156, 136, -128, 150); ctx.fill("evenodd"); ctx.restore();
-    ctx.fillStyle = "#ffffffcc"; ctx.font = `800 11px ${FONT()}`; ctx.textAlign = "center"; ctx.fillText("（まっくら）", 230, 300);
-  }
-  if (has("flicker") && !has("lights")) {
-    if (Math.sin(time * 23) * Math.sin(time * 7.3) > 0.55) { ctx.fillStyle = "rgba(6,8,20,.55)"; ctx.fillRect(0, 0, LW, H); }
-  }
-  if (has("alarm")) {
-    const on = Math.sin(time * 10) > 0;
-    if (on) { ctx.fillStyle = "rgba(255,40,40,.13)"; ctx.fillRect(0, 0, LW, H); }
-    ctx.fillStyle = on ? "#ff3b30" : "#9a2a24"; ctx.beginPath(); ctx.arc(300, 34, 9, Math.PI, 0); ctx.fill();
-    ctx.fillStyle = "#e2483d"; ctx.font = `900 13px ${FONT()}`; ctx.textAlign = "center";
-    ctx.fillText("ジリリリリ！", 300 + Math.sin(time * 40) * 2, 60);
-  }
-}
-// the 社長 dressed up for company events, measured off his sprite: head centred at x 205,
-// crown at y 210, chin at y 296, about 78 px across
-const BOSS = { x: 205, crown: 210, chin: 296, w: 78 };
-function drawEventFx(time) {
-  const F = ROOM_FLOOR, { x: hx, crown, chin } = BOSS;
-  // decorations on the wall and floor
-  if (has("halloween")) {
-    // an orange-and-purple garland, a jack-o'-lantern, sweets on the floor
-    for (let i = 0; i < 12; i++) { ctx.fillStyle = i % 2 ? "#7a3fa0" : "#f08c2e"; ctx.beginPath(); ctx.moveTo(i * 30, 26); ctx.lineTo(i * 30 + 30, 26); ctx.lineTo(i * 30 + 15, 44 + Math.sin(i) * 3); ctx.closePath(); ctx.fill(); }
-    ctx.fillStyle = "#f08c2e"; ctx.beginPath(); ctx.ellipse(34, F - 16, 20, 15, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#3a7a2a"; ctx.fillRect(32, F - 34, 4, 6);
-    ctx.fillStyle = Math.sin(time * 6) > -0.3 ? "#ffd23d" : "#c98a1e";
-    ctx.beginPath(); ctx.moveTo(24, F - 20); ctx.lineTo(30, F - 24); ctx.lineTo(30, F - 18); ctx.closePath(); ctx.moveTo(44, F - 20); ctx.lineTo(38, F - 24); ctx.lineTo(38, F - 18); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(24, F - 12); ctx.lineTo(44, F - 12); ctx.lineTo(40, F - 7); ctx.lineTo(28, F - 7); ctx.closePath(); ctx.fill();
-    scatter(12, 21).forEach((r, i) => { ctx.fillStyle = ["#e2483d", "#ffd23d", "#7a3fa0", "#2f9e5b"][i % 4]; ctx.beginPath(); ctx.ellipse(60 + r * 240, F - 3 - (i % 3) * 2, 4, 2.5, r * 3, 0, Math.PI * 2); ctx.fill(); });
-  }
-  if (has("santa")) {
-    // a little Christmas tree and presents for the children
-    ctx.fillStyle = "#2f7d4a"; [[60, 46, 22], [60, 30, 17], [60, 16, 12]].forEach(([x, dy, r]) => { ctx.beginPath(); ctx.moveTo(x - r, F - dy + 14); ctx.lineTo(x + r, F - dy + 14); ctx.lineTo(x, F - dy - 12); ctx.closePath(); ctx.fill(); });
-    ctx.fillStyle = "#ffd23d"; ctx.font = `14px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("★", 60, F - 62);
-    [[118, "#e2483d"], [146, "#2f6db5"], [172, "#2f9e5b"]].forEach(([x, c], i) => {
-      const h = 16 + (i % 2) * 6;
-      ctx.fillStyle = c; ctx.fillRect(x, F - h, 22, h);
-      ctx.fillStyle = "#ffd23d"; ctx.fillRect(x + 9, F - h, 4, h); ctx.fillRect(x, F - h + h / 2 - 2, 22, 4);
-    });
-  }
-  if (has("hanami")) {
-    // a blue tarp spread on the floor for the party
-    ctx.fillStyle = "#2f6dd5"; ctx.beginPath(); ctx.moveTo(70, F - 2); ctx.lineTo(300, F - 2); ctx.lineTo(320, F + 12); ctx.lineTo(50, F + 12); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.font = `800 7px ${FONT()}`; ctx.textAlign = "center"; ctx.fillText("社長席", 280, F + 6);
-  }
-  if (has("bonenkai")) {
-    // the split kusudama hanging from the ceiling, its banner unrolled
-    const kx = 172;
-    ctx.strokeStyle = "#7a5230"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(kx, 22); ctx.lineTo(kx, 30); ctx.stroke();
-    ctx.fillStyle = "#e9c46a";
-    ctx.beginPath(); ctx.arc(kx - 13, 42, 12, Math.PI * 0.5, Math.PI * 1.5); ctx.fill();
-    ctx.beginPath(); ctx.arc(kx + 13, 42, 12, -Math.PI * 0.5, Math.PI * 0.5); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.fillRect(kx - 9, 38, 18, 52); ctx.strokeStyle = "#e2483d"; ctx.strokeRect(kx - 9, 38, 18, 52);
-    ctx.fillStyle = "#e2483d"; ctx.font = `900 10px ${FONT()}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ["祝", "忘", "年", "会"].forEach((c, i) => ctx.fillText(c, kx, 45 + i * 12));
-  }
-  // what the 社長 wears: the latest costume wins the head
-  const hats = ["bonenkai", "halloween", "santa"].filter(has).sort((a, b) => A.room[a] - A.room[b]);
-  const hat = hats[hats.length - 1];
-  if (hat === "santa") {
-    ctx.fillStyle = "#fff";   // a big white beard
-    ctx.beginPath(); ctx.moveTo(hx - 34, chin - 26); ctx.quadraticCurveTo(hx - 40, chin + 18, hx, chin + 26); ctx.quadraticCurveTo(hx + 40, chin + 18, hx + 34, chin - 26); ctx.quadraticCurveTo(hx, chin - 2, hx - 34, chin - 26); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(hx - 9, chin - 14, 12, 5, 0.2, 0, Math.PI * 2); ctx.ellipse(hx + 9, chin - 14, 12, 5, -0.2, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#e2483d";   // the hat, flopping to one side
-    ctx.beginPath(); ctx.moveTo(hx - 40, crown + 16); ctx.quadraticCurveTo(hx - 10, crown - 52, hx + 44, crown - 30); ctx.lineTo(hx + 40, crown + 16); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.roundRect(hx - 44, crown + 6, 88, 16, 8); ctx.fill();
-    ctx.beginPath(); ctx.arc(hx + 46, crown - 30, 8, 0, Math.PI * 2); ctx.fill();
-  } else if (hat === "halloween") {
-    ctx.fillStyle = "#3b1f55";   // a witch's hat
-    ctx.beginPath(); ctx.ellipse(hx, crown + 12, 56, 10, -0.05, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(hx - 30, crown + 10); ctx.lineTo(hx + 30, crown + 10); ctx.quadraticCurveTo(hx + 10, crown - 30, hx + 22, crown - 58); ctx.quadraticCurveTo(hx - 12, crown - 30, hx - 30, crown + 10); ctx.fill();
-    ctx.fillStyle = "#f08c2e"; ctx.fillRect(hx - 27, crown - 2, 54, 7);
-  } else if (hat === "bonenkai") {
-    ctx.save(); ctx.translate(hx + 6, crown + 8); ctx.rotate(0.15);   // a striped party hat
-    ctx.fillStyle = "#ffd23d"; ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(18, 0); ctx.lineTo(0, -44); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = "#e2483d"; ctx.lineWidth = 3; [-30, -16].forEach(y => { const k = -y / 44 * 18; ctx.beginPath(); ctx.moveTo(-18 + k, y); ctx.lineTo(18 - k, y); ctx.stroke(); });
-    ctx.fillStyle = "#2f6db5"; ctx.beginPath(); ctx.arc(0, -46, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-  if (has("gloom")) {
-    // a little rain cloud over his head
-    const cx = hx + Math.sin(time * 0.8) * 6, cy = crown - 34;
-    ctx.fillStyle = "#8a929a"; [[-16, 4, 13], [0, -4, 16], [16, 4, 13]].forEach(([dx, dy, r]) => { ctx.beginPath(); ctx.arc(cx + dx, cy + dy, r, 0, Math.PI * 2); ctx.fill(); });
-    ctx.strokeStyle = "#6cb6ef"; ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) { const t = (time * 2 + i / 5) % 1; ctx.beginPath(); ctx.moveTo(cx - 20 + i * 10, cy + 14 + t * 30); ctx.lineTo(cx - 22 + i * 10, cy + 20 + t * 30); ctx.stroke(); }
-  }
-}
-// things in the air for the events: bats, cherry petals, confetti
-function drawEventAir(time) {
-  if (has("halloween")) {
-    ctx.fillStyle = "#2a2118";
-    for (let i = 0; i < 3; i++) {
-      const x = ((time * (30 + i * 12) + i * 120) % (LW + 40)) - 20, y = 70 + i * 34 + Math.sin(time * 3 + i) * 10, f = Math.sin(time * 14 + i) * 6;
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x - 8, y - 6 - f, x - 16, y - f); ctx.quadraticCurveTo(x - 8, y + 2, x, y + 4); ctx.quadraticCurveTo(x + 8, y + 2, x + 16, y - f); ctx.quadraticCurveTo(x + 8, y - 6 - f, x, y); ctx.fill();
-    }
-  }
-  if (has("hanami")) {
-    // a cherry branch reaching in at the window, petals drifting across the room
-    ctx.strokeStyle = "#6b4a2b"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(0, 120); ctx.quadraticCurveTo(60, 110, 110, 140); ctx.stroke();
-    ctx.fillStyle = "#ffc0d6"; [[30, 112], [56, 116], [80, 124], [104, 136], [44, 124], [92, 132]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI * 2); ctx.fill(); });
-    for (let i = 0; i < 18; i++) {
-      const t = (time * (0.08 + (i % 4) * 0.015) + i * 0.13) % 1, x = (i * 41 + t * 160) % LW, y = 110 + t * 330;
-      ctx.save(); ctx.translate(x, y); ctx.rotate(time * 2 + i); ctx.fillStyle = "#ffb3cc"; ctx.beginPath(); ctx.ellipse(0, 0, 3.5, 2, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    }
-  }
-  if (has("bonenkai")) {
-    for (let i = 0; i < 30; i++) {
-      const t = (time * (0.1 + (i % 5) * 0.02) + i * 0.071) % 1, x = 172 + Math.sin(i * 2.3) * (40 + t * 160), y = 50 + t * 390;
-      ctx.save(); ctx.translate(x, y); ctx.rotate(time * 4 + i);
-      ctx.fillStyle = ["#e2483d", "#ffd23d", "#2f6db5", "#2f9e5b", "#ff6b9a"][i % 5]; ctx.fillRect(-3, -1.5, 6, 3); ctx.restore();
-    }
-  }
-}
-function drawAIGame(time) {
-  drawRoom(true);
-  drawWallFx(time);
-  drawEventFx(time);
-  drawFloorFx(time);
-  // the secretary stands beside the desk
-  ctx.save(); ctx.translate(318, 330); ctx.scale(0.6, 0.6); drawSecretary(0, 0, time); ctx.restore();
-  drawEventAir(time);
-  drawOverlayFx(time);
 }
 
 // ---- the office title: the painted title, recomposed to 9:16 (scene and sign above, a wood
@@ -2088,10 +1722,6 @@ function frame(now) {
     for (let i = 0; i < 3; i++) stepChair(dt / 3);
     chairHud();
     drawChairGame(clock);
-  } else if (A.on) {
-    stepAI(dt);
-    if (A.phase === "run") aiHud();
-    drawAIGame(clock);
   } else if (dirty) {
     drawTitle(); dirty = false;
   }
