@@ -154,6 +154,9 @@ button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
   background: transparent; color: var(--gold); border: 2px solid var(--gold); border-radius: 30px; height: 48px; font-size: 16px; width: 100%;
 }
 .secondary:active { transform: translateY(2px); }
+/* on the title the two levels sit side by side in rank, so ハード matches ノーマル's size */
+#levels .secondary { height: 56px; font-size: 18px; box-sizing: border-box; box-shadow: 0 5px 0 #0007; }
+#levels .secondary:active { transform: translateY(4px); box-shadow: 0 1px 0 #0007; }
 .ghost { background: transparent; color: var(--paper); font-size: 14px; height: 40px; text-decoration: underline; }
 .rank { font-family: var(--display); font-size: 30px; color: var(--ink); }
 .score-total { font-family: var(--display); font-size: 48px; line-height: 1; font-variant-numeric: tabular-nums; }
