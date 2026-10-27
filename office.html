@@ -170,7 +170,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
       <div class="swipe-demo"><span>👆</span></div>
       <ol>
         <li>画面を<b>スワイプ</b>すると、その向きに社長の椅子をひと押しします。<b>何回でも</b>押せます。</li>
-        <li>椅子は勢いでしばらく滑ります。逆向きにはらうとブレーキ。家具や壁に<b>強くぶつかるとクラッシュ</b>して、目が回って<b>2.5秒動けません</b>。部屋の下半分を気ままに動き回る<b>お掃除ロボ</b>にも注意！</li>
+        <li>椅子は勢いでしばらく滑ります。逆向きにはらうとブレーキ。家具や壁に<b>強くぶつかるとクラッシュ</b>して、目が回って<b>2.5秒動けません</b>。部屋の下半分を気ままに動き回る<b>お掃除ロボ</b>にも注意！（ロボは社長が前にいると止まってくれますが、ぶつかると跳ね返ります）</li>
         <li><b>①コーヒー → ②本棚 → ③観葉植物 → ④ドア</b>の順に、マークの上で<b>止まって</b>いき、最後に<b>⑤社長席</b>に戻ってきたらゴール。タイムを競います。光っているマークがつぎの行き先です。</li>
       </ol>
       <button type="button" class="primary" id="cTutOk">はじめる</button>
@@ -1258,17 +1258,36 @@ const STOP_SPEED = 50;    // a mark counts only once the chair has all but stopp
 const CRASH_TIME = 2.5;   // a hard knock leaves the 社長 dizzy and unable to shove for this long
 const CRASH_HIT = 135;    // how hard (px/s into the surface) counts as a crash
 // a cleaning robot wanders the lower half of the room at random: it rolls straight, now and
-// then picks a new heading, and turns away from walls, furniture and the chair
-const ROBO = { x: 180, y: 540, r: 13, vx: 0, vy: 0, sp: 85, turn: 0, area: { y0: 330 } };
+// then picks a new heading, and turns away from walls and furniture. Like a serving robot in a
+// restaurant it never runs into the 社長: a sensor in front stops it while the chair is ahead,
+// and if he stays put it turns and goes another way. (vx, vy) is where it means to go.
+const ROBO = { x: 180, y: 540, r: 13, vx: 0, vy: 0, sp: 85, turn: 0, wait: 0, area: { y0: 330 } };
+const ROBO_SENSE = 34;    // how far ahead (gap between the two edges) the sensor sees the chair
 function resetRobo() {
   const a = Math.random() * Math.PI * 2;
-  Object.assign(ROBO, { x: 180, y: 540, vx: Math.cos(a) * ROBO.sp, vy: Math.sin(a) * ROBO.sp, turn: 1 + Math.random() * 2 });
+  Object.assign(ROBO, { x: 180, y: 540, vx: Math.cos(a) * ROBO.sp, vy: Math.sin(a) * ROBO.sp, turn: 1 + Math.random() * 2, wait: 0 });
+}
+function chairAhead() {
+  const dx = C.x - ROBO.x, dy = C.y - ROBO.y, d = Math.hypot(dx, dy) || 1e-6;
+  if (d - CHAIR_R - ROBO.r > ROBO_SENSE) return false;
+  return (dx * ROBO.vx + dy * ROBO.vy) / (d * ROBO.sp) > 0;   // anywhere it is heading toward
 }
 function roboBounce(nx, ny) {
   const vn = ROBO.vx * nx + ROBO.vy * ny;
   if (vn < 0) { ROBO.vx -= 2 * vn * nx; ROBO.vy -= 2 * vn * ny; }
 }
 function moveRobo(dt) {
+  if (chairAhead()) {
+    // stop and wait for him; after a moment, turn away from the chair and carry on
+    ROBO.wait += dt;
+    if (ROBO.wait > 1.2) {
+      const a = Math.atan2(ROBO.y - C.y, ROBO.x - C.x) + (Math.random() - 0.5) * Math.PI * 0.8;
+      ROBO.vx = Math.cos(a) * ROBO.sp; ROBO.vy = Math.sin(a) * ROBO.sp;
+      ROBO.wait = 0; ROBO.turn = 1 + Math.random() * 2;
+    }
+    return;
+  }
+  ROBO.wait = 0;
   ROBO.turn -= dt;
   if (ROBO.turn <= 0) {   // a new heading every 1–3 s
     const a = Math.atan2(ROBO.vy, ROBO.vx) + (Math.random() - 0.5) * Math.PI * 1.6;
@@ -1409,14 +1428,15 @@ function stepChair(dt) {
     dx /= d; dy /= d; C.x = o.x + dx * (r + o.r); C.y = o.y + dy * (r + o.r);
     bump(dx, dy, 0.7);
   }
-  // the robot: bounce off it as seen from the robot, so it also knocks the chair along its way
+  // the robot: it stops for the chair, so only the chair rolling into it counts — a bounce off
+  // a still obstacle — and the robot then heads away
   moveRobo(dt);
   {
     let dx = C.x - ROBO.x, dy = C.y - ROBO.y; const d = Math.hypot(dx, dy) || 1e-6;
     if (d < r + ROBO.r) {
       dx /= d; dy /= d; C.x = ROBO.x + dx * (r + ROBO.r); C.y = ROBO.y + dy * (r + ROBO.r);
-      C.vx -= ROBO.vx; C.vy -= ROBO.vy; bump(dx, dy, 0.8); C.vx += ROBO.vx; C.vy += ROBO.vy;
-      roboBounce(-dx, -dy);   // and the robot turns away from the chair
+      bump(dx, dy, 0.8);
+      roboBounce(-dx, -dy);
     }
   }
   // marks, in order: the chair has to come to a stop on the next one
@@ -1665,7 +1685,15 @@ function drawRobo(time) {
   g.addColorStop(0, "#ffffff"); g.addColorStop(1, "#b8bec6");
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = "#2a2e34"; ctx.beginPath(); ctx.arc(x, y, r * 0.62, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = Math.sin(time * 8) > 0 ? "#5ad0ff" : "#2a7aa8"; ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+  // the light: blue while it cleans, amber while it waits for the 社長 to pass
+  const waiting = chairAhead();
+  ctx.fillStyle = waiting ? (Math.sin(time * 10) > 0 ? "#ffb23d" : "#a86a10") : Math.sin(time * 8) > 0 ? "#5ad0ff" : "#2a7aa8";
+  ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+  if (waiting) {   // the sensor's beam ahead
+    const a0 = Math.atan2(vy, vx);
+    ctx.fillStyle = "rgba(255,190,70,0.22)";
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.arc(x, y, r + ROBO_SENSE, a0 - 0.7, a0 + 0.7); ctx.closePath(); ctx.fill();
+  }
   const a = Math.atan2(vy, vx);
   ctx.strokeStyle = "#e2483d"; ctx.lineWidth = 2.5; ctx.lineCap = "round";
   ctx.beginPath(); ctx.arc(x, y, r - 1, a - 0.9, a + 0.9); ctx.stroke();
