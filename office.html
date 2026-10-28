@@ -277,7 +277,8 @@ const EYE = { y: 1.62, z: -1.75 }, FOC = 590, HZ = 252;  // camera height and po
 const DESK = { x0: -0.82, x1: 0.82, z0: -0.02, z1: 0.36, y: 0.62 };  // the 社長's desk top
 function proj(x, y, z) { const d = Math.max(0.05, z - EYE.z); return [LW / 2 + FOC * x / d, HZ - FOC * (y - EYE.y) / d, FOC / d]; }
 const BR = 0.055;                                        // paper ball radius
-const CAN = { x: 0, z: ROOM.d - 0.26, r: 0.23, h: 0.42, y0: 0 }; // against the back wall; x changes every throw
+const CAN_Z = ROOM.d - 0.26;                             // the bin's place against the back wall
+const CAN = { x: 0, z: CAN_Z, r: 0.23, h: 0.42, y0: 0 }; // x changes every throw
 const rimY = () => CAN.y0 + CAN.h;                       // y0 lifts the bin when it rides the robot
 // the 社長's back-view sprite (raised right hand at hand[] of its width/height), seated left of the bin
 const PRES = { H: 0.7, aspect: 187 / 400, hand: [0.825, 0.348] };
@@ -321,7 +322,8 @@ function startTrash() {
   // the room is tidied for a new game; an A/C the paper knocked off is switched back on
   if (T.fx && T.fx.happened.includes("エアコンが止まった")) setAC(true);
   Object.assign(T, { on: true, phase: "aim", ball: null, thrown: 0, made: 0, litter: [], fx: freshFx(), trail: [], bot: null });
-  CAN.y0 = 0;
+  // the robot carried the bin off last game: put it back on the floor against the wall
+  CAN.y0 = 0; CAN.z = CAN_Z;
   $("home").hidden = true; $("trashHud").hidden = false; $("result").hidden = true;
   lastGame = "trash";
   newBall(); updateHud();
@@ -330,6 +332,7 @@ function startTrash() {
 }
 function newBall() {
   // the bin moves along the back wall between throws, clear of paper left on the floor
+  CAN.z = CAN_Z;
   for (let i = 0; i < 30; i++) {
     CAN.x = T.thrown === 0 ? 0 : rand(-0.85, 0.85);
     if (!T.litter.some(p => p.y < 0.3 && Math.hypot(p.x - CAN.x, p.z - CAN.z) < CAN.r + BR + 0.03)) break;
