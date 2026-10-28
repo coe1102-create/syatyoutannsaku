@@ -142,6 +142,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
         <li>紙なのでフワフワ漂います。<b>エアコンの風</b>で左右に流されます（羽の向きと風の流れで風向きがわかります）。</li>
         <li>奥の壁に当てて入れる<b>バンクショット</b>もアリ。</li>
         <li>ゴミ箱は1球ごとに場所が変わります。<b>10球で何個入るか</b>を競います。入らなかった紙くずは、落ちたところにそのまま残ります。風がむずかしいときは「エアコン停止」。</li>
+        <li><b>最後の1球</b>は<b>お掃除ロボ</b>がゴミ箱を背中に乗せて、床の紙くずを拾いながら動き回ります。<b>動くゴミ箱</b>をねらって投げよう！外れて床に落ちたら、ロボが拾って終了です。</li>
       </ol>
       <button type="button" class="primary" id="tutOk">はじめる</button>
     </div>
@@ -276,7 +277,8 @@ const EYE = { y: 1.62, z: -1.75 }, FOC = 590, HZ = 252;  // camera height and po
 const DESK = { x0: -0.82, x1: 0.82, z0: -0.02, z1: 0.36, y: 0.62 };  // the 社長's desk top
 function proj(x, y, z) { const d = Math.max(0.05, z - EYE.z); return [LW / 2 + FOC * x / d, HZ - FOC * (y - EYE.y) / d, FOC / d]; }
 const BR = 0.055;                                        // paper ball radius
-const CAN = { x: 0, z: ROOM.d - 0.26, r: 0.23, h: 0.42 }; // against the back wall; x changes every throw
+const CAN = { x: 0, z: ROOM.d - 0.26, r: 0.23, h: 0.42, y0: 0 }; // against the back wall; x changes every throw
+const rimY = () => CAN.y0 + CAN.h;                       // y0 lifts the bin when it rides the robot
 // the 社長's back-view sprite (raised right hand at hand[] of its width/height), seated left of the bin
 const PRES = { H: 0.7, aspect: 187 / 400, hand: [0.825, 0.348] };
 const START = { x: 0, y: 0.88, z: -0.4 };                 // the paper in his raised hand: bottom centre, below the bin on screen
@@ -291,7 +293,7 @@ const MUG = { x: 0.52, z: 0.2, r: 0.045, h: 0.1 };                              
 const THROWS = 10;
 const T = {
   on: false, phase: "aim", ball: null, now: 0, ac: true, louver: 0,
-  thrown: 0, made: 0, litter: [], fx: null, trail: []
+  thrown: 0, made: 0, litter: [], fx: null, trail: [], bot: null
 };
 // the room's mischief, reset every game: what the paper has knocked over, and when
 const freshFx = () => ({ frame: null, clock: null, clockTilt: 0, clockOff: 0, clockFrom: 0, offFrom: 0, books: [], mug: null, shake: PLANTS.map(() => -9), happened: [] });
@@ -318,7 +320,8 @@ function windAt() {
 function startTrash() {
   // the room is tidied for a new game; an A/C the paper knocked off is switched back on
   if (T.fx && T.fx.happened.includes("エアコンが止まった")) setAC(true);
-  Object.assign(T, { on: true, phase: "aim", ball: null, thrown: 0, made: 0, litter: [], fx: freshFx(), trail: [] });
+  Object.assign(T, { on: true, phase: "aim", ball: null, thrown: 0, made: 0, litter: [], fx: freshFx(), trail: [], bot: null });
+  CAN.y0 = 0;
   $("home").hidden = true; $("trashHud").hidden = false; $("result").hidden = true;
   lastGame = "trash";
   newBall(); updateHud();
@@ -333,6 +336,94 @@ function newBall() {
   }
   T.ball = { x: START.x, y: START.y, z: START.z, vx: 0, vy: 0, vz: 0, spin: 0, rot: rand(0, 6), ph: rand(0, 6), ph2: rand(0, 6), held: true, hitWall: false, inCan: false, done: 0, age: 0 };
   T.phase = "aim"; T.trail = [];
+  // the last ball: the cleaning robot rolls in, loads the bin onto itself and wanders the floor
+  // tidying up; the throw waits until the bin is aboard
+  if (T.thrown === THROWS - 1 && !T.bot) {
+    T.bot = { x: -1.05, z: 0.7, state: "in", t0: T.now, age: 0, wp: null, wpT: 0, prey: null, final: null, cleaned: 0, fx: 0, fz: 0 };
+    T.phase = "bot";
+    callout("お掃除ロボがやってきた！");
+  }
+}
+
+// ---- the cleaning robot (last ball only) ----
+const BOT = { r: 0.25, h: 0.12, sp: 0.36, reach: 0.55, x0: -1.05, x1: 1.05, z0: 1.1, z1: 2.6, load: 0.8, pick: 0.6 };
+// paper it can get at: lying on the floor (or on other paper there), not on furniture or in a plant
+const onFloor = l => l.plant == null && l.y < 0.3 && !["desk", "shelf", "ac", "pot"].includes(l.restOn);
+const botSpot = l => ({ x: Math.max(BOT.x0, Math.min(BOT.x1, l.x)), z: Math.max(BOT.z0, Math.min(BOT.z1, l.z)) });
+const canReach = l => { const s = botSpot(l); return Math.hypot(s.x - l.x, s.z - l.z) < BOT.reach * 0.9; };
+function stepBot(dt) {
+  const bot = T.bot;
+  if (!bot) return;
+  bot.age += dt;
+  // paper it has scooped up drops into the bin, then is gone
+  for (let i = T.litter.length - 1; i >= 0; i--) {
+    const l = T.litter[i];
+    if (l.pick == null || T.now - l.pick < BOT.pick) continue;
+    T.litter.splice(i, 1); bot.cleaned++;
+    if (l === bot.final) {
+      callout("お片付け完了！");
+      setTimeout(() => { if (T.on) showResult(); }, 900);
+    }
+  }
+  if (bot.state === "load") {
+    // the bin hops from the floor onto its back
+    const k = Math.min(1, (T.now - bot.t0) / BOT.load), e = k * k * (3 - 2 * k);
+    CAN.x = bot.fx + (bot.x - bot.fx) * e; CAN.z = bot.fz + (bot.z - bot.fz) * e;
+    CAN.y0 = BOT.h * e + 0.35 * Math.sin(Math.PI * k);
+    if (k >= 1) {
+      bot.state = "roam"; CAN.y0 = BOT.h;
+      if (T.phase === "bot") T.phase = "aim";
+      callout("最後の1球！動くゴミ箱をねらえ！");
+    }
+    return;
+  }
+  // where to: to the bin first; then to the nearest paper on the floor, or a wander about
+  let tx, tz;
+  if (bot.state === "in") { tx = CAN.x; tz = CAN.z - 0.48; }
+  else {
+    if (!bot.prey || bot.prey.pick != null || !T.litter.includes(bot.prey)) {
+      bot.prey = bot.final && bot.final.pick == null ? bot.final : null;
+      if (!bot.prey) {
+        let best = 1e9;
+        for (const l of T.litter) {
+          if (l.pick != null || !onFloor(l) || !canReach(l)) continue;
+          const d = Math.hypot(l.x - bot.x, l.z - bot.z);
+          if (d < best) { best = d; bot.prey = l; }
+        }
+      }
+    }
+    if (bot.prey) ({ x: tx, z: tz } = botSpot(bot.prey));
+    else {
+      bot.wpT -= dt;
+      if (!bot.wp || bot.wpT <= 0 || Math.hypot(bot.wp.x - bot.x, bot.wp.z - bot.z) < 0.05) {
+        bot.wp = { x: rand(BOT.x0, BOT.x1), z: rand(BOT.z0, BOT.z1) }; bot.wpT = rand(2.5, 4.5);
+      }
+      tx = bot.wp.x; tz = bot.wp.z;
+    }
+  }
+  const dx = tx - bot.x, dz = tz - bot.z, d = Math.hypot(dx, dz);
+  const step = Math.min(d, BOT.sp * dt);
+  const px = bot.x, pz = bot.z;
+  if (d > 1e-6) { bot.x += dx / d * step; bot.z += dz / d * step; }
+  if (bot.state === "in") {
+    if (d < 0.01) { bot.state = "load"; bot.t0 = T.now; bot.fx = CAN.x; bot.fz = CAN.z; }
+    return;
+  }
+  // the bin rides along, and so does any paper already inside it
+  CAN.x = bot.x; CAN.z = bot.z;
+  const b = T.ball;
+  if (b && b.inCan) { b.x += bot.x - px; b.z += bot.z - pz; }
+  // close enough: scoop it up
+  const p = bot.prey;
+  if (p && Math.hypot(p.x - bot.x, p.z - bot.z) < BOT.reach) {
+    p.pick = T.now; p.from = { x: p.x, y: p.y, z: p.z }; bot.prey = null;
+    callout(p === bot.final ? "ロボが拾ってくれた！" : "ロボがお片付け！");
+  }
+}
+// a paper ball on its way from the floor into the bin
+function pickPos(l) {
+  const k = Math.min(1, (T.now - l.pick) / BOT.pick), f = l.from;
+  return { x: f.x + (CAN.x - f.x) * k, y: f.y + (rimY() + 0.05 - f.y) * k + 0.3 * Math.sin(Math.PI * k), z: f.z + (CAN.z - f.z) * k };
 }
 function showTutorial() { $("tutorial").hidden = false; }
 $("tutOk").addEventListener("click", () => { $("tutorial").hidden = true; try { localStorage.setItem("office-trash-tut", "1"); } catch (e) {} });
@@ -394,7 +485,7 @@ function endSwipe(e) {
   throwFromSwipe(vx, vy, hx + lx / ly * (aimRow() - hy));
 }
 // the screen row of the bin's rim, which the aim line is measured against
-function aimRow() { return proj(CAN.x, CAN.h, CAN.z)[1]; }
+function aimRow() { return proj(CAN.x, rimY(), CAN.z)[1]; }
 cv.addEventListener("pointerup", endSwipe);
 cv.addEventListener("pointercancel", endSwipe);
 
@@ -430,7 +521,7 @@ function stepBall(dt) {
     b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt;
     const dx = b.x - CAN.x, dz = b.z - CAN.z, d = Math.hypot(dx, dz), lim = CAN.r - BR;
     if (d > lim) { b.x = CAN.x + dx / d * lim; b.z = CAN.z + dz / d * lim; }
-    if (b.y < BR + 0.03) { b.y = BR + 0.03; b.vy = 0; b.done += dt; }
+    if (b.y < CAN.y0 + BR + 0.03) { b.y = CAN.y0 + BR + 0.03; b.vy = 0; b.done += dt; }
     if (b.done > 0.5) finishShot(true);
     return;
   }
@@ -461,8 +552,9 @@ function stepBall(dt) {
 
   // the bin: in through the opening, off the rim, or off its side
   const dx = b.x - CAN.x, dz = b.z - CAN.z, dh = Math.hypot(dx, dz) || 1e-6;
-  if (py >= CAN.h && b.y < CAN.h && b.vy < 0 && dh < CAN.r - BR * 0.4) { b.inCan = true; b.vx *= 0.3; b.vz *= 0.3; return; }
-  const dr = dh - CAN.r, dyr = b.y - CAN.h, drim = Math.hypot(dr, dyr), rimMin = BR + 0.012;
+  const rim = rimY();
+  if (py >= rim && b.y < rim && b.vy < 0 && dh < CAN.r - BR * 0.4) { b.inCan = true; b.vx *= 0.3; b.vz *= 0.3; return; }
+  const dr = dh - CAN.r, dyr = b.y - rim, drim = Math.hypot(dr, dyr), rimMin = BR + 0.012;
   if (drim < rimMin) {
     // bounce off the rim (in the plane through the bin's axis)
     const nr = dr / (drim || 1e-6), ny = dyr / (drim || 1e-6), ux = dx / dh, uz = dz / dh;
@@ -473,7 +565,7 @@ function stepBall(dt) {
     }
     const push = rimMin - drim;
     b.x += ux * nr * push; b.z += uz * nr * push; b.y += ny * push;
-  } else if (b.y < CAN.h && dh < CAN.r + BR && dh > CAN.r - BR) {
+  } else if (b.y < rim && b.y > CAN.y0 && dh < CAN.r + BR && dh > CAN.r - BR) {
     // the outside of the bin
     const ux = dx / dh, uz = dz / dh, vr = b.vx * ux + b.vz * uz;
     b.x = CAN.x + ux * (CAN.r + BR); b.z = CAN.z + uz * (CAN.r + BR);
@@ -568,8 +660,18 @@ function hitThings(b, dt) {
     fx.mug = { t: T.now, dir: b.vx >= 0 ? 1 : -1 };
     b.quiet = true; happen("コーヒーをこぼした", "あっ！コーヒーが…");
   }
+  // the cleaning robot's body: the paper bounces off it and rolls off its top
+  const bot = T.bot;
+  if (bot) {
+    h = hitBox(b, { x0: bot.x - BOT.r, x1: bot.x + BOT.r, y0: 0, y1: BOT.h, z0: bot.z - BOT.r, z1: bot.z + BOT.r });
+    if (h && h.ny > 0.7) {
+      const ox = b.x - bot.x, oz = b.z - bot.z, od = Math.hypot(ox, oz) || 1;
+      b.vx += ox / od * 0.6; b.vz += oz / od * 0.6;
+    }
+  }
   // paper already lying about: bump off it, or come to rest on top of it
   for (const l of T.litter) {
+    if (l.pick != null) continue;
     const dx = b.x - l.x, dy = b.y - l.y, dz = b.z - l.z, d = Math.hypot(dx, dy, dz);
     if (d >= BR * 2 || d < 1e-6) continue;
     const nx = dx / d, ny = dy / d, nz = dz / d, push = BR * 2 - d;
@@ -592,8 +694,15 @@ function finishShot(inside) {
     // a miss stays where it came to rest for the rest of the game: it becomes litter, and the
     // ball itself is retired at once (left in play, it would bump into its own litter and be
     // drawn a second time beside it)
-    T.litter.push({ x: b.x, y: b.y, z: b.z, rot: b.rot, plant: b.caught, seed: b.ph });
+    const l = { x: b.x, y: b.y, z: b.z, rot: b.rot, plant: b.caught, seed: b.ph, restOn: b.restOn };
+    T.litter.push(l);
     T.ball = null;
+    // the last ball missed onto the floor: the robot goes to pick it up, and that ends the game
+    if (T.bot && T.thrown >= THROWS && onFloor(l) && canReach(l)) {
+      T.bot.final = l; T.bot.prey = null;
+      updateHud();
+      return;
+    }
     if (b.restOn === "shelf") happen("本棚の上に紙くず", "本棚に乗っちゃった…");
     else if (b.restOn === "ac") happen("エアコンの上に紙くず", "エアコンの上に乗っちゃった…");
     else if (b.restOn === "plant") happen("植木に紙くず", "植木に引っかかった…");
@@ -616,9 +725,11 @@ function showResult() {
   $("rIn").textContent = `${T.made} / ${THROWS}`;
   $("rBest").textContent = isBest ? `${T.made}個（更新！）` : `${best}個`;
   // the mischief of this game, if any
-  const fx = T.fx.happened;
-  $("rFx").hidden = !fx.length;
-  $("rFx").textContent = fx.length ? `社長室の被害：${fx.join("、")}` : "";
+  const fx = T.fx.happened, lines = [];
+  if (fx.length) lines.push(`社長室の被害：${fx.join("、")}`);
+  if (T.bot && T.bot.cleaned) lines.push(`お掃除ロボが片付けた紙くず：${T.bot.cleaned}個`);
+  $("rFx").hidden = !lines.length;
+  $("rFx").textContent = lines.join("　");
   $("result").hidden = false;
 }
 
@@ -993,7 +1104,7 @@ function canRings() {
     const [cx, cyF] = proj(CAN.x, y, CAN.z - r), [, cyB] = proj(CAN.x, y, CAN.z + r), [, , s] = proj(CAN.x, y, CAN.z);
     return { cx, cy: (cyF + cyB) / 2, rx: r * s, ry: Math.max(1.5, Math.abs(cyF - cyB) / 2) };
   };
-  return { rim: ring(CAN.h, CAN.r), base: ring(0, CAN.r * 0.85) };
+  return { rim: ring(rimY(), CAN.r), base: ring(CAN.y0, CAN.r * 0.85) };
 }
 function drawCanInside() {
   const { rim } = canRings();
@@ -1003,7 +1114,7 @@ function drawCanInside() {
 }
 function drawCanBody() {
   const { rim, base } = canRings();
-  ctx.fillStyle = "#0006"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.25, base.ry * 1.3, 0, 0, Math.PI * 2); ctx.fill();
+  if (CAN.y0 < 0.01) { ctx.fillStyle = "#0006"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.25, base.ry * 1.3, 0, 0, Math.PI * 2); ctx.fill(); }
   // brushed steel, lit from the front-left
   const sg = ctx.createLinearGradient(rim.cx - rim.rx, 0, rim.cx + rim.rx, 0);
   sg.addColorStop(0, "#3a4048"); sg.addColorStop(0.28, "#c9d0d6"); sg.addColorStop(0.42, "#8a949c"); sg.addColorStop(0.75, "#4e565e"); sg.addColorStop(1, "#262b30");
@@ -1021,6 +1132,34 @@ function drawCanBody() {
   }
   ctx.strokeStyle = "#d4dbe1"; ctx.lineWidth = Math.max(2, rim.rx * 0.08);
   ctx.beginPath(); ctx.ellipse(rim.cx, rim.cy, rim.rx, rim.ry, 0, 0, Math.PI * 2); ctx.stroke();
+}
+// the cleaning robot: a low white disc with a grey bumper, a dark top deck, a blinking light
+// (hidden under the bin once it carries it); it fades in when it arrives
+function drawBot(time) {
+  const bot = T.bot;
+  const ring = (y, r) => {
+    const [cx, f] = proj(bot.x, y, bot.z - r), [, bk] = proj(bot.x, y, bot.z + r), [, , s] = proj(bot.x, y, bot.z);
+    return { cx, cy: (f + bk) / 2, rx: r * s, ry: Math.max(1.5, Math.abs(f - bk) / 2) };
+  };
+  const top = ring(BOT.h, BOT.r), base = ring(0, BOT.r);
+  ctx.save(); ctx.globalAlpha = Math.min(1, bot.age / 0.5);
+  ctx.fillStyle = "#0007"; ctx.beginPath(); ctx.ellipse(base.cx, base.cy + 2, base.rx * 1.08, base.ry * 1.25, 0, 0, Math.PI * 2); ctx.fill();
+  const sg = ctx.createLinearGradient(base.cx - base.rx, 0, base.cx + base.rx, 0);
+  sg.addColorStop(0, "#8e959c"); sg.addColorStop(0.3, "#f4f6f8"); sg.addColorStop(0.7, "#c4cad0"); sg.addColorStop(1, "#6a7178");
+  ctx.fillStyle = sg; ctx.strokeStyle = "#4a5056"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(top.cx - top.rx, top.cy); ctx.lineTo(base.cx - base.rx, base.cy);
+  ctx.ellipse(base.cx, base.cy, base.rx, base.ry, 0, Math.PI, 0, true); ctx.lineTo(top.cx + top.rx, top.cy);
+  ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI, false); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // the bumper band round its front
+  const mid = ring(BOT.h * 0.45, BOT.r * 1.01);
+  ctx.strokeStyle = "#3a3f44"; ctx.lineWidth = Math.max(2, (base.cy - top.cy) * 0.35);
+  ctx.beginPath(); ctx.ellipse(mid.cx, mid.cy, mid.rx, mid.ry, 0, 0.15, Math.PI - 0.15); ctx.stroke();
+  // top deck and its light
+  ctx.fillStyle = "#e9ecef"; ctx.beginPath(); ctx.ellipse(top.cx, top.cy, top.rx, top.ry, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#2a2e34"; ctx.beginPath(); ctx.ellipse(top.cx, top.cy, top.rx * 0.78, top.ry * 0.78, 0, 0, Math.PI * 2); ctx.fill();
+  const [lx, ly] = proj(bot.x + BOT.r * 0.8, BOT.h * 0.6, bot.z - BOT.r * 0.6);
+  ctx.fillStyle = Math.sin(time * 8) > 0 ? "#5ad0ff" : "#2a7aa8"; ctx.beginPath(); ctx.arc(lx, ly, Math.max(1.5, top.rx * 0.07), 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 // a crumpled ball of notepaper: a lumpy outline (its own shape per ball), lit from the top-left,
 // creases with a highlight along each, faint ruled lines, a darker rim
@@ -1198,11 +1337,19 @@ function drawShoot(time) {
   const deskKey = (DESK.z0 + DESK.z1) / 2;
   const items = PLANTS.map(p => ({ z: p.z, draw: () => drawPlant(p) }));
   const ballInBin = b && (b.inCan || b.z > CAN.z);
-  items.push({ z: CAN.z, draw: () => { drawCanInside(); if (ballInBin) drawPaper(b); drawCanBody(); } });
+  // the robot: on its own while it drives to the bin, under the bin once it carries it
+  const botAlone = T.bot && T.bot.state === "in";
+  if (botAlone) items.push({ z: T.bot.z, draw: () => drawBot(time) });
+  items.push({ z: CAN.z, draw: () => { if (T.bot && !botAlone) drawBot(time); drawCanInside(); if (ballInBin) drawPaper(b); drawCanBody(); } });
   items.push({ z: deskKey, draw: drawDesk });
   // paper that missed, left where it came to rest (on the desk it shows in front of it,
-  // in a plant just in front of the leaves)
+  // in a plant just in front of the leaves); paper the robot is scooping up flies into the bin
   for (const l of T.litter) {
+    if (l.pick != null) {
+      const p = { ...l, ...pickPos(l) };
+      items.push({ z: Math.min(p.z, CAN.z - 0.01), draw: () => drawPaper(p) });
+      continue;
+    }
     const onDesk = overDesk(l) && l.y > DESK.y;
     const key = onDesk ? deskKey - 0.01 : l.plant != null ? PLANTS[l.plant].z - 0.3 : l.z;
     items.push({ z: key, draw: () => { if (onDesk || l.y < 0.15) drawShadow(l); drawPaper(l); } });
@@ -1806,7 +1953,7 @@ function frame(now) {
     T.now = clock;
     T.louver = louverAngle(clock);
     // a few small physics steps per frame keep fast throws from tunnelling through the rim
-    for (let i = 0; i < 4; i++) stepBall(dt / 4);
+    for (let i = 0; i < 4; i++) { stepBot(dt / 4); stepBall(dt / 4); }
     drawShoot(clock);
   } else if (C.on) {
     for (let i = 0; i < 3; i++) stepChair(dt / 3);
